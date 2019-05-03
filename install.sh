@@ -7,10 +7,10 @@ mag=$'\e[1;35m'
 cyn=$'\e[1;36m'
 end=$'\e[0m'
 
-printf "%s\n" "${yel}We need super powers to help you.${yel}";
-rm -rf ncurses
-mkdir ncurses
-cd ncurses
+printf "%s\n" "${yel}We need super powers to help you.${end}";
+rm -rf ./build
+mkdir ./build
+cd ./build
 sudo apt-get install php-cli php-pear php-dev libncurses5-dev ncurses-doc libncursesw5-dev
 wget https://pecl.php.net/get/ncurses-1.0.2.tgz \
 && tar -zxvf ncurses-1.0.2.tgz \
@@ -22,6 +22,6 @@ wget https://pecl.php.net/get/ncurses-1.0.2.tgz \
 && ./configure --enable-ncursesw \
 && make \
 && sudo make install
-cd ../ &&  rm -rf ./ncurses/
+cd ../../ &&  rm -rf ./build/
 printf  "\n\n\n"
 printf "%s\n" "${yel}!!!${end} Please, don't forget to add '${yel}extension${end}=${cyn}ncurses.so${end}' to your php.ini ${yel}!!!${end}"

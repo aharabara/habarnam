@@ -20,15 +20,17 @@ class TextArea extends Text implements FocusableInterface
     /** @var int */
     protected $defaultColorPair = Colors::BLACK_WHITE;
 
+    /** @var int */
+    protected $cursorColorPair = Colors::WHITE_BLACK;
+
     /**
      * TextArea constructor.
      * @param string $text
-     * @param int $align
      * @throws \Exception
      */
-    public function __construct(string $text, int $align)
+    public function __construct(string $text)
     {
-        parent::__construct($text, $align);
+        parent::__construct($text, self::DEFAULT_FILLs);
         $this->cursorIndex = strlen($text);
     }
 
@@ -84,14 +86,14 @@ class TextArea extends Text implements FocusableInterface
                     $cursor = substr($line, $index - 1, $index);
                     $after = substr($line, $index);
                     Curse::writeAt($before, $this->focusedColorPair, ++$y, $x);
-                    Curse::writeAt($cursor, Colors::WHITE_BLACK, $y, $x += strlen($before));
+                    Curse::writeAt($cursor, $this->cursorColorPair, $y, $x += strlen($before));
                     Curse::writeAt($after, $this->focusedColorPair, $y, ++$x);
                 } else {
-                    Curse::writeAt($line, null, ++$y, $x);
+                    Curse::writeAt($line, $this->defaultColorPair, ++$y, $x);
                 }
                 $index -= strlen($line);
             } else {
-                Curse::writeAt($line, null, ++$y, $x);
+                Curse::writeAt($line, $this->defaultColorPair, ++$y, $x);
             }
         }
     }

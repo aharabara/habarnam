@@ -21,6 +21,10 @@ class Button extends BaseComponent implements FocusableInterface
     /** @var int */
     protected $minHeight = 3;
 
+    /**
+     * Button constructor.
+     * @param string $label
+     */
     public function __construct(string $label)
     {
         $this->label = $label;
@@ -44,9 +48,16 @@ class Button extends BaseComponent implements FocusableInterface
         $width = $surf->width() - 4;
         $x = $surf->topLeft()->getX() + 1;
         $y = $surf->topLeft()->getY();
-        Curse::writeAt('+' . str_repeat('-', $width) . '+', $color, $y, $x);
-        Curse::writeAt('|' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '|', $color, ++$y, $x);
-        Curse::writeAt('+' . str_repeat('=', $width) . '+', $color, ++$y, $x);
+        if($key === 10){
+            $color = Colors::YELLOW_WHITE;
+            Curse::writeAt('┌' . str_repeat('─', $width) . '┐', $color, $y, $x);
+            Curse::writeAt('│' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '│', $color, ++$y, $x);
+            Curse::writeAt('└' . str_repeat('─', $width) . '┘', $color, ++$y, $x);
+        }else{
+            Curse::writeAt('╔' . str_repeat('═', $width) . '╗', $color, $y, $x);
+            Curse::writeAt('║' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '║', $color, ++$y, $x);
+            Curse::writeAt('╚' . str_repeat('═', $width) . '╝', $color, ++$y, $x);
+        }
         return $this;
     }
 }

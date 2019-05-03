@@ -5,17 +5,7 @@ namespace Base;
 class Input extends TextArea
 {
 
-    protected $minHeight = 3;
-
-    /**
-     * Input constructor.
-     * @param string $text
-     * @throws \Exception
-     */
-    public function __construct(string $text)
-    {
-        parent::__construct($text, TextArea::DEFAULT_FILL);
-    }
+    protected $minHeight = 1;
 
     /**
      * @param int|null $key
@@ -23,16 +13,11 @@ class Input extends TextArea
      */
     public function draw(?int $key): void
     {
-        $length = $this->surface->width() - 1;
+        $length = $this->surface->width();
         if ($this->isRestricted($key)) {
             $key = null;
         }
         $this->handleKeyPress($key);
-        if ($this->isFocused()) {
-            Curse::color(Colors::BLACK_YELLOW);
-        } else {
-            Curse::color(Colors::BLACK_WHITE);
-        }
         $this->defaultRender(str_pad(substr(str_replace(' ', '_', $this->text), 0, $length), $length, '_'));
     }
 

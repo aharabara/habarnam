@@ -4,22 +4,16 @@ namespace Base;
 
 class Divider extends Text
 {
-    /**
-     * @var string
-     */
-    private $infill;
-
     protected $minHeight = 1;
 
     /**
      * Divider constructor.
-     * @param string $infill
      * @throws \Exception
      */
-    public function __construct(string $infill)
+    public function __construct()
     {
-        parent::__construct($infill, self::DEFAULT_FILL);
-        $this->infill = $infill;
+        parent::__construct('', self::DEFAULT_FILL);
+
     }
 
     /**
@@ -29,7 +23,7 @@ class Divider extends Text
     public function setSurface(Surface $surface)
     {
         $res = parent::setSurface($surface);
-        $this->text = str_repeat($this->infill, $surface->width());
+        $this->text = str_repeat('─', $surface->width());
         return $res;
     }
 

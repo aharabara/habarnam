@@ -2,7 +2,7 @@
 
 namespace Base;
 
-class Window extends Square
+class Panel extends Square
 {
 
     public const VERTICAL = 'layout.vertical';
@@ -38,7 +38,7 @@ class Window extends Square
 
     /**
      * @param int|null $key
-     * @return Window
+     * @return Panel
      * @throws \Exception
      */
     public function draw(?int $key): self
@@ -69,10 +69,10 @@ class Window extends Square
 
     /**
      * @param DrawableInterface ...$components
-     * @return Window
+     * @return Panel
      * @throws \Exception
      */
-    public function setComponents(DrawableInterface ...$components): Window
+    public function setComponents(DrawableInterface ...$components): Panel
     {
         $this->components = $components;
         $this->setComponentsSurface();
@@ -82,10 +82,10 @@ class Window extends Square
     /**
      * @param int $index
      * @param DrawableInterface $component
-     * @return Window
+     * @return Panel
      * @throws \Exception
      */
-    public function replaceComponent(int $index, DrawableInterface $component): Window
+    public function replaceComponent(int $index, DrawableInterface $component): Panel
     {
         $this->components[$index] = $component;
         $this->setComponentsSurface();
