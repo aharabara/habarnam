@@ -1,0 +1,14 @@
+{
+    "name": "aharabara/habarnam",
+    "description": "Ncurses wrapper for fast TUI building",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "aharabara",
+            "email": "dev.xandr@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
