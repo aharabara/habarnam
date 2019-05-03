@@ -10,5 +10,10 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {}
+    "require": {},
+    "autoload": {
+        "classmap": [
+            "src"
+        ]
+    }
 }
