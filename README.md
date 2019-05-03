@@ -13,7 +13,10 @@
 #### v0.2.1
    - [ ] New line correct handling for textarea
    - [ ] Correct surface partition for components
-   
+
+#### v0.2.2
+   - [ ] Enable extended ascii symbols
+
 #### V0.3.0
    - [ ] Notifications
    - [ ] TemporaryComponentInterface
