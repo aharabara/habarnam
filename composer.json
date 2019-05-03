@@ -10,7 +10,11 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "ext-ncurses": "*",
+        "ext-ctype": "*",
+        "ext-mbstring": "*"
+    },
     "autoload": {
         "classmap": [
             "src"

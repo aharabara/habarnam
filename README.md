@@ -15,7 +15,7 @@
    - [ ] Correct surface partition for components
 
 #### v0.2.2
-   - [ ] Enable extended ascii symbols
+   - [x] Enable extended ascii symbols
 
 #### V0.3.0
    - [ ] Notifications

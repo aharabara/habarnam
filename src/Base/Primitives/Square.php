@@ -15,13 +15,22 @@ class Square extends BaseComponent
     protected $innerSymbol = ' ';
 
     /** @var string */
-    protected $horizontalBorderSymbol = '-';
+    protected $horizontalBorderSymbol = '─';
 
     /** @var string */
-    protected $verticalBorderSymbol = '|';
+    protected $verticalBorderSymbol = '│';
 
     /** @var string */
-    protected $borderCornersSymbol = '+';
+    protected $leftTopCorner = '╔';
+
+    /** @var string */
+    protected $leftBottomSymbol = '╚';
+
+    /** @var string */
+    protected $rightTopCorner = '╗';
+
+    /** @var string */
+    protected $rightBottomSymbol = '╝';
 
     /** @var int */
     protected $defaultColorPair = Colors::BLACK_WHITE;
@@ -43,9 +52,12 @@ class Square extends BaseComponent
 
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
             ncurses_move($y, $this->surface->topLeft()->getX());
-            if ($y === $higherBound || $y === $lowerBound) {
+            if ($y === $lowerBound) {
                 $line = str_repeat($this->horizontalBorderSymbol, $width - 2);
-                ncurses_addstr($this->borderCornersSymbol. $line . $this->borderCornersSymbol);
+                ncurses_addstr($this->leftBottomSymbol . $line . $this->rightBottomSymbol);
+            } elseif ($y === $higherBound) {
+                $line = str_repeat($this->horizontalBorderSymbol, $width - 2);
+                ncurses_addstr($this->leftTopCorner . $line . $this->rightTopCorner);
             } else {
                 ncurses_addstr($this->verticalBorderSymbol . str_repeat($this->innerSymbol,
                         $width - 2) . $this->verticalBorderSymbol);
@@ -66,40 +78,6 @@ class Square extends BaseComponent
     }
 
     /**
-     * @param string $innerSymbol
-     * @return $this
-     */
-    public function setInnerSymbol(string $innerSymbol): self
-    {
-        $this->innerSymbol = $innerSymbol;
-        return $this;
-    }
-
-    /**
-     * @param string $horizontalBorderSymbol
-     * @return $this
-     */
-    public function setHorizontalBorderSymbol(string $horizontalBorderSymbol): self
-    {
-        $this->horizontalBorderSymbol = $horizontalBorderSymbol;
-        return $this;
-    }
-
-    /**
-     * @param int $defaultColorPair
-     * @return $this
-     * @throws \Exception
-     */
-    public function setDefaultColorPair(int $defaultColorPair): self
-    {
-        if (!in_array($defaultColorPair, [Colors::BLACK_WHITE, Colors::BLACK_YELLOW], true)) {
-            throw new \Exception('Invalid Color for ' . __CLASS__ . '::' . __METHOD__);
-        }
-        $this->defaultColorPair = $defaultColorPair;
-        return $this;
-    }
-
-    /**
      * @param string $visible
      * @return $this
      */
@@ -108,41 +86,4 @@ class Square extends BaseComponent
         $this->visible = $visible;
         return $this;
     }
-
-    /**
-     * @return string
-     */
-    public function getBorderCornersSymbol(): string
-    {
-        return $this->borderCornersSymbol;
-    }
-
-    /**
-     * @param string $borderCornersSymbol
-     * @return Square
-     */
-    public function setBorderCornersSymbol(string $borderCornersSymbol): Square
-    {
-        $this->borderCornersSymbol = $borderCornersSymbol;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getVerticalBorderSymbol(): string
-    {
-        return $this->verticalBorderSymbol;
-    }
-
-    /**
-     * @param string $verticalBorderSymbol
-     * @return Square
-     */
-    public function setVerticalBorderSymbol(string $verticalBorderSymbol): Square
-    {
-        $this->verticalBorderSymbol = $verticalBorderSymbol;
-        return $this;
-    }
-
 }

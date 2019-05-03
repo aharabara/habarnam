@@ -2,6 +2,8 @@
 
 namespace Base;
 
+use RuntimeException;
+
 class Text extends BaseComponent
 {
 
@@ -34,7 +36,7 @@ class Text extends BaseComponent
     {
         $this->text = $text;
         if (!in_array($align, self::ALIGN_TYPES, true)) {
-            throw new \Exception('Align type is not supported');
+            throw new RuntimeException('Align type is not supported');
         }
         $this->align = $align;
     }
@@ -46,7 +48,7 @@ class Text extends BaseComponent
     public function draw(?int $key): void
     {
         if (!$this->surface) {
-            throw new \Exception('Text surface not set.');
+            throw new RuntimeException('Text surface not set.');
         }
         switch ($this->align) {
             case self::CENTER_TOP:
@@ -91,7 +93,7 @@ class Text extends BaseComponent
         $y = $pos->getY() + round($this->surface->height() - count($renderedLines) / 2) / 2;
 
         foreach ($renderedLines as $line) {
-            $x = $pos->getX() + $this->surface->width() / 2 - strlen($line) / 2;
+            $x = $pos->getX() + $this->surface->width() / 2 - mb_strlen($line) / 2;
             Curse::writeAt($line, null, ++$y, $x);
         }
     }
@@ -108,7 +110,7 @@ class Text extends BaseComponent
     {
         $result = [];
         foreach (explode("\n", $text) as $sentence) {
-            $result[] = str_split($sentence, $this->surface->width());
+            $result[] = $this->mbStrSplit($sentence, $this->surface->width());
         }
         $lines = [];
         array_walk_recursive($result, static function ($a) use (&$lines) {
@@ -120,4 +122,20 @@ class Text extends BaseComponent
         }
         return $linesToRender;
     }
+
+    /**
+     * @param $str
+     * @param int $len
+     * @return array
+     */
+    public function mbStrSplit($str, $len = 1): array
+    {
+        $arr = [];
+        $length = mb_strlen($str, 'UTF-8');
+        for ($i = 0; $i < $length; $i += $len) {
+            $arr[] = mb_substr($str, $i, $len, 'UTF-8');
+        }
+        return $arr;
+    }
+
 }
