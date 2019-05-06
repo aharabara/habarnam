@@ -22,11 +22,13 @@ class OrderedList extends BaseComponent implements FocusableInterface
 
     /**
      * OrderedList constructor.
+     * @param array $attrs
      */
-    public function __construct()
+    public function __construct(array $attrs)
     {
         $this->selected = null;
         $this->focusedItem = 0;
+        $this->itemsAreDeletable = boolval($attrs['deletable-items'] ?? false);
     }
 
 
@@ -116,8 +118,8 @@ class OrderedList extends BaseComponent implements FocusableInterface
     {
         unset($this->items[$focusedItem]);
         $this->items = array_values($this->items);
-        $this->focused = 0;
-        $this->selected = 0;
+        $this->focused = $focusedItem === 0 ? $focusedItem : $focusedItem - 1;
+        $this->selected = null;
     }
 
     /**
