@@ -13,7 +13,8 @@
     "require": {
         "ext-ncurses": "*",
         "ext-ctype": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "ext-simplexml": "*"
     },
     "autoload": {
         "classmap": [

@@ -5,8 +5,10 @@ namespace Base;
 
 class Application
 {
+    /** @var self */
+    protected static $instance;
 
-    /** @var int|null $lastValidKey */
+    /** @var int|null */
     protected $lastValidKey;
 
     /** @var int */
@@ -23,12 +25,25 @@ class Application
 
     /** @var bool */
     protected $singleLayerFocus;
-    /**
-     * @var int
-     */
+
+    /** @var int */
     protected $currentComponentIndex = 0;
 
-    public function __construct()
+    /** @var View */
+    protected $view;
+
+    /** @var array */
+    protected $controllers;
+
+    /**
+     * @return Application
+     */
+    public function getInstance(): Application
+    {
+        return self::$instance;
+    }
+
+    public function __construct(View $view)
     {
         ncurses_init();
         if (ncurses_has_colors()) {
@@ -40,6 +55,8 @@ class Application
         ncurses_nl();
         //ncurses_nonl();
         ncurses_curs_set(Curse::CURSOR_INVISIBLE);
+        $this->view = $view;
+        self::$instance = $this;
     }
 
     /**
@@ -89,6 +106,10 @@ class Application
     public function handle(?\Closure $callback = null): void
     {
         $this->currentComponentIndex = 0;
+        $components = $this->getDrawableComponents();
+        foreach ($components as $component) {
+            $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
+        }
         while (true) {
             $pressedKey = $this->getNonBlockCh(100000); // use a non blocking getch() instead of $ncurses->getCh()
             if ($callback) {
@@ -145,17 +166,17 @@ class Application
     }
 
     /**
-     * @param DrawableInterface $layer
+     * @param BaseComponent $layer
      * @return $this
      */
-    public function addLayer(DrawableInterface $layer): self
+    public function addLayer(BaseComponent $layer): self
     {
         $this->layers[] = $layer;
         return $this;
     }
 
     /**
-     * @return array|DrawableInterface[]
+     * @return array|BaseComponent[]
      */
     public function getLayers(): array
     {
@@ -190,12 +211,12 @@ class Application
     }
 
     /**
-     * @return array|DrawableInterface[]
+     * @return array|BaseComponent[]
      */
     protected function getDrawableComponents(): array
     {
         $components = [];
-        array_walk_recursive($this->layers, static function (DrawableInterface $drawable) use (&$components) {
+        array_walk_recursive($this->layers, static function (BaseComponent $drawable) use (&$components) {
             $items = array_filter($drawable->toComponentsArray());
             if ($items) {
                 array_push($components, ...$items);
@@ -205,11 +226,11 @@ class Application
     }
 
     /**
-     * @param DrawableInterface $component
+     * @param BaseComponent $component
      * @param int|null $key
      * @return $this
      */
-    protected function handleComponentFocus(DrawableInterface $component, ?int $key): self
+    protected function handleComponentFocus(BaseComponent $component, ?int $key): self
     {
         if ($component instanceof FocusableInterface && $this->currentComponentIndex === (int)$key) {
             $component->setFocused(true);
@@ -220,7 +241,7 @@ class Application
     }
 
     /**
-     * @param array|DrawableInterface $components
+     * @param array|BaseComponent $components
      * @return $this
      */
     protected function handleFocusIndexOverflow(array $components): self
@@ -234,11 +255,11 @@ class Application
     }
 
     /**
-     * @param DrawableInterface $component
+     * @param BaseComponent $component
      * @param int|null $key
      * @return $this
      */
-    protected function handleNonFocusableComponents(DrawableInterface $component, ?int $key): self
+    protected function handleNonFocusableComponents(BaseComponent $component, ?int $key): self
     {
         if ($this->currentComponentIndex === $key && !$component instanceof FocusableInterface) {
             if ($this->lastValidKey === NCURSES_KEY_BTAB) {
@@ -248,5 +269,25 @@ class Application
             }
         }
         return $this;
+    }
+
+    /**
+     * @return View
+     */
+    public function view(): View
+    {
+        return $this->view;
+    }
+
+    /**
+     * @param string $class
+     * @return mixed
+     */
+    public function controller(string $class)
+    {
+        if (!isset($this->controllers[$class])) {
+            $this->controllers[$class] = new $class($this);
+        }
+        return $this->controllers[$class];
     }
 }

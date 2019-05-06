@@ -50,7 +50,7 @@ class Terminal
     {
 //        print_r([(self::width() - $width) / 2, (self::height() - $height) / 2]);
 
-        return (new Surface(new Position(0, 0), new Position(self::width(), self::height())))
+        return (new Surface('surface.centered', new Position(0, 0), new Position(self::width(), self::height())))
             ->resize(($width - self::width()) / 2, ($height - self::height()) / 2);
     }
 

@@ -4,9 +4,7 @@ namespace Base;
 
 class Button extends BaseComponent implements FocusableInterface
 {
-    use EventBusTrait;
-
-    public const CLICKED = 'button.clicked';
+    public const PRESS = 'press';
 
     /**
      * @var callable
@@ -23,11 +21,11 @@ class Button extends BaseComponent implements FocusableInterface
 
     /**
      * Button constructor.
-     * @param string $label
+     * @param array $attrs
      */
-    public function __construct(string $label)
+    public function __construct(array $attrs)
     {
-        $this->label = $label;
+        $this->label = $attrs['label'];
     }
 
     /**
@@ -38,7 +36,7 @@ class Button extends BaseComponent implements FocusableInterface
     {
         if ($key === 10 /* Enter */) {
             Curse::color(Colors::BLACK_YELLOW);
-            $this->dispatch(self::CLICKED, []);
+            $this->dispatch(self::PRESS, []);
         }
         $color = Colors::BLACK_WHITE;
         if ($this->isFocused()) {

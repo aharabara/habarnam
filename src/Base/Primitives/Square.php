@@ -66,18 +66,6 @@ class Square extends BaseComponent
     }
 
     /**
-     * @param Position $topLeft
-     * @param Position $bottomRight
-     * @return $this
-     * @throws \Exception
-     */
-    public function setDimensions(Position $topLeft, Position $bottomRight): self
-    {
-        $this->surface = new Surface($topLeft, $bottomRight);
-        return $this;
-    }
-
-    /**
      * @param string $visible
      * @return $this
      */

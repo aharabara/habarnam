@@ -4,13 +4,24 @@ namespace Base;
 
 abstract class BaseComponent implements DrawableInterface
 {
+    use EventBusTrait;
+
+    public const INITIALISATION = 'init';
+
     /** @var bool */
-    protected $focused = false;
+    protected $focused;
 
     /** @var Surface */
     protected $surface;
-    protected $minHeight = null;
-    protected $minWidth = null;
+
+    /** @var int|null */
+    protected $minHeight;
+
+    /** @var int|null */
+    protected $minWidth;
+
+    /** @var string */
+    protected $id;
 
     /**
      * @return array|DrawableInterface[]
@@ -25,7 +36,7 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function isFocused(): bool
     {
-        return $this->focused;
+        return $this->focused ?? false;
     }
 
     /**
@@ -78,6 +89,24 @@ abstract class BaseComponent implements DrawableInterface
     public function minimalWidth(): ?int
     {
         return $this->minWidth;
+    }
+
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param string $id
+     * @return DrawableInterface
+     */
+    public function setId(string $id)
+    {
+        $this->id = $id;
+        return $this;
     }
 
 }

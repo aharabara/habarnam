@@ -4,10 +4,9 @@ namespace Base;
 
 class OrderedList extends BaseComponent implements FocusableInterface
 {
-    use EventBusTrait;
-    public const EVENT_SELECTED = 'list.item.selected';
-    public const EVENT_BEFORE_SELECT = 'list.item.before_select';
-    public const EVENT_DELETED = 'list.item.deleted';
+    public const EVENT_SELECTED = 'item.selected';
+    public const EVENT_BEFORE_SELECT = 'item.before-select';
+    public const EVENT_DELETED = 'item.deleted';
 
     /** @var array|ListItem[] */
     protected $items = [];
@@ -167,6 +166,24 @@ class OrderedList extends BaseComponent implements FocusableInterface
     protected function itemsAreDeletable(): bool
     {
         return $this->itemsAreDeletable;
+    }
+
+    /**
+     * @param array|ListItem[] $items
+     * @return OrderedList
+     */
+    public function setItems(array $items): self
+    {
+        $this->items = $items;
+        return $this;
+    }
+
+    /**
+     * @return array|ListItem[]
+     */
+    public function getItems(): array
+    {
+        return $this->items;
     }
 
 }

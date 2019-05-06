@@ -9,12 +9,11 @@ class Label extends Text
 
     /**
      * Point constructor.
-     * @param string $text
-     * @param int $align
+     * @param array $attrs
      * @throws \Exception
      */
-    public function __construct(string $text, int $align = self::DEFAULT_FILL)
+    public function __construct(array $attrs)
     {
-        parent::__construct($text, $align);
+        parent::__construct($attrs['text'], self::DEFAULT_FILL);
     }
 }

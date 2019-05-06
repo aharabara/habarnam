@@ -24,11 +24,12 @@ class Panel extends Square
      * @param string $id
      * @param string $title
      * @param Surface $surface
-     * @param DrawableInterface ...$components
+     * @param DrawableInterface[] $components
      * @throws \Exception
      */
-    public function __construct(string $id, ?string $title, Surface $surface, DrawableInterface ...$components)
+    public function __construct(string $id, ?string $title, Surface $surface, array $components)
     {
+        array_map(function (DrawableInterface $drawable) {}, $components); // typecheck
         $this->id = $id;
         $this->components = $components;
         $this->surface = $surface;
@@ -106,17 +107,21 @@ class Panel extends Square
      */
     protected function setComponentsSurface(): self
     {
+        $baseSurf = $this->surface->resize(-1, -1);
         if (count($this->components) === 1) {
-            $this->components[0]->setSurface($this->surface->resize(-1, -1));
+            /** @var DrawableInterface $component */
+            $component = reset($this->components);
+            $baseSurf->setId("{$baseSurf->getId()}.{$component->getId()}");
+            $component->setSurface($baseSurf);
             return $this;
         }
-        $baseSurf = $this->surface->resize(-1, -1);
         $offsetY = $baseSurf->topLeft()->getY();
         $perComponentHeight = $baseSurf->height() / count($this->components);
         foreach ($this->components as $key => $component) {
             $height = $component->minimalHeight() ?? $perComponentHeight;
             if (!$component->hasSurface()) {
                 $surf = new Surface(
+                    "{$this->surface->getId()}.children.{$component->getId()}",
                     new Position($baseSurf->topLeft()->getX(), $offsetY),
                     new Position($baseSurf->bottomRight()->getX(), $offsetY += $height)
                 );
@@ -128,11 +133,6 @@ class Panel extends Square
         return $this;
     }
 
-//    public function setMenu(Menu $menu)
-//    {
-//
-//    }
-
     /**
      * @return array|DrawableInterface[]
      */
@@ -143,7 +143,7 @@ class Panel extends Square
         }
         $components = [];
         $components[] = $this;
-        array_push($components, ...$this->components ?? []);
+        array_push($components, ...array_values($this->components) ?? []);
         return $components;
     }
 

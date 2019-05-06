@@ -29,6 +29,17 @@ interface DrawableInterface
     public function surface(): Surface;
 
     /**
+     * @param string $id
+     * @return self
+     */
+    public function setId(string $id);
+
+    /**
+     * @return self
+     */
+    public function getId(): string;
+
+    /**
      * @return int|null
      */
     public function minimalHeight(): ?int;

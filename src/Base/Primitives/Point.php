@@ -13,6 +13,11 @@ class Point implements DrawableInterface
      */
     protected $position;
 
+    /**
+     * @var string
+     */
+    protected $id;
+
 
     /**
      * Point constructor.
@@ -53,7 +58,7 @@ class Point implements DrawableInterface
      */
     public function surface(): Surface
     {
-        return new Surface($this->position, clone $this->position);
+        return new Surface('surface.'.$this->getId(), $this->position, clone $this->position);
     }
 
     /**
@@ -78,5 +83,23 @@ class Point implements DrawableInterface
     public function minimalWidth(): ?int
     {
         return null;
+    }
+
+    /**
+     * @param string $id
+     * @return self
+     */
+    public function setId(string $id)
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    public function getId(): string
+    {
+        return $this->id;
     }
 }

@@ -13,15 +13,21 @@ class Surface
      * @var Position
      */
     protected $bottomRight;
+    /**
+     * @var string
+     */
+    protected $id;
 
     /**
      * Surface constructor.
+     * @param string $id
      * @param Position $topLeft
      * @param Position $bottomRight
      * @throws \Exception
      */
-    public function __construct(Position $topLeft, Position $bottomRight)
+    public function __construct(string $id, Position $topLeft, Position $bottomRight)
     {
+        $this->id = $id;
         $this->topLeft = $topLeft;
         $this->bottomRight = $bottomRight;
         if ($this->width() < 0 || $this->height() < 0) {
@@ -70,8 +76,27 @@ class Surface
     public function resize(int $x, int $y): Surface
     {
         return new self(
+            $this->id . '.children',
             new Position($this->topLeft->getX() - $x, $this->topLeft->getY() - $y),
             new Position($this->bottomRight->getX() + $x, $this->bottomRight->getY() + $y)
         );
+    }
+
+    /**
+     * @param string $id
+     * @return Surface
+     */
+    public function setId(string $id): Surface
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
     }
 }
