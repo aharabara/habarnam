@@ -15,6 +15,9 @@
 
 #### v0.3.0
    - [x] UI rendering via XML
+   
+#### v0.3.1
+   - [x] XML schema generation for UI, with attributes and events checks.
 
 #### v0.3.1
    - [ ] New line correct handling for textarea
