@@ -23,9 +23,12 @@
 #### v0.3.2
    - [ ] New line correct handling for textarea
    - [ ] Correct surface partition for components
+      - [ ] Vertical layout  for Component Container interface
+      - [ ] Horizontal layout for Component Container interface
 
 #### v0.3.3
    - [ ] Composable Components (ex. Ordered list of checkboxes)
+   - [ ] Make List a scrollable container for container of components AKA List of something
 
 #### V0.4.0
    - [ ] Notifications
