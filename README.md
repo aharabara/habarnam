@@ -24,6 +24,9 @@
    - [ ] New line correct handling for textarea
    - [ ] Correct surface partition for components
 
+#### v0.3.3
+   - [ ] Composable Components (ex. Ordered list of checkboxes)
+
 #### V0.4.0
    - [ ] Notifications
    - [ ] TemporaryComponentInterface
