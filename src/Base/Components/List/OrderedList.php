@@ -29,6 +29,7 @@ class OrderedList extends BaseComponent implements FocusableInterface
         $this->selected = null;
         $this->focusedItem = 0;
         $this->itemsAreDeletable = boolval($attrs['deletable-items'] ?? false);
+        parent::__construct($attrs);
     }
 
 

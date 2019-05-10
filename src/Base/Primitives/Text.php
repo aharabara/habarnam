@@ -10,10 +10,11 @@ class Text extends BaseComponent
     /** @var string */
     protected $text;
 
-    public const DEFAULT_FILL = 0;
-    public const CENTER_TOP = 1;
-    public const CENTER_MIDDLE = 2;
-    public const CENTER_BOTTOM = 3;
+    public const DEFAULT_FILL  = 'default';
+    public const CENTER_TOP    = 'center-top';
+    public const CENTER_MIDDLE = 'center-middle';
+    public const CENTER_BOTTOM = 'center-bottom';
+
     public const ALIGN_TYPES = [
         self::CENTER_BOTTOM,
         self::CENTER_MIDDLE,
@@ -24,21 +25,20 @@ class Text extends BaseComponent
     /**
      * @var int
      */
-    private $align;
+    protected $align;
 
     /**
      * Point constructor.
-     * @param string $text
-     * @param int $align
-     * @throws \Exception
+     * @param array $attrs
      */
-    public function __construct(string $text, int $align)
+    public function __construct(array $attrs)
     {
-        $this->text = $text;
-        if (!in_array($align, self::ALIGN_TYPES, true)) {
+        if (!in_array($attrs['align'], self::ALIGN_TYPES, true)) {
             throw new RuntimeException('Align type is not supported');
         }
-        $this->align = $align;
+        $this->text = $attrs['text'];
+        $this->align = $attrs['align'];
+        parent::__construct($attrs);
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Base;
 
-class Panel extends Square
+class Panel extends Square implements ComponentsContainerInterface
 {
 
     public const VERTICAL = 'layout.vertical';
@@ -11,8 +11,8 @@ class Panel extends Square
     /** @var string */
     protected $id;
 
-    /** @var DrawableInterface */
-    protected $components;
+    /** @var DrawableInterface[] */
+    protected $components = [];
 
     /** @var string */
     protected $title;
@@ -21,20 +21,12 @@ class Panel extends Square
 
     /**
      * Window constructor.
-     * @param string $id
-     * @param string $title
-     * @param Surface $surface
-     * @param DrawableInterface[] $components
-     * @throws \Exception
+     * @param array $attrs
      */
-    public function __construct(string $id, ?string $title, Surface $surface, array $components)
+    public function __construct(array $attrs)
     {
-        array_map(function (DrawableInterface $drawable) {}, $components); // typecheck
-        $this->id = $id;
-        $this->components = $components;
-        $this->surface = $surface;
-        $this->title = $title;
-        $this->setComponentsSurface();
+        $this->title = $attrs['title'] ?? null;
+        parent::__construct($attrs);
     }
 
     /**
@@ -61,7 +53,7 @@ class Panel extends Square
      * @return Square
      * @throws \Exception
      */
-    public function setSurface(Surface $surface): Square
+    public function setSurface(Surface $surface)
     {
         $result = parent::setSurface($surface);
         $this->setComponentsSurface();
@@ -107,6 +99,9 @@ class Panel extends Square
      */
     protected function setComponentsSurface(): self
     {
+        if (empty($this->components)){
+            return $this;
+        }
         $baseSurf = $this->surface->resize(-1, -1);
         if (count($this->components) === 1) {
             /** @var DrawableInterface $component */
@@ -123,7 +118,7 @@ class Panel extends Square
                 $surf = new Surface(
                     "{$this->surface->getId()}.children.{$component->getId()}",
                     new Position($baseSurf->topLeft()->getX(), $offsetY),
-                    new Position($baseSurf->bottomRight()->getX(), $offsetY += $height)
+                    new Position($baseSurf->bottomRight()->getX(), ($offsetY += $height) -1)
                 );
                 $component->setSurface($surf);
             } else {
@@ -143,7 +138,9 @@ class Panel extends Square
         }
         $components = [];
         $components[] = $this;
-        array_push($components, ...array_values($this->components) ?? []);
+        if (!empty($this->components)) {
+            array_push($components, ...array_values($this->components) ?? []);
+        }
         return $components;
     }
 

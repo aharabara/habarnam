@@ -8,12 +8,11 @@ class Divider extends Text
 
     /**
      * Divider constructor.
-     * @throws \Exception
+     * @param array $attr
      */
-    public function __construct()
+    public function __construct(array $attr = [])
     {
-        parent::__construct('', self::DEFAULT_FILL);
-
+        parent::__construct(['align' => self::DEFAULT_FILL]);
     }
 
     /**
@@ -26,6 +25,4 @@ class Divider extends Text
         $this->text = str_repeat('─', $surface->width());
         return $res;
     }
-
-
 }

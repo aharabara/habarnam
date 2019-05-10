@@ -9,7 +9,7 @@ abstract class BaseComponent implements DrawableInterface
     public const INITIALISATION = 'init';
 
     /** @var bool */
-    protected $focused;
+    protected $focused = false;
 
     /** @var Surface */
     protected $surface;
@@ -23,12 +23,11 @@ abstract class BaseComponent implements DrawableInterface
     /** @var string */
     protected $id;
 
-    /**
-     * @return array|DrawableInterface[]
-     */
-    public function toComponentsArray(): array
+    public function __construct(array $attrs)
     {
-        return [$this];
+        $this->id = $attrs['id'] ?? null;
+        $this->minWidth = $attrs['min-width'] ?? null;
+        $this->minHeight = $attrs['min-height'] ?? null;
     }
 
     /**
@@ -92,21 +91,11 @@ abstract class BaseComponent implements DrawableInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
-    }
-
-    /**
-     * @param string $id
-     * @return DrawableInterface
-     */
-    public function setId(string $id)
-    {
-        $this->id = $id;
-        return $this;
     }
 
 }

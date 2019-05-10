@@ -11,11 +11,6 @@ interface DrawableInterface
     public function draw(?int $key);
 
     /**
-     * @return array
-     */
-    public function toComponentsArray(): array;
-
-    /**
      * @param Surface $surface
      * @return $this
      */
@@ -29,15 +24,9 @@ interface DrawableInterface
     public function surface(): Surface;
 
     /**
-     * @param string $id
      * @return self
      */
-    public function setId(string $id);
-
-    /**
-     * @return self
-     */
-    public function getId(): string;
+    public function getId(): ?string;
 
     /**
      * @return int|null

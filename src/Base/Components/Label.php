@@ -14,6 +14,7 @@ class Label extends Text
      */
     public function __construct(array $attrs)
     {
-        parent::__construct($attrs['text'], self::DEFAULT_FILL);
+        $attrs['align'] = self::DEFAULT_FILL;
+        parent::__construct($attrs);
     }
 }

@@ -62,14 +62,6 @@ class Point implements DrawableInterface
     }
 
     /**
-     * @return array
-     */
-    public function toComponentsArray(): array
-    {
-        return [$this];
-    }
-
-    /**
      * @return int|null
      */
     public function minimalHeight(): ?int
@@ -86,19 +78,9 @@ class Point implements DrawableInterface
     }
 
     /**
-     * @param string $id
      * @return self
      */
-    public function setId(string $id)
-    {
-        $this->id = $id;
-        return $this;
-    }
-
-    /**
-     * @return self
-     */
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
     }

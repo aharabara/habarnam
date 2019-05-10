@@ -10,8 +10,8 @@ class View
     /** @var Surface[] */
     protected $surfaces = [];
 
-    /** @var Panel[] */
-    protected $panels = [];
+    /** @var ComponentsContainerInterface[] */
+    protected $containers = [];
 
     /** @var BaseComponent[] */
     protected $components = [];
@@ -61,8 +61,12 @@ class View
                     break;
                 case 'panels':
                     foreach ($node->children() as $panelNode) {
-                        $panel = $this->panelFromNode($panelNode);
-                        $this->panels[$panel->getId()] = $panel;
+                        $container = $this->containerFromNode($panelNode);
+                        if ($container->getId()) {
+                            $this->containers[$container->getId()] = $container;
+                        } else {
+                            $this->containers[] = $container;
+                        }
                     }
                     break;
             }
@@ -98,29 +102,44 @@ class View
     }
 
     /**
-     * @param \SimpleXMLElement $panelNode
+     * @param \SimpleXMLElement $node
      * @return Panel
      * @throws \Exception
      */
-    protected function panelFromNode(\SimpleXMLElement $panelNode): Panel
+    protected function containerFromNode(\SimpleXMLElement $node): ComponentsContainerInterface
     {
         $components = [];
-        foreach ($panelNode->children() as $component) {
-            $attrs = $this->getAttributes($component);
-            $class = $this->getComponentClass($component->getName());
+        $nodeAttrs = $this->getAttributes($node);
+        $class = $this->getComponentClass($node->getName());
+        /** @var DrawableInterface|ComponentsContainerInterface $container */
+        $container = new $class($nodeAttrs);
+
+        if (isset($nodeAttrs['surface'])) {
+            $container->setSurface($this->surface($nodeAttrs['surface']));
+        }
+        foreach ($node->children() as $subNode) {
+            $attrs = $this->getAttributes($subNode);
+            $class = $this->getComponentClass($subNode->getName());
             /** @var DrawableInterface $component */
-            $component = new $class($attrs);
-            $component->setId($attrs['id']);
+            if (is_a(new $class([]), ComponentsContainerInterface::class)) {
+                $component = $this->containerFromNode($subNode);
+            } else {
+                $component = new $class($attrs);
+            }
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
             }
-            $components[$attrs['id']] = $component;
+            if(isset($attrs['id'])){
+                $components[$attrs['id']] = $component;
+                $this->components[$attrs['id']] = $component;
+            }else{
+                $components[] = $component;
+                $this->components[] = $component;
+            }
             $this->handleComponentEvents($component, $attrs);
-            $this->components[$attrs['id']] = $component;
         }
-        $panelAttrs = $this->getAttributes($panelNode);
-        return new Panel($panelAttrs['id'], $panelAttrs['title'] ?? null, $this->surface($panelAttrs['surface']),
-            $components);
+        $container->setComponents(...array_values($components));
+        return $container;
     }
 
     /**
@@ -138,18 +157,18 @@ class View
     /**
      * @return array
      */
-    public function panels(): array
+    public function containers(): array
     {
-        return $this->panels;
+        return $this->containers;
     }
 
     /**
      * @param string $id
      * @return Panel
      */
-    public function panel(string $id): Panel
+    public function container(string $id): Panel
     {
-        return $this->panels[$id];
+        return $this->containers[$id];
     }
 
     /**

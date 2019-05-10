@@ -30,8 +30,10 @@ class TextArea extends Text implements FocusableInterface
      */
     public function __construct(array $attrs)
     {
-        parent::__construct($attrs['text'] ?? '', self::DEFAULT_FILL);
-        $this->cursorIndex = strlen($attrs['text'] ?? '');
+        $attrs['text']  = $attrs['text'] ?? '';
+        $attrs['align'] = self::DEFAULT_FILL;
+        parent::__construct($attrs);
+        $this->cursorIndex = strlen($attrs['text']);
     }
 
     /**
