@@ -99,7 +99,7 @@ class Panel extends Square implements ComponentsContainerInterface
      */
     protected function setComponentsSurface(): self
     {
-        if (empty($this->components)){
+        if (empty($this->components)) {
             return $this;
         }
         $baseSurf = $this->surface->resize(-1, -1);
@@ -110,20 +110,22 @@ class Panel extends Square implements ComponentsContainerInterface
             $component->setSurface($baseSurf);
             return $this;
         }
-        $offsetY = $baseSurf->topLeft()->getY();
+        $offsetY = 0;
         $perComponentHeight = $baseSurf->height() / count($this->components);
         foreach ($this->components as $key => $component) {
             $height = $component->minimalHeight() ?? $perComponentHeight;
-            if (!$component->hasSurface()) {
-                $surf = new Surface(
-                    "{$this->surface->getId()}.children.{$component->getId()}",
-                    new Position($baseSurf->topLeft()->getX(), $offsetY),
-                    new Position($baseSurf->bottomRight()->getX(), ($offsetY += $height) -1)
-                );
-                $component->setSurface($surf);
-            } else {
-                $offsetY += $component->surface()->height();
-            }
+            $surf = Surface::fromCalc(
+                "{$this->surface->getId()}.children.{$component->getId()}",
+                static function () use ($baseSurf, $offsetY) {
+                    return new Position($baseSurf->topLeft()->getX(), $offsetY + $baseSurf->topLeft()->getY());
+                },
+                static function () use ($baseSurf, $component, $height, $offsetY) {
+                    $width = $component->minimalWidth() ?? $baseSurf->bottomRight()->getX();
+                    return new Position($width, $offsetY + $baseSurf->topLeft()->getY() + $height - 1);
+                }
+            );
+            $component->setSurface($surf);
+            $offsetY += $height;
         }
         return $this;
     }

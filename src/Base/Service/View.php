@@ -16,6 +16,21 @@ class View
     /** @var BaseComponent[] */
     protected $components = [];
 
+    public function __construct()
+    {
+        self::registerComponent('div', Divider::class);
+        self::registerComponent('text', Text::class);
+        self::registerComponent('point', Point::class);
+        self::registerComponent('square', Point::class);
+        self::registerComponent('list', OrderedList::class);
+        self::registerComponent('input', Input::class);
+        self::registerComponent('label', Label::class);
+        self::registerComponent('panel', Panel::class);
+        self::registerComponent('button', Button::class);
+        self::registerComponent('textarea', TextArea::class);
+        Terminal::update(); // to allow php to parse columns and rows
+    }
+
     /**
      * StyleResolver constructor.
      * @param string $filePath
@@ -94,10 +109,14 @@ class View
         [$topLeft, $bottomRight] = $surfNode->children();
         $topLeftAttrs = $this->getAttributes($topLeft);
         $bottomRightAttrs = $this->getAttributes($bottomRight);
-        return new Surface(
+        return Surface::fromCalc(
             $attrs['id'],
-            $this->getTopLeftCoords($topLeftAttrs),
-            $this->getBottomRightCoords($bottomRightAttrs)
+            function () use ($topLeftAttrs) {
+                return $this->getTopLeftCoords($topLeftAttrs);
+            },
+            function () use ($bottomRightAttrs) {
+                return $this->getBottomRightCoords($bottomRightAttrs);
+            }
         );
     }
 
@@ -129,10 +148,10 @@ class View
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
             }
-            if(isset($attrs['id'])){
+            if (isset($attrs['id'])) {
                 $components[$attrs['id']] = $component;
                 $this->components[$attrs['id']] = $component;
-            }else{
+            } else {
                 $components[] = $component;
                 $this->components[] = $component;
             }

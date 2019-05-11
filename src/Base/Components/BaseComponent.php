@@ -26,8 +26,12 @@ abstract class BaseComponent implements DrawableInterface
     public function __construct(array $attrs)
     {
         $this->id = $attrs['id'] ?? null;
-        $this->minWidth = $attrs['min-width'] ?? null;
-        $this->minHeight = $attrs['min-height'] ?? null;
+        if (isset($attrs['min-height'])) {
+            $this->minHeight = $attrs['min-height'];
+        }
+        if (isset($attrs['min-width'])) {
+            $this->minWidth = $attrs['min-width'] ?? null;
+        }
     }
 
     /**

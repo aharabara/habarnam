@@ -32,4 +32,36 @@ class Curse
         }
         ncurses_addstr($text);
     }
+
+    /**
+     * @return int
+     */
+    public static function getCh(): int
+    {
+        return ncurses_getch();
+    }
+
+    public static function initColorPairs(): void
+    {
+        ncurses_init_pair(Colors::BLACK_WHITE, NCURSES_COLOR_WHITE, NCURSES_COLOR_BLACK);
+        ncurses_init_pair(Colors::WHITE_BLACK, NCURSES_COLOR_BLACK, NCURSES_COLOR_WHITE);
+        ncurses_init_pair(Colors::BLACK_YELLOW, NCURSES_COLOR_YELLOW, NCURSES_COLOR_BLACK);
+        ncurses_init_pair(Colors::YELLOW_WHITE, NCURSES_COLOR_BLACK, NCURSES_COLOR_YELLOW);
+        ncurses_init_pair(Colors::BLACK_GREEN, NCURSES_COLOR_GREEN, NCURSES_COLOR_BLACK);
+        ncurses_init_pair(Colors::BLACK_RED, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
+    }
+
+    public static function initialize(): void
+    {
+        ncurses_init();
+        if (ncurses_has_colors()) {
+            ncurses_start_color();
+            Curse::initColorPairs();
+        }
+        //ncurses_echo();
+        ncurses_noecho();
+        ncurses_nl();
+        //ncurses_nonl();
+        ncurses_curs_set(Curse::CURSOR_INVISIBLE);
+    }
 }

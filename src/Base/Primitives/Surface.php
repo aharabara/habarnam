@@ -4,33 +4,31 @@ namespace Base;
 
 class Surface
 {
-    /**
-     * @var Position
-     */
+    /** @var Position */
     protected $topLeft;
 
-    /**
-     * @var Position
-     */
+    /** @var Position */
     protected $bottomRight;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $id;
+
+    /** @var string */
+    protected $parent;
 
     /**
      * Surface constructor.
      * @param string $id
-     * @param Position $topLeft
-     * @param Position $bottomRight
+     * @param Position|null $topLeft
+     * @param Position|null $bottomRight
      * @throws \Exception
      */
-    public function __construct(string $id, Position $topLeft, Position $bottomRight)
+    public function __construct(string $id, ?Position $topLeft = null, ?Position $bottomRight = null)
     {
         $this->id = $id;
         $this->topLeft = $topLeft;
         $this->bottomRight = $bottomRight;
-        if ($this->width() < 0 || $this->height() < 0) {
+        if ($topLeft && $bottomRight && ($this->width() < 0 || $this->height() < 0)) {
             throw new \Exception('Incorrect positions for Surface class. Positions should give positive height and width.');
         }
     }
@@ -40,7 +38,7 @@ class Surface
      */
     public function topLeft(): Position
     {
-        return $this->topLeft;
+        return is_callable($this->topLeft) ? ($this->topLeft)() : $this->topLeft;
     }
 
     /**
@@ -48,7 +46,7 @@ class Surface
      */
     public function bottomRight(): Position
     {
-        return $this->bottomRight;
+        return is_callable($this->bottomRight) ? ($this->bottomRight)() : $this->bottomRight;
     }
 
     /**
@@ -56,7 +54,7 @@ class Surface
      */
     public function width(): int
     {
-        return $this->bottomRight->getX() - $this->topLeft->getX();
+        return $this->bottomRight()->getX() - $this->topLeft()->getX();
     }
 
     /**
@@ -64,7 +62,22 @@ class Surface
      */
     public function height(): int
     {
-        return $this->bottomRight->getY() - $this->topLeft->getY();
+        return $this->bottomRight()->getY() - $this->topLeft()->getY();
+    }
+
+    /**
+     * @param string $id
+     * @param \Closure $topLeft
+     * @param \Closure $bottomRight
+     * @return Surface
+     * @throws \Exception
+     */
+    public static function fromCalc(string $id, \Closure $topLeft, \Closure $bottomRight): Surface
+    {
+        $surface = new Surface($id);
+        $surface->topLeft = $topLeft;
+        $surface->bottomRight = $bottomRight;
+        return $surface;
     }
 
     /**
@@ -75,10 +88,14 @@ class Surface
      */
     public function resize(int $x, int $y): Surface
     {
-        return new self(
-            $this->id . '.children',
-            new Position($this->topLeft->getX() - $x, $this->topLeft->getY() - $y),
-            new Position($this->bottomRight->getX() + $x, $this->bottomRight->getY() + $y)
+        return self::fromCalc(
+            $this->id . '.children.' . random_int(0, 1000),
+            function () use ($y, $x) {
+                return new Position($this->topLeft()->getX() - $x, $this->topLeft()->getY() - $y);
+            },
+            function () use ($x, $y) {
+                return new Position($this->bottomRight()->getX() + $x, $this->bottomRight()->getY() + $y);
+            }
         );
     }
 

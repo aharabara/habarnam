@@ -15,7 +15,7 @@ class Square extends BaseComponent
     protected $innerSymbol = ' ';
 
     /** @var string */
-    protected $horizontalBorderSymbol = '─';
+    protected $horizBorderSymbol = '─';
 
     /** @var string */
     protected $verticalBorderSymbol = '│';
@@ -45,23 +45,20 @@ class Square extends BaseComponent
             return;
         }
         // draw two squares
-        ncurses_color_set($this->defaultColorPair);
+        $color = $this->defaultColorPair;
         $lowerBound = $this->surface->bottomRight()->getY();
         $higherBound = $this->surface->topLeft()->getY();
-        $width = $this->surface->width();
+        $width = $this->surface->width() - 2; // 2 symbols for borders
 
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
-            ncurses_move($y, $this->surface->topLeft()->getX());
             if ($y === $lowerBound) {
-                $line = str_repeat($this->horizontalBorderSymbol, $width - 2);
-                ncurses_addstr($this->leftBottomSymbol . $line . $this->rightBottomSymbol);
+                $text = $this->leftBottomSymbol . str_repeat($this->horizBorderSymbol, $width) . $this->rightBottomSymbol;
             } elseif ($y === $higherBound) {
-                $line = str_repeat($this->horizontalBorderSymbol, $width - 2);
-                ncurses_addstr($this->leftTopCorner . $line . $this->rightTopCorner);
+                $text = $this->leftTopCorner . str_repeat($this->horizBorderSymbol, $width) . $this->rightTopCorner;
             } else {
-                ncurses_addstr($this->verticalBorderSymbol . str_repeat($this->innerSymbol,
-                        $width - 2) . $this->verticalBorderSymbol);
+                $text = $this->verticalBorderSymbol . str_repeat($this->innerSymbol, $width) . $this->verticalBorderSymbol;
             }
+            Curse::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
         }
     }
 

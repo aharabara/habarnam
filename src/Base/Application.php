@@ -45,16 +45,7 @@ class Application
 
     public function __construct(View $view)
     {
-        ncurses_init();
-        if (ncurses_has_colors()) {
-            ncurses_start_color();
-            $this->initColorPairs();
-        }
-        //ncurses_echo();
-        ncurses_noecho();
-        ncurses_nl();
-        //ncurses_nonl();
-        ncurses_curs_set(Curse::CURSOR_INVISIBLE);
+        Curse::initialize();
         $this->view = $view;
         self::$instance = $this;
     }
@@ -70,21 +61,13 @@ class Application
         if (stream_select($read, $null, $null, floor($timeout / 1000000), $timeout % 1000000) != 1) {
             $key = null;
         } else {
-            $key = ncurses_getch();
+            $key = Curse::getCh();
         }
         if ($this->repeatingKeys) {
             $key = $key ?? $this->getLastValidKey();
         }
         $this->lastValidKey = $key ?? $this->lastValidKey;
         return $key;
-    }
-
-    /**
-     * @return int
-     */
-    public function getCh(): int
-    {
-        return ncurses_getch();
     }
 
     /**
@@ -111,6 +94,7 @@ class Application
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
         }
         while (true) {
+            Terminal::update();
             $pressedKey = $this->getNonBlockCh(100000); // use a non blocking getch() instead of $ncurses->getCh()
             if ($callback) {
                 $callback($this, $pressedKey);
@@ -183,16 +167,6 @@ class Application
         return $this->layers;
     }
 
-    protected function initColorPairs(): void
-    {
-        ncurses_init_pair(Colors::BLACK_WHITE, NCURSES_COLOR_WHITE, NCURSES_COLOR_BLACK);
-        ncurses_init_pair(Colors::WHITE_BLACK, NCURSES_COLOR_BLACK, NCURSES_COLOR_WHITE);
-        ncurses_init_pair(Colors::BLACK_YELLOW, NCURSES_COLOR_YELLOW, NCURSES_COLOR_BLACK);
-        ncurses_init_pair(Colors::YELLOW_WHITE, NCURSES_COLOR_BLACK, NCURSES_COLOR_YELLOW);
-        ncurses_init_pair(Colors::BLACK_GREEN, NCURSES_COLOR_GREEN, NCURSES_COLOR_BLACK);
-        ncurses_init_pair(Colors::BLACK_RED, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
-    }
-
     /**
      * @param int|null $key
      * @return bool
@@ -217,7 +191,11 @@ class Application
     {
         $components = [];
         array_walk_recursive($this->layers, static function (BaseComponent $drawable) use (&$components) {
-            $items = array_filter($drawable->toComponentsArray());
+            if($drawable instanceof ComponentsContainerInterface){
+                $items = array_filter($drawable->toComponentsArray());
+            }else{
+                $items = [$drawable];
+            }
             if ($items) {
                 array_push($components, ...$items);
             }

@@ -26,6 +26,7 @@ class Button extends BaseComponent implements FocusableInterface
     public function __construct(array $attrs)
     {
         $this->label = $attrs['label'];
+        parent::__construct($attrs);
     }
 
     /**

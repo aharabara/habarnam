@@ -10,26 +10,17 @@ class Terminal
     protected static $instance;
 
     /** @var int */
-    protected $width;
+    protected static $width;
 
     /** @var int */
-    protected $height;
-
-    /**
-     * Terminal constructor.
-     */
-    protected function __construct()
-    {
-        $this->width = (int)exec('tput cols') - 1;
-        $this->height = (int)exec('tput lines') - 1;
-    }
+    protected static $height;
 
     /**
      * @return int
      */
     public static function height(): int
     {
-        return self::getInstance()->height;
+        return self::$height;
     }
 
     /**
@@ -37,7 +28,13 @@ class Terminal
      */
     public static function width(): int
     {
-        return self::getInstance()->width;
+        return self::$width;
+    }
+
+    public static function update(): void
+    {
+        self::$width = (int)exec('tput cols') - 1;
+        self::$height = (int)exec('tput lines') - 1;
     }
 
     /**
@@ -53,17 +50,5 @@ class Terminal
         return (new Surface('surface.centered', new Position(0, 0), new Position(self::width(), self::height())))
             ->resize(($width - self::width()) / 2, ($height - self::height()) / 2);
     }
-
-    /**
-     * @return Terminal
-     */
-    private static function getInstance(): Terminal
-    {
-        if (!self::$instance) {
-            self::$instance = new self;
-        }
-        return self::$instance;
-    }
-
 
 }

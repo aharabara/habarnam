@@ -38,8 +38,7 @@ class Point implements DrawableInterface
      */
     public function draw(?int $key): void
     {
-        ncurses_move($this->position->getY(), $this->position->getX());
-        ncurses_addstr($this->symbol);
+        Curse::writeAt($this->symbol, null, $this->position->getY(), $this->position->getX());
     }
 
     function setSurface(Surface $surface)
@@ -58,7 +57,7 @@ class Point implements DrawableInterface
      */
     public function surface(): Surface
     {
-        return new Surface('surface.'.$this->getId(), $this->position, clone $this->position);
+        return new Surface('surface.' . $this->getId(), $this->position, clone $this->position);
     }
 
     /**
