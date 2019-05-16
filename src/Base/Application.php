@@ -281,11 +281,16 @@ class Application
         return $this;
     }
 
-    public function switchTo(string $name): void
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function switchTo(string $name)
     {
         $this->currentView = $name;
         if (!isset($this->views[$name])){
             throw new \UnexpectedValueException("There is no application view registered with name '$name'");
         }
+        return $this;
     }
 }
