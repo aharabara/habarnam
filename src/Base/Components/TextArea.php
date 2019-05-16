@@ -22,6 +22,8 @@ class TextArea extends Text implements FocusableInterface
 
     /** @var int */
     protected $cursorColorPair = Colors::WHITE_BLACK;
+    protected $infill = ' ';
+
 
     /**
      * TextArea constructor.
@@ -131,6 +133,9 @@ class TextArea extends Text implements FocusableInterface
                     $this->cursorIndex -= $lineLength;
                 }
                 break;
+            case NCURSES_KEY_DOWN:
+                $this->cursorIndex += $lineLength;
+                break;
             case NCURSES_KEY_RIGHT:
                 if ($this->cursorIndex <= strlen($this->text)) {
                     $this->cursorIndex++;
@@ -142,7 +147,7 @@ class TextArea extends Text implements FocusableInterface
                 }
                 if ($key === 10) {
                     $padding = $this->cursorIndex - $this->cursorIndex % $lineLength + $lineLength;
-                    $this->text = str_pad(substr($this->text, 0, $this->cursorIndex - 1), $padding)
+                    $this->text = str_pad(substr($this->text, 0, $this->cursorIndex - 1), $padding, $this->infill)
                         . substr($this->text, $this->cursorIndex - 1);
                     $this->cursorIndex = $padding + 1;
 
@@ -164,7 +169,7 @@ class TextArea extends Text implements FocusableInterface
         $lines = [];
         $length = $this->surface->width();
         foreach (parent::getLines($text) as $key => $line) {
-            $lines[$key] = str_pad($line, $length, ' ');
+            $lines[$key] = str_pad($line, $length, $this->infill);
         }
         return $lines;
     }

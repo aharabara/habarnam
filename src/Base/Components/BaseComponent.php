@@ -22,6 +22,8 @@ abstract class BaseComponent implements DrawableInterface
 
     /** @var string */
     protected $id;
+    /** @var bool */
+    protected $visible;
 
     public function __construct(array $attrs)
     {
@@ -32,6 +34,10 @@ abstract class BaseComponent implements DrawableInterface
         if (isset($attrs['min-width'])) {
             $this->minWidth = $attrs['min-width'] ?? null;
         }
+
+        $attrs['visible'] = $attrs['visible'] ?? true;
+        $attrs['visible'] = ($attrs['visible'] === 'false') ? false : true;
+        $this->setVisibility($attrs['visible']);
     }
 
     /**
@@ -100,6 +106,16 @@ abstract class BaseComponent implements DrawableInterface
     public function getId(): ?string
     {
         return $this->id;
+    }
+
+    /**
+     * @param bool $visible
+     * @return $this
+     */
+    public function setVisibility(bool $visible)
+    {
+        $this->visible = $visible;
+        return $this;
     }
 
 }

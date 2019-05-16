@@ -38,4 +38,10 @@ interface DrawableInterface
      */
     public function minimalWidth(): ?int;
 
+    /**
+     * @param bool $visible
+     * @return $this
+     */
+    public function setVisibility(bool $visible);
+
 }

@@ -16,9 +16,18 @@ class View
     /** @var BaseComponent[] */
     protected $components = [];
 
-    public function __construct()
+    /**
+     * View constructor.
+     * @param array|Surface[] $surfaces
+     */
+    public function __construct(array $surfaces = [])
     {
-        self::registerComponent('div', Divider::class);
+        array_map(static function (Surface $val) { return $val; }, $surfaces);
+
+        if (!empty($surfaces)) {
+            $this->surfaces = $surfaces;
+        }
+        self::registerComponent('hr', Divider::class);
         self::registerComponent('text', Text::class);
         self::registerComponent('point', Point::class);
         self::registerComponent('square', Point::class);
@@ -74,16 +83,22 @@ class View
                         $this->surfaces[$surface->getId()] = $surface;
                     }
                     break;
-                case 'panels':
+                case 'view':
+                    $nodeAttrs = $this->getAttributes($node);
+                    if (!isset($nodeAttrs['id'])) {
+                        throw new \UnexpectedValueException("<view> tag requires 'id' attribute to be specified.");
+                    }
                     foreach ($node->children() as $panelNode) {
                         $container = $this->containerFromNode($panelNode);
                         if ($container->getId()) {
-                            $this->containers[$container->getId()] = $container;
+                            $this->containers[$nodeAttrs['id']][$container->getId()] = $container;
                         } else {
-                            $this->containers[] = $container;
+                            $this->containers[$nodeAttrs['id']][] = $container;
                         }
                     }
                     break;
+                default:
+                    throw new \UnexpectedValueException('Only <surface/> and <view/> tags are allowed to be used inside <application/> tag.');
             }
         }
         return $this;
@@ -95,7 +110,10 @@ class View
      */
     protected function getAttributes(\SimpleXMLElement $node): array
     {
-        return array_map('strval', iterator_to_array($node->attributes()));
+        $attributes = array_map('strval', iterator_to_array($node->attributes()));
+        $attributes['text'] = $node[0] ?? $attributes['text'] ?? '';
+
+        return $attributes;
     }
 
     /**
@@ -106,6 +124,16 @@ class View
     protected function surfaceFromNode(\SimpleXMLElement $surfNode): Surface
     {
         $attrs = $this->getAttributes($surfNode);
+        if (isset($attrs['type'])) {
+            if ($attrs['type'] === 'centered') {
+                return Terminal::centered(
+                    $attrs['width'] ?? Terminal::width() / 2,
+                    $attrs['height'] ?? Terminal::height() / 2,
+                    $attrs['id']
+                );
+            }
+            throw new \UnexpectedValueException("There is no such <surface/> type '{$attrs['type']}'");
+        }
         [$topLeft, $bottomRight] = $surfNode->children();
         $topLeftAttrs = $this->getAttributes($topLeft);
         $bottomRightAttrs = $this->getAttributes($bottomRight);
@@ -257,5 +285,13 @@ class View
                 $component->listen(substr($key, 3), [$class, $method]);
             }
         }
+    }
+
+    /**
+     * @return Surface[]
+     */
+    public function surfaces(): array
+    {
+        return $this->surfaces;
     }
 }

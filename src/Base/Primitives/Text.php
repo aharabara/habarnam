@@ -33,10 +33,11 @@ class Text extends BaseComponent
      */
     public function __construct(array $attrs)
     {
+        $attrs['align'] = $attrs['align'] ?? self::DEFAULT_FILL;
         if (!in_array($attrs['align'], self::ALIGN_TYPES, true)) {
             throw new RuntimeException('Align type is not supported');
         }
-        $this->text = $attrs['text'];
+        $this->text = $attrs['text'] ?? '';
         $this->align = $attrs['align'];
         parent::__construct($attrs);
     }
@@ -117,9 +118,9 @@ class Text extends BaseComponent
             $lines[] = $a;
         });
         $linesToRender = array_slice($lines, 0, $this->surface->height());
-        if (count($linesToRender) < count($lines)) {
-            $linesToRender[] = '>more...';
-        }
+//        if (count($linesToRender) < count($lines)) {
+//            $linesToRender[] = '>more...';
+//        }
         return $linesToRender;
     }
 

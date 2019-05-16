@@ -29,8 +29,11 @@ class Application
     /** @var int */
     protected $currentComponentIndex = 0;
 
-    /** @var View */
-    protected $view;
+    /** @var string */
+    protected $currentView;
+
+    /** @var View[] */
+    protected $views;
 
     /** @var array */
     protected $controllers;
@@ -43,10 +46,9 @@ class Application
         return self::$instance;
     }
 
-    public function __construct(View $view)
+    public function __construct()
     {
         Curse::initialize();
-        $this->view = $view;
         self::$instance = $this;
     }
 
@@ -89,8 +91,7 @@ class Application
     public function handle(?\Closure $callback = null): void
     {
         $this->currentComponentIndex = 0;
-        $components = $this->getDrawableComponents();
-        foreach ($components as $component) {
+        foreach ($this->getDrawableComponents() as $component) {
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
         }
         while (true) {
@@ -160,14 +161,6 @@ class Application
     }
 
     /**
-     * @return array|BaseComponent[]
-     */
-    public function getLayers(): array
-    {
-        return $this->layers;
-    }
-
-    /**
      * @param int|null $key
      * @return bool
      */
@@ -190,10 +183,14 @@ class Application
     protected function getDrawableComponents(): array
     {
         $components = [];
-        array_walk_recursive($this->layers, static function (BaseComponent $drawable) use (&$components) {
-            if($drawable instanceof ComponentsContainerInterface){
+        if (empty($this->views)) {
+            return [];
+        }
+        $containers = $this->views[$this->currentView ?? array_keys($this->views)[0]]->containers();
+        array_walk_recursive($containers, static function (BaseComponent $drawable) use (&$components) {
+            if ($drawable instanceof ComponentsContainerInterface) {
                 $items = array_filter($drawable->toComponentsArray());
-            }else{
+            } else {
                 $items = [$drawable];
             }
             if ($items) {
@@ -250,11 +247,12 @@ class Application
     }
 
     /**
+     * @param string $name
      * @return View
      */
-    public function view(): View
+    public function view(string $name): View
     {
-        return $this->view;
+        return $this->views[$name];
     }
 
     /**
@@ -267,5 +265,27 @@ class Application
             $this->controllers[$class] = new $class($this);
         }
         return $this->controllers[$class];
+    }
+
+    /**
+     * @param string $name
+     * @param View $view
+     * @return $this
+     */
+    public function addView(string $name, View $view): self
+    {
+        if (isset($this->views[$name])) {
+            throw new \UnexpectedValueException("Application view '$name' already exists.");
+        }
+        $this->views[$name] = $view;
+        return $this;
+    }
+
+    public function switchTo(string $name): void
+    {
+        $this->currentView = $name;
+        if (!isset($this->views[$name])){
+            throw new \UnexpectedValueException("There is no application view registered with name '$name'");
+        }
     }
 }

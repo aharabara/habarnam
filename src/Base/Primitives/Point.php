@@ -16,6 +16,11 @@ class Point implements DrawableInterface
     /**
      * @var string
      */
+    protected $visible;
+
+    /**
+     * @var string
+     */
     protected $id;
 
 
@@ -82,5 +87,15 @@ class Point implements DrawableInterface
     public function getId(): ?string
     {
         return $this->id;
+    }
+
+    /**
+     * @param bool $visible
+     * @return $this
+     */
+    public function setVisibility(bool $visible)
+    {
+        $this->visible = $visible;
+        return $this;
     }
 }

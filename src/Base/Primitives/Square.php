@@ -9,9 +9,6 @@ class Square extends BaseComponent
     protected $surface;
 
     /** @var string */
-    protected $visible = true;
-
-    /** @var string */
     protected $innerSymbol = ' ';
 
     /** @var string */
@@ -62,13 +59,4 @@ class Square extends BaseComponent
         }
     }
 
-    /**
-     * @param string $visible
-     * @return $this
-     */
-    public function setVisibility(string $visible): self
-    {
-        $this->visible = $visible;
-        return $this;
-    }
 }

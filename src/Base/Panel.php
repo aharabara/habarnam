@@ -69,6 +69,7 @@ class Panel extends Square implements ComponentsContainerInterface
     {
         $this->components = $components;
         $this->setComponentsSurface();
+        $this->setComponentsVisibility($this->visible);
         return $this;
     }
 
@@ -110,22 +111,10 @@ class Panel extends Square implements ComponentsContainerInterface
             $component->setSurface($baseSurf);
             return $this;
         }
-        $offsetY = 0;
-        $perComponentHeight = $baseSurf->height() / count($this->components);
-        foreach ($this->components as $key => $component) {
-            $height = $component->minimalHeight() ?? $perComponentHeight;
-            $surf = Surface::fromCalc(
-                "{$this->surface->getId()}.children.{$component->getId()}",
-                static function () use ($baseSurf, $offsetY) {
-                    return new Position($baseSurf->topLeft()->getX(), $offsetY + $baseSurf->topLeft()->getY());
-                },
-                static function () use ($baseSurf, $component, $height, $offsetY) {
-                    $width = $component->minimalWidth() ?? $baseSurf->bottomRight()->getX();
-                    return new Position($width, $offsetY + $baseSurf->topLeft()->getY() + $height - 1);
-                }
-            );
-            $component->setSurface($surf);
-            $offsetY += $height;
+        if ($this->layout === self::HORIZONTAL) {
+            $this->renderHorizontalLayout($baseSurf);
+        }else{
+            $this->renderVerticalLayout($baseSurf);
         }
         return $this;
     }
@@ -157,6 +146,68 @@ class Panel extends Square implements ComponentsContainerInterface
             }
         }
         return $this->focused;
+    }
+
+    /**
+     * @param bool $visible
+     * @return BaseComponent
+     */
+    public function setVisibility(bool $visible)
+    {
+        $this->setComponentsVisibility($visible);
+        return parent::setVisibility($visible);
+    }
+
+    /**
+     * @param bool $visible
+     */
+    protected function setComponentsVisibility(bool $visible): void
+    {
+        foreach ($this->components as $component) {
+            if ($component === $this) {
+                continue;
+            }
+            $component->setVisibility($visible);
+        }
+    }
+
+    /**
+     * @param Surface $baseSurfo
+     * @throws \Exception
+     */
+    protected function renderVerticalLayout(Surface $baseSurfo): void
+    {
+        $offsetY = 0;
+        $perComponentHeight = $baseSurfo->height() / count($this->components);
+        $lastComponent = end($this->components);
+        foreach ($this->components as $key => $component) {
+            $height = $component->minimalHeight() ?? $perComponentHeight;
+            if ($height > 2) {
+                --$height;
+            }
+            $isLast = $lastComponent === $component;
+            $surf = Surface::fromCalc(
+                "{$this->surface->getId()}.children.{$component->getId()}",
+                static function () use ($baseSurfo, $offsetY) {
+                    return new Position($baseSurfo->topLeft()->getX(), $offsetY + $baseSurfo->topLeft()->getY());
+                },
+                static function () use ($isLast, $baseSurfo, $component, $height, $offsetY) {
+                    $width = $component->minimalWidth() ?? $baseSurfo->bottomRight()->getX();
+                    if ($isLast) {
+                        return new Position($width, $baseSurfo->bottomRight()->getY());
+                    }
+                    return new Position($width, $offsetY + $baseSurfo->topLeft()->getY() + $height);
+                }
+            );
+            $component->setSurface($surf);
+            $offsetY += $height;
+        }
+    }
+
+    protected function renderHorizontalLayout(Surface $baseSurf)
+    {
+        $perComponentWidth = $baseSurf->width() / count($this->components);
+
     }
 
 }

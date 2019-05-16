@@ -5,8 +5,8 @@ namespace Base;
 class OrderedList extends BaseComponent implements FocusableInterface
 {
     public const EVENT_SELECTED = 'item.selected';
+    public const EVENT_DELETING = 'item.deleting';
     public const EVENT_BEFORE_SELECT = 'item.before-select';
-    public const EVENT_DELETED = 'item.deleted';
 
     /** @var array|ListItem[] */
     protected $items = [];
@@ -101,8 +101,7 @@ class OrderedList extends BaseComponent implements FocusableInterface
                 break;
             case NCURSES_KEY_DC:
                 if ($this->itemsAreDeletable()) {
-                    $this->delete($this->focusedItem);
-                    $this->dispatch(self::EVENT_DELETED, []);
+                    $this->dispatch(self::EVENT_DELETING, [$this]);
                 }
                 break;
             case 10:// 10 is for 'Enter' key
@@ -115,7 +114,15 @@ class OrderedList extends BaseComponent implements FocusableInterface
         }
     }
 
-    private function delete(int $focusedItem): void
+    /**
+     * @return int
+     */
+    public function getFocusedItem(): int
+    {
+        return $this->focusedItem;
+    }
+
+    public function delete(int $focusedItem): void
     {
         unset($this->items[$focusedItem]);
         $this->items = array_values($this->items);

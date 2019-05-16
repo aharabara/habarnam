@@ -17,7 +17,7 @@ class Button extends BaseComponent implements FocusableInterface
     protected $label;
 
     /** @var int */
-    protected $minHeight = 3;
+    protected $minHeight = 4;
 
     /**
      * Button constructor.
@@ -25,7 +25,7 @@ class Button extends BaseComponent implements FocusableInterface
      */
     public function __construct(array $attrs)
     {
-        $this->label = $attrs['label'];
+        $this->label = $attrs['text'];
         parent::__construct($attrs);
     }
 
@@ -45,6 +45,7 @@ class Button extends BaseComponent implements FocusableInterface
         }
         $surf = $this->surface;
         $width = $surf->width() - 4;
+        $width = $width > $this->minWidth ? $width : $this->minWidth;
         $x = $surf->topLeft()->getX() + 1;
         $y = $surf->topLeft()->getY();
         if($key === 10){
