@@ -23,7 +23,7 @@
 #### v0.3.2
    - [ ] New line correct handling for textarea
    - [ ] Correct surface partition for components
-      - [ ] Vertical layout  for Component Container interface
+      - [x] Vertical layout  for Component Container interface
       - [ ] Horizontal layout for Component Container interface
    
 #### v0.3.2

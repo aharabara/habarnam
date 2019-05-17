@@ -139,4 +139,11 @@ class Text extends BaseComponent
         return $arr;
     }
 
+    /**
+     * @return string
+     */
+    public function displayType(): string
+    {
+        return self::DISPLAY_BLOCK;
+    }
 }
