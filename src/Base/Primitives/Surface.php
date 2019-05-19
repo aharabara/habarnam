@@ -81,20 +81,22 @@ class Surface
     }
 
     /**
-     * @param int $x
-     * @param int $y
+     * @param int $top
+     * @param int $right
+     * @param int $bottom
+     * @param int $left
      * @return Surface
      * @throws \Exception
      */
-    public function resize(int $x, int $y): Surface
+    public function resize(int $top, int $right, ?int $bottom = null, ?int $left = null): Surface
     {
         return self::fromCalc(
             $this->id . '.children.' . random_int(0, 1000),
-            function () use ($y, $x) {
-                return new Position($this->topLeft()->getX() - $x, $this->topLeft()->getY() - $y);
+            function () use ($right, $top, $left) {
+                return new Position($this->topLeft()->getX() - ($left ?? $right), $this->topLeft()->getY() - $top);
             },
-            function () use ($x, $y) {
-                return new Position($this->bottomRight()->getX() + $x, $this->bottomRight()->getY() + $y);
+            function () use ($bottom, $right, $top) {
+                return new Position($this->bottomRight()->getX() + $right, $this->bottomRight()->getY() + ($bottom ?? $top));
             }
         );
     }

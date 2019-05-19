@@ -65,8 +65,6 @@ class OrderedList extends BaseComponent implements FocusableInterface
             }
             Curse::writeAt(str_pad("[$checked] $text", $width, $symbol), $color, $y++, $x);
         }
-        Curse::writeAt("Current key: {$this->surface->height()}", Colors::BLACK_WHITE, $y++, $x);
-
         if (count($items) > $this->surface->height()) {
             Curse::writeAt(str_pad('\/ \/ \/', $width, ' ', STR_PAD_BOTH), Colors::BLACK_WHITE, $y++, $x);
         }

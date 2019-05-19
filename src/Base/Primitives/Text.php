@@ -10,8 +10,8 @@ class Text extends BaseComponent
     /** @var string */
     protected $text;
 
-    public const DEFAULT_FILL  = 'default';
-    public const CENTER_TOP    = 'center-top';
+    public const DEFAULT_FILL = 'default';
+    public const CENTER_TOP = 'center-top';
     public const CENTER_MIDDLE = 'center-middle';
     public const CENTER_BOTTOM = 'center-bottom';
 
@@ -117,11 +117,7 @@ class Text extends BaseComponent
         array_walk_recursive($result, static function ($a) use (&$lines) {
             $lines[] = $a;
         });
-        $linesToRender = array_slice($lines, 0, $this->surface->height());
-//        if (count($linesToRender) < count($lines)) {
-//            $linesToRender[] = '>more...';
-//        }
-        return $linesToRender;
+        return array_slice($lines, 0, $this->surface->height());
     }
 
     /**

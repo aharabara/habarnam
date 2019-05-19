@@ -4,8 +4,8 @@ namespace Base;
 
 interface DrawableInterface
 {
-    public const DISPLAY_BLOCK = 'display.block';
-    public const DISPLAY_INLINE = 'display.inline';
+    public const DISPLAY_BLOCK = 'block';
+    public const DISPLAY_INLINE = 'inline';
 
     /**
      * @param int|null $key

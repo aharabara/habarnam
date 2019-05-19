@@ -5,9 +5,6 @@ namespace Base;
 class Panel extends Square implements ComponentsContainerInterface
 {
 
-    public const VERTICAL = 'vertical';
-    public const HORIZONTAL = 'horizontal';
-
     /** @var string */
     protected $id;
 
@@ -16,8 +13,8 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /** @var string */
     protected $title;
-
-    protected $layout;
+    protected $paddingVertical = -1;
+    protected $paddingHorizontal = -1;
 
     /**
      * Window constructor.
@@ -26,7 +23,6 @@ class Panel extends Square implements ComponentsContainerInterface
     public function __construct(array $attrs)
     {
         $this->title = $attrs['title'] ?? null;
-        $this->layout = $attrs['layout'] ?? self::VERTICAL;
         parent::__construct($attrs);
     }
 
@@ -101,10 +97,10 @@ class Panel extends Square implements ComponentsContainerInterface
      */
     protected function setComponentsSurface(): self
     {
-        if (empty($this->components)) {
+        if (empty($this->components) || !$this->visible) {
             return $this;
         }
-        $baseSurf = $this->surface->resize(-1, -1);
+        $baseSurf = $this->surface->resize($this->paddingHorizontal, $this->paddingVertical);
         if (count($this->components) === 1) {
             /** @var DrawableInterface $component */
             $component = reset($this->components);
@@ -112,11 +108,7 @@ class Panel extends Square implements ComponentsContainerInterface
             $component->setSurface($baseSurf);
             return $this;
         }
-        if ($this->layout === self::HORIZONTAL) {
-            $this->renderHorizontalLayout($baseSurf);
-        } else {
-            $this->renderVerticalLayout($baseSurf);
-        }
+        $this->renderLayout($baseSurf, $this->components);
         return $this;
     }
 
@@ -174,50 +166,20 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /**
      * @param Surface $baseSurf
+     * @param DrawableInterface[] $components
      * @throws \Exception
      */
-    protected function renderVerticalLayout(Surface $baseSurf): void
+    protected function renderLayout(Surface $baseSurf, array $components)
     {
-        $offsetY = 0;
-        $perComponentHeight = $baseSurf->height() / count($this->components);
-        $lastComponent = end($this->components);
-        foreach ($this->components as $key => $component) {
-            $height = $component->minHeight() ?? $perComponentHeight;
-            if ($height > 2) {
-                --$height;
-            }
-            $isLast = $lastComponent === $component;
-            $surf = Surface::fromCalc(
-                "{$this->surface->getId()}.children.{$component->getId()}",
-                static function () use ($baseSurf, $offsetY) {
-                    return new Position($baseSurf->topLeft()->getX(), $offsetY + $baseSurf->topLeft()->getY());
-                },
-                static function () use ($isLast, $baseSurf, $component, $height, $offsetY) {
-                    $width = $component->minWidth() ?? $baseSurf->bottomRight()->getX();
-                    if ($isLast) {
-                        return new Position($width, $baseSurf->bottomRight()->getY());
-                    }
-                    return new Position($width, $offsetY + $baseSurf->topLeft()->getY() + $height);
-                }
-            );
-            $component->setSurface($surf);
-            $offsetY += $height;
-        }
-    }
-
-    protected function renderHorizontalLayout(Surface $baseSurf)
-    {
-        $perComponentWidth = $baseSurf->width() / count($this->components);
-        $perComponentHeight = $baseSurf->height() / count($this->components);
+        $perComponentWidth = $baseSurf->width() / count($components);
+        $perComponentHeight = $baseSurf->height() / count($components);
         $offsetY = 0;
         $offsetX = 0;
         $minHeight = 0;
-        $lastComponent = end($this->components);
-        foreach ($this->components as $key => $component) {
+        $lastComponent = end($components);
+        foreach (array_values($components) as $key => $component) {
             $height = $component->minHeight($baseSurf->height(), $perComponentHeight);
-            if ($height > 2) {
-                --$height;
-            }
+
             if ($minHeight < $height) { // track min size for next row
                 $minHeight = $height;
             }
@@ -226,41 +188,19 @@ class Panel extends Square implements ComponentsContainerInterface
                 $offsetX = 0;
                 $minHeight = 0;
             }
-            $isLast = $lastComponent === $component;
-            $surf = Surface::fromCalc(
-                "{$this->surface->getId()}.children.{$component->getId()}",
-                static function () use ($offsetX, $baseSurf, $offsetY) {
-                    $x = $baseSurf->topLeft()->getX() + $offsetX;
-                    $y = $baseSurf->topLeft()->getY() + $offsetY;
-                    return new Position($x, $y);
-                },
-                static function () use (
-                    $perComponentWidth,
-                    $offsetX,
-                    $offsetY,
-                    $isLast,
-                    $baseSurf,
-                    $component,
-                    $height
-                ) {
-                    $width = $baseSurf->bottomRight()->getX();
-                    if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
-                        $componentMinWidth = $component->minWidth($baseSurf->width(), $perComponentWidth);
-                        if ($componentMinWidth) {
-                            $width = $componentMinWidth + $baseSurf->topLeft()->getX();
-                        }
-                    }
-                    $width += $offsetX;
-                    if ($isLast) {
-                        return new Position($width, $baseSurf->bottomRight()->getY());
-                    }
-                    return new Position($width, $baseSurf->topLeft()->getY() + $height);
-                }
-            );
-            $component->setSurface($surf);
+            if ($lastComponent === $component) {
+                $componentBottomY = $baseSurf->bottomRight()->getY();
+            } else {
+                $componentBottomY = $baseSurf->topLeft()->getY() + $offsetY + $height;
+            }
+
+            if (!$component->hasSurface()) {
+                $surf = $this->getCalculatedSurface($baseSurf, $component, $offsetX, $offsetY, $perComponentWidth, $componentBottomY);
+                $component->setSurface($surf);
+            }
 
             if ($component->displayType() === DrawableInterface::DISPLAY_BLOCK) {
-                $offsetY += $minHeight;
+                $offsetY += $minHeight + 1;
                 $offsetX = 0;
                 $minHeight = 0;
             } else {
@@ -270,6 +210,52 @@ class Panel extends Square implements ComponentsContainerInterface
             }
         }
 
+    }
+
+    /**
+     * @param Surface $baseSurf
+     * @param DrawableInterface $component
+     * @param int $offsetX
+     * @param int|null $offsetY
+     * @param $key
+     * @param $perComponentWidth
+     * @param int|null $bottomRightY
+     * @return Surface
+     * @throws \Exception
+     */
+    protected function getCalculatedSurface(
+        Surface $baseSurf,
+        DrawableInterface $component,
+        int $offsetX,
+        int $offsetY,
+        int $perComponentWidth,
+        int $bottomRightY
+    ): Surface {
+        return Surface::fromCalc(
+            "{$this->surface->getId()}.children.{$component->getId()}",
+            static function () use ($offsetX, $baseSurf, $offsetY) {
+                $topLeft = $baseSurf->topLeft();
+                return new Position($topLeft->getX() + $offsetX, $topLeft->getY() + $offsetY);
+            },
+            static function () use (
+                $perComponentWidth,
+                $offsetX,
+                $offsetY,
+                $baseSurf,
+                $component,
+                $bottomRightY
+            ) {
+                $width = $baseSurf->bottomRight()->getX();
+                if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
+                    $componentMinWidth = $component->minWidth($baseSurf->width(), $perComponentWidth);
+                    if ($componentMinWidth) {
+                        $width = $componentMinWidth + $baseSurf->topLeft()->getX();
+                    }
+                }
+                $width += $offsetX;
+                return new Position($width, $bottomRightY);
+            }
+        );
     }
 
 }

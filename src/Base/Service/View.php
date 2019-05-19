@@ -16,13 +16,16 @@ class View
     /** @var BaseComponent[] */
     protected $components = [];
 
+    /** @var string[] */
+    protected $tagsWithContent = ['button', 'text', 'label'];
+
     /**
      * View constructor.
      * @param array|Surface[] $surfaces
      */
     public function __construct(array $surfaces = [])
     {
-        array_map(static function (Surface $val) { return $val; }, $surfaces);
+        array_map(static function (Surface $val) { return $val;}, $surfaces);
 
         if (!empty($surfaces)) {
             $this->surfaces = $surfaces;
@@ -91,9 +94,9 @@ class View
                     foreach ($node->children() as $panelNode) {
                         $container = $this->containerFromNode($panelNode);
                         if ($container->getId()) {
-                            $this->containers[$nodeAttrs['id']][$container->getId()] = $container;
+                            $this->containers[$container->getId()] = $container;
                         } else {
-                            $this->containers[$nodeAttrs['id']][] = $container;
+                            $this->containers[] = $container;
                         }
                     }
                     break;
@@ -111,8 +114,11 @@ class View
     protected function getAttributes(\SimpleXMLElement $node): array
     {
         $attributes = array_map('strval', iterator_to_array($node->attributes()));
-        $attributes['text'] = $node[0] ?? $attributes['text'] ?? '';
-
+        $content = null;
+        if (in_array($node->getName(), $this->tagsWithContent, true)) {
+            $content = trim(strip_tags($node->asXml()), " \n");
+        }
+        $attributes['text'] = $content ?? $attributes['text'] ?? '';
         return $attributes;
     }
 
@@ -150,7 +156,7 @@ class View
 
     /**
      * @param \SimpleXMLElement $node
-     * @return Panel
+     * @return ComponentsContainerInterface
      * @throws \Exception
      */
     protected function containerFromNode(\SimpleXMLElement $node): ComponentsContainerInterface
@@ -211,9 +217,9 @@ class View
 
     /**
      * @param string $id
-     * @return Panel
+     * @return ComponentsContainerInterface
      */
-    public function container(string $id): Panel
+    public function container(string $id): ComponentsContainerInterface
     {
         return $this->containers[$id];
     }

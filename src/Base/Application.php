@@ -38,6 +38,13 @@ class Application
     /** @var array */
     protected $controllers;
 
+    /** @var bool */
+    protected $debug = false;
+    /**
+     * @var bool
+     */
+    protected $allowDebug = false;
+
     /**
      * @return Application
      */
@@ -120,11 +127,7 @@ class Application
                         ->handleNonFocusableComponents($component, $key)
                         // set component as focused / not focused.
                         ->handleComponentFocus($component, (int)$key);
-                    if ($this->currentComponentIndex === (int)$key) {
-                        $component->draw($pressedKey);
-                    } else {
-                        $component->draw(null);
-                    }
+                    $this->drawComponent($key, $component, $pressedKey);
                 }
             }
             $this->refresh(10000);
@@ -168,6 +171,10 @@ class Application
     {
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
+            return true;
+        }
+        if ($this->allowDebug && $key === NCURSES_KEY_F1) {
+            $this->debug = !$this->debug;
             return true;
         }
         if ($key === NCURSES_KEY_BTAB) {
@@ -285,12 +292,77 @@ class Application
      * @param string $name
      * @return $this
      */
-    public function switchTo(string $name)
+    public function switchTo(string $name): self
     {
         $this->currentView = $name;
-        if (!isset($this->views[$name])){
+        if (!isset($this->views[$name])) {
             throw new \UnexpectedValueException("There is no application view registered with name '$name'");
         }
+        return $this;
+    }
+
+
+    protected $debugInfo = [];
+
+    /**
+     * @param $key
+     * @param BaseComponent $component
+     * @param int|null $pressedKey
+     * @throws \Exception
+     */
+    protected function drawComponent($key, BaseComponent $component, ?int $pressedKey): void
+    {
+        if ($this->debug) {
+            $surface = $component->surface();
+            $colors = [
+                Colors::BLACK_YELLOW,
+                Colors::YELLOW_WHITE,
+                Colors::WHITE_BLACK,
+                Colors::BLACK_WHITE,
+                Colors::BLACK_RED,
+                Colors::BLACK_GREEN
+            ];
+            $id = spl_object_hash($component);
+            if (!isset($this->debugInfo[$id])) {
+                $pieces = explode('\\', get_class($component));
+                $this->debugInfo[$id] = [
+                    'color' => array_rand($colors),
+                    'name' => array_pop($pieces) . random_int(0, 1000),
+                ];
+            }
+            $color = $this->debugInfo[$id]['color'];
+            $name = $this->debugInfo[$id]['name'];
+            $lowerBound = $surface->bottomRight()->getY();
+            $higherBound = $surface->topLeft()->getY();
+            $width = $surface->width() - 2; // 2 symbols for borders
+
+            for ($y = $higherBound; $y <= $lowerBound; $y++) {
+                $title = $component->getId() ?? $name;
+                if ($y === $higherBound) {
+                    $text = 'v' . $title . str_repeat('-', $width - strlen($title)) . 'v';
+                } elseif ($y === $lowerBound) {
+                    $text = '^' . $title . str_repeat('-', $width - strlen($title)) . '^';
+                } else {
+                    $text = '|' . str_repeat(' ', $width) . '|';
+                }
+                Curse::writeAt($text, $color, $y, $surface->topLeft()->getX());
+            }
+            return;
+        }
+        if ($this->currentComponentIndex === (int)$key) {
+            $component->draw($pressedKey);
+        } else {
+            $component->draw(null);
+        }
+    }
+
+    /**
+     * @param bool $debug
+     * @return Application
+     */
+    public function debug(bool $debug): self
+    {
+        $this->allowDebug = $debug;
         return $this;
     }
 }

@@ -16,9 +16,6 @@ class Button extends BaseComponent implements FocusableInterface
      */
     protected $label;
 
-    /** @var int */
-    protected $minHeight = 4;
-
     /** @var string */
     protected $displayType;
 
