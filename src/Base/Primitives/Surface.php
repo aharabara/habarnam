@@ -88,15 +88,15 @@ class Surface
      * @return Surface
      * @throws \Exception
      */
-    public function resize(int $top, int $right, ?int $bottom = null, ?int $left = null): Surface
+    public function resize(int $top, ?int $right = null, ?int $bottom = null, ?int $left = null): Surface
     {
         return self::fromCalc(
             $this->id . '.children.' . random_int(0, 1000),
             function () use ($right, $top, $left) {
-                return new Position($this->topLeft()->getX() - ($left ?? $right), $this->topLeft()->getY() - $top);
+                return new Position($this->topLeft()->getX() - ($left ?? $right ?? $top), $this->topLeft()->getY() - $top);
             },
             function () use ($bottom, $right, $top) {
-                return new Position($this->bottomRight()->getX() + $right, $this->bottomRight()->getY() + ($bottom ?? $top));
+                return new Position($this->bottomRight()->getX() + $right ?? $top, $this->bottomRight()->getY() + ($bottom ?? $top));
             }
         );
     }

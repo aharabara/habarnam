@@ -13,8 +13,9 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /** @var string */
     protected $title;
-    protected $paddingVertical = -1;
-    protected $paddingHorizontal = -1;
+
+    /** @var int[] */
+    protected $padding = [-1, -1];
 
     /**
      * Window constructor.
@@ -100,7 +101,7 @@ class Panel extends Square implements ComponentsContainerInterface
         if (empty($this->components) || !$this->visible) {
             return $this;
         }
-        $baseSurf = $this->surface->resize($this->paddingHorizontal, $this->paddingVertical);
+        $baseSurf = $this->surface->resize(...$this->padding);
         if (count($this->components) === 1) {
             /** @var DrawableInterface $component */
             $component = reset($this->components);

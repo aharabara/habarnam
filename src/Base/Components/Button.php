@@ -48,9 +48,9 @@ class Button extends BaseComponent implements FocusableInterface
             $color = Colors::BLACK_YELLOW;
         }
         $surf = $this->surface;
-        $width = $surf->width() - 4;
+        $width = $surf->width() - 2;
         $width = $width > $this->minWidth() ? $width : $this->minWidth();
-        $x = $surf->topLeft()->getX() + 1;
+        $x = $surf->topLeft()->getX();
         $y = $surf->topLeft()->getY();
         if ($key === 10) {
             $color = Colors::YELLOW_WHITE;

@@ -22,8 +22,15 @@ abstract class BaseComponent implements DrawableInterface
 
     /** @var string */
     protected $id;
+
     /** @var bool */
     protected $visible;
+
+    /** @var int[] */
+    protected $padding = [0, 0];
+
+    /** @var int[] */
+    protected $margin = [0, 0];
 
     public function __construct(array $attrs)
     {
@@ -34,6 +41,9 @@ abstract class BaseComponent implements DrawableInterface
         if (isset($attrs['min-width'])) {
             $this->minWidth = $attrs['min-width'] ?? null;
         }
+        /* @todo try to use it for all components */
+        $this->fillWithPropValue($this->margin, $attrs['margin']);
+        $this->fillWithPropValue($this->padding, $attrs['padding']);
 
         $attrs['visible'] = $attrs['visible'] ?? true;
         $attrs['visible'] = ($attrs['visible'] === 'false') ? false : true;
@@ -61,10 +71,11 @@ abstract class BaseComponent implements DrawableInterface
     /**
      * @param Surface $surface
      * @return $this
+     * @throws \Exception
      */
     public function setSurface(Surface $surface)
     {
-        $this->surface = $surface;
+        $this->surface = $surface->resize(...$this->margin);
         return $this;
     }
 
@@ -136,4 +147,20 @@ abstract class BaseComponent implements DrawableInterface
         return self::DISPLAY_BLOCK;
     }
 
+    /**
+     * @param string $property
+     * @param $result
+     * @return array
+     */
+    protected function fillWithPropValue(array &$result, ?string $property = ''): array
+    {
+        if (isset($property)) {
+            foreach (array_map('trim', explode(',', $property)) as $key => $value) {
+                if (is_numeric($value)) {
+                    $result[$key] = -(int)$value;
+                }
+            }
+        }
+        return $result;
+    }
 }

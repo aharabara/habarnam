@@ -193,7 +193,7 @@ class Application
         if (empty($this->views)) {
             return [];
         }
-        $containers = $this->views[$this->currentView ?? array_keys($this->views)[0]]->containers();
+        $containers = $this->currentView()->containers();
         array_walk_recursive($containers, static function (BaseComponent $drawable) use (&$components) {
             if ($drawable instanceof ComponentsContainerInterface) {
                 $items = array_filter($drawable->toComponentsArray());
@@ -364,5 +364,13 @@ class Application
     {
         $this->allowDebug = $debug;
         return $this;
+    }
+
+    /**
+     * @return View
+     */
+    public function currentView(): View
+    {
+        return $this->views[$this->currentView ?? array_keys($this->views)[0]];
     }
 }
