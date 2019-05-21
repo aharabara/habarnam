@@ -40,10 +40,12 @@ class Application
 
     /** @var bool */
     protected $debug = false;
-    /**
-     * @var bool
-     */
+
+    /** @var bool */
     protected $allowDebug = false;
+
+    /** @var string[] */
+    protected $initializedViews = [];
 
     /**
      * @return Application
@@ -98,9 +100,6 @@ class Application
     public function handle(?\Closure $callback = null): void
     {
         $this->currentComponentIndex = 0;
-        foreach ($this->getDrawableComponents() as $component) {
-            $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
-        }
         while (true) {
             Terminal::update();
             $pressedKey = $this->getNonBlockCh(100000); // use a non blocking getch() instead of $ncurses->getCh()
@@ -371,6 +370,22 @@ class Application
      */
     public function currentView(): View
     {
-        return $this->views[$this->currentView ?? array_keys($this->views)[0]];
+        $this->currentView = $this->currentView ?? array_keys($this->views)[0];
+        if(!in_array($this->currentView, $this->initializedViews, true)){
+            $this->initializedViews[] = $this->currentView;
+            $this->initialiseViews();
+        }
+        return $this->views[$this->currentView];
+    }
+
+    /**
+     * @return $this
+     */
+    protected function initialiseViews()
+    {
+        foreach ($this->getDrawableComponents() as $component) {
+            $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
+        }
+        return $this;
     }
 }
