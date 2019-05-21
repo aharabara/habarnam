@@ -46,8 +46,13 @@ class Terminal
      */
     public static function centered(int $width, int $height, ?string $id = null): Surface
     {
-        return (new Surface('', new Position(0, 0), new Position(self::width(), self::height())))
-            ->resize(($height - self::height()) / 2, ($width - self::width()) / 2)
+        return Surface::fromCalc('',
+            static function () use ($height, $width) {
+                return new Position((self::width() - $width) / 2, (self::height() - $height) / 2);
+            },
+            static function () use ($height, $width) {
+                return new Position(($width + self::width()) / 2, ($height + self::height()) / 2);
+            })
             ->setId($id);
     }
 

@@ -187,12 +187,17 @@ class Application
         return false;
     }
 
+    protected $cachedComponents = [];
+
     /**
      * @return array|BaseComponent[]
      */
     protected function getDrawableComponents(): array
     {
         $components = [];
+        if (!empty($this->cachedComponents)) {
+            return $this->cachedComponents;
+        }
         $containers = $this->currentViewContainers();
         array_walk_recursive($containers, static function (BaseComponent $drawable) use (&$components) {
             if ($drawable instanceof ComponentsContainerInterface) {
@@ -204,6 +209,7 @@ class Application
                 array_push($components, ...$items);
             }
         });
+        $this->cachedComponents = $components;
         return $components;
     }
 
@@ -280,6 +286,7 @@ class Application
     public function switchTo(string $name): self
     {
         $this->currentView = $name;
+        $this->cachedComponents = []; // clear cached components
         if (!$this->render->exists($name)) {
             throw new \UnexpectedValueException("There is no application view registered with name '$name'");
         }
@@ -357,7 +364,7 @@ class Application
     public function currentViewContainers(): array
     {
         $this->currentView = $this->currentView ?? $this->render->existingViews()[0] ?? null;
-        if(!in_array($this->currentView, $this->initializedViews, true)){
+        if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
             $this->initialiseViews();
         }
@@ -372,6 +379,17 @@ class Application
         foreach ($this->getDrawableComponents() as $component) {
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
         }
+        return $this;
+    }
+
+    /**
+     * @param DrawableInterface $component
+     * @return $this
+     */
+    public function focusOn(DrawableInterface $component): self
+    {
+        $components = $this->getDrawableComponents();
+        $this->currentComponentIndex = array_search($component, $components, true);
         return $this;
     }
 }
