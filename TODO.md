@@ -24,14 +24,15 @@
    - [x] Correct surface partition for components      
    - [x] View switching
    
-#### v0.3.4
-   - [ ] Composable Components (ex. Ordered list of checkboxes)
-   - [ ] Make List a scrollable container for container of components AKA List of something
 
 #### v0.4.0
    - [ ] New line correct handling for textarea
 
-#### V0.4.1
+#### v0.4.1
+   - [ ] Composable Components (ex. Ordered list of checkboxes)
+   - [ ] Make List a scrollable container for container of components AKA List of something
+
+#### V0.4.2
    - [ ] Notifications
    - [ ] TemporaryComponentInterface
    - [ ] SelectBox
