@@ -187,7 +187,8 @@ class Application
         return false;
     }
 
-    protected $cachedComponents = [];
+    /** @var DrawableInterface[] $cachedComponents */
+    protected $cachedComponents;
 
     /**
      * @return array|BaseComponent[]
