@@ -16,13 +16,12 @@ class Divider extends Text
     }
 
     /**
-     * @param Surface $surface
-     * @return Text
+     * @param int|null $key
+     * @throws \Exception
      */
-    public function setSurface(Surface $surface)
+    public function draw(?int $key): void
     {
-        $res = parent::setSurface($surface);
-        $this->text = str_repeat('─', $surface->width());
-        return $res;
+        $this->text = str_repeat('─', $this->surface->width());
+        parent::draw($key);
     }
 }

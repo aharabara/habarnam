@@ -1,0 +1,57 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "60514083bbafd4a8b94b3a5edbad1dc0",
+    "packages": [
+        {
+            "name": "aharabara/habarnam",
+            "version": "0.3.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aharabara/habarnam.git",
+                "reference": "56eb590b9b9fd50a09fd635c2a1cf3a01a2df1c2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aharabara/habarnam/zipball/56eb590b9b9fd50a09fd635c2a1cf3a01a2df1c2",
+                "reference": "56eb590b9b9fd50a09fd635c2a1cf3a01a2df1c2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-mbstring": "*",
+                "ext-ncurses": "*",
+                "ext-simplexml": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "aharabara",
+                    "email": "dev.xandr@gmail.com"
+                }
+            ],
+            "description": "Ncurses wrapper for fast TUI building",
+            "time": "2019-05-21T17:06:09+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
