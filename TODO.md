@@ -21,25 +21,22 @@
    - [x] XML schema generation for UI, with attributes and events checks.
 
 #### v0.3.2
-   - [ ] New line correct handling for textarea
-   - [ ] Correct surface partition for components
-      - [x] Vertical layout  for Component Container interface
-      - [ ] Horizontal layout for Component Container interface
-   
-#### v0.3.2
+   - [ ] Correct surface partition for components      
    - [ ] View switching
-
-
+   
 #### v0.3.3
    - [ ] Composable Components (ex. Ordered list of checkboxes)
    - [ ] Make List a scrollable container for container of components AKA List of something
 
-#### V0.4.0
+#### v0.4.0
+   - [ ] New line correct handling for textarea
+
+#### V0.4.1
    - [ ] Notifications
    - [ ] TemporaryComponentInterface
    - [ ] SelectBox
    - [ ] CheckBox
-
+   
 #### v0.5.0
    - [ ] ScrollableComponentInterface
    - [ ] Scrolling in:
