@@ -32,9 +32,6 @@ class Application
     /** @var string */
     protected $currentView;
 
-    /** @var View[] */
-    protected $views;
-
     /** @var array */
     protected $controllers;
 
@@ -48,6 +45,11 @@ class Application
     protected $initializedViews = [];
 
     /**
+     * @var ViewRender
+     */
+    protected $render;
+
+    /**
      * @return Application
      */
     public function getInstance(): Application
@@ -55,10 +57,12 @@ class Application
         return self::$instance;
     }
 
-    public function __construct()
+    public function __construct(ViewRender $render, string $currentView)
     {
         Curse::initialize();
         self::$instance = $this;
+        $this->render = $render;
+        $this->currentView = $currentView;
     }
 
     /**
@@ -189,10 +193,7 @@ class Application
     protected function getDrawableComponents(): array
     {
         $components = [];
-        if (empty($this->views)) {
-            return [];
-        }
-        $containers = $this->currentView()->containers();
+        $containers = $this->currentViewContainers();
         array_walk_recursive($containers, static function (BaseComponent $drawable) use (&$components) {
             if ($drawable instanceof ComponentsContainerInterface) {
                 $items = array_filter($drawable->toComponentsArray());
@@ -253,12 +254,11 @@ class Application
     }
 
     /**
-     * @param string $name
-     * @return View
+     * @return ViewRender
      */
-    public function view(string $name): View
+    public function view(): ViewRender
     {
-        return $this->views[$name];
+        return $this->render;
     }
 
     /**
@@ -275,26 +275,12 @@ class Application
 
     /**
      * @param string $name
-     * @param View $view
-     * @return $this
-     */
-    public function addView(string $name, View $view): self
-    {
-        if (isset($this->views[$name])) {
-            throw new \UnexpectedValueException("Application view '$name' already exists.");
-        }
-        $this->views[$name] = $view;
-        return $this;
-    }
-
-    /**
-     * @param string $name
      * @return $this
      */
     public function switchTo(string $name): self
     {
         $this->currentView = $name;
-        if (!isset($this->views[$name])) {
+        if (!$this->render->exists($name)) {
             throw new \UnexpectedValueException("There is no application view registered with name '$name'");
         }
         return $this;
@@ -366,22 +352,22 @@ class Application
     }
 
     /**
-     * @return View
+     * @return ComponentsContainerInterface[]
      */
-    public function currentView(): View
+    public function currentViewContainers(): array
     {
-        $this->currentView = $this->currentView ?? array_keys($this->views)[0];
+        $this->currentView = $this->currentView ?? $this->render->existingViews()[0] ?? null;
         if(!in_array($this->currentView, $this->initializedViews, true)){
             $this->initializedViews[] = $this->currentView;
             $this->initialiseViews();
         }
-        return $this->views[$this->currentView];
+        return $this->render->containers($this->currentView);
     }
 
     /**
      * @return $this
      */
-    protected function initialiseViews()
+    protected function initialiseViews(): self
     {
         foreach ($this->getDrawableComponents() as $component) {
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);

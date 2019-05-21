@@ -51,6 +51,9 @@ class Text extends BaseComponent
         if (!$this->surface) {
             throw new RuntimeException('Text surface not set.');
         }
+        if (!$this->visible) {
+            return;
+        }
         switch ($this->align) {
             case self::CENTER_TOP:
                 $this->centerTopRender($this->text);

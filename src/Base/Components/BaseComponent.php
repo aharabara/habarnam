@@ -42,8 +42,8 @@ abstract class BaseComponent implements DrawableInterface
             $this->minWidth = $attrs['min-width'] ?? null;
         }
         /* @todo try to use it for all components */
-        $this->fillWithPropValue($this->margin, $attrs['margin']);
-        $this->fillWithPropValue($this->padding, $attrs['padding']);
+        $this->fillWithPropValue($this->margin, $attrs['margin'] ?? '');
+        $this->fillWithPropValue($this->padding, $attrs['padding'] ?? '');
 
         $attrs['visible'] = $attrs['visible'] ?? true;
         $attrs['visible'] = ($attrs['visible'] === 'false') ? false : true;

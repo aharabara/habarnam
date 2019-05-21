@@ -2,7 +2,14 @@
 
 namespace Base;
 
-class View
+use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SimpleXMLElement;
+use SplFileInfo;
+use UnexpectedValueException;
+
+class ViewRender
 {
     /** @var string[] */
     protected static $componentsMapping = [];
@@ -10,7 +17,7 @@ class View
     /** @var Surface[] */
     protected $surfaces = [];
 
-    /** @var ComponentsContainerInterface[] */
+    /** @var ComponentsContainerInterface[][] */
     protected $containers = [];
 
     /** @var BaseComponent[] */
@@ -19,17 +26,16 @@ class View
     /** @var string[] */
     protected $tagsWithContent = ['button', 'text', 'label'];
 
+    /** @var string */
+    protected $path;
+
+
     /**
      * View constructor.
-     * @param array|Surface[] $surfaces
+     * @param string $path
      */
-    public function __construct(array $surfaces = [])
+    public function __construct(string $path)
     {
-        array_map(static function (Surface $val) { return $val;}, $surfaces);
-
-        if (!empty($surfaces)) {
-            $this->surfaces = $surfaces;
-        }
         self::registerComponent('hr', Divider::class);
         self::registerComponent('text', Text::class);
         self::registerComponent('point', Point::class);
@@ -41,20 +47,29 @@ class View
         self::registerComponent('button', Button::class);
         self::registerComponent('textarea', TextArea::class);
         Terminal::update(); // to allow php to parse columns and rows
+        $this->path = $path;
     }
 
     /**
      * StyleResolver constructor.
-     * @param string $filePath
-     * @return View
-     * @throws \Exception
+     * @return ViewRender
+     * @throws Exception
      */
-    public function parse(string $filePath): self
+    public function prepare(): self
     {
-        if (!file_exists($filePath) || !is_file($filePath)) {
-            throw new \UnexpectedValueException("XML file '$filePath' doesn't exist.");
+        $surfacesFilePath = "{$this->path}/surfaces.xml";
+        if (!file_exists($surfacesFilePath)) {
+            throw new UnexpectedValueException("View folder '{$this->path}' should contain suraces.xml with surfaces declarations.");
         }
-        $this->parseFile($filePath);
+        $this->parseFile($surfacesFilePath);
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->path));
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
+            if ($file->isDir() || $file->getFilename() === 'surfaces.xml') {
+                continue;
+            }
+            $this->parseFile($file->getPathname());
+        }
         return $this;
     }
 
@@ -65,7 +80,7 @@ class View
     public static function registerComponent(string $name, string $className): void
     {
         if (!class_exists($className)) {
-            throw new \UnexpectedValueException("Class $className doesn't exist. Cant register component '$name'");
+            throw new UnexpectedValueException("Class $className doesn't exist. Cant register component '$name'");
         }
         self::$componentsMapping[$name] = $className;
     }
@@ -73,7 +88,7 @@ class View
     /**
      * @param string $filePath
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function parseFile(string $filePath): self
     {
@@ -89,29 +104,29 @@ class View
                 case 'view':
                     $nodeAttrs = $this->getAttributes($node);
                     if (!isset($nodeAttrs['id'])) {
-                        throw new \UnexpectedValueException("<view> tag requires 'id' attribute to be specified.");
+                        throw new UnexpectedValueException("<view> tag requires 'id' attribute to be specified.");
                     }
                     foreach ($node->children() as $panelNode) {
                         $container = $this->containerFromNode($panelNode);
                         if ($container->getId()) {
-                            $this->containers[$container->getId()] = $container;
+                            $this->containers[$nodeAttrs['id']][$container->getId()] = $container;
                         } else {
-                            $this->containers[] = $container;
+                            $this->containers[$nodeAttrs['id']][] = $container;
                         }
                     }
                     break;
                 default:
-                    throw new \UnexpectedValueException('Only <surface/> and <view/> tags are allowed to be used inside <application/> tag.');
+                    throw new UnexpectedValueException('Only <surface/> and <view/> tags are allowed to be used inside <application/> tag.');
             }
         }
         return $this;
     }
 
     /**
-     * @param \SimpleXMLElement $node
+     * @param SimpleXMLElement $node
      * @return array
      */
-    protected function getAttributes(\SimpleXMLElement $node): array
+    protected function getAttributes(SimpleXMLElement $node): array
     {
         $attributes = array_map('strval', iterator_to_array($node->attributes()));
         $content = null;
@@ -123,11 +138,11 @@ class View
     }
 
     /**
-     * @param \SimpleXMLElement $surfNode
+     * @param SimpleXMLElement $surfNode
      * @return Surface
-     * @throws \Exception
+     * @throws Exception
      */
-    protected function surfaceFromNode(\SimpleXMLElement $surfNode): Surface
+    protected function surfaceFromNode(SimpleXMLElement $surfNode): Surface
     {
         $attrs = $this->getAttributes($surfNode);
         if (isset($attrs['type'])) {
@@ -138,7 +153,7 @@ class View
                     $attrs['id']
                 );
             }
-            throw new \UnexpectedValueException("There is no such <surface/> type '{$attrs['type']}'");
+            throw new UnexpectedValueException("There is no such <surface/> type '{$attrs['type']}'");
         }
         [$topLeft, $bottomRight] = $surfNode->children();
         $topLeftAttrs = $this->getAttributes($topLeft);
@@ -155,11 +170,11 @@ class View
     }
 
     /**
-     * @param \SimpleXMLElement $node
+     * @param SimpleXMLElement $node
      * @return ComponentsContainerInterface
-     * @throws \Exception
+     * @throws Exception
      */
-    protected function containerFromNode(\SimpleXMLElement $node): ComponentsContainerInterface
+    protected function containerFromNode(SimpleXMLElement $node): ComponentsContainerInterface
     {
         $components = [];
         $nodeAttrs = $this->getAttributes($node);
@@ -202,26 +217,28 @@ class View
     protected function getComponentClass(string $name): string
     {
         if (!isset(self::$componentsMapping[$name])) {
-            throw new \UnexpectedValueException("Component '{$name}' is not registered.");
+            throw new UnexpectedValueException("Component '{$name}' is not registered.");
         }
         return self::$componentsMapping[$name];
     }
 
     /**
+     * @param string $viewID
      * @return array
      */
-    public function containers(): array
+    public function containers(string $viewID): array
     {
-        return $this->containers;
+        return $this->containers[$viewID];
     }
 
     /**
+     * @param string $viewID
      * @param string $id
      * @return ComponentsContainerInterface
      */
-    public function container(string $id): ComponentsContainerInterface
+    public function container(string $viewID, string $id): ComponentsContainerInterface
     {
-        return $this->containers[$id];
+        return $this->containers[$viewID][$id];
     }
 
     /**
@@ -278,7 +295,7 @@ class View
 
     /**
      * @param DrawableInterface $component
-     * @param array $attrs
+     * @param string[] $attrs
      */
     protected function handleComponentEvents(DrawableInterface $component, array $attrs): void
     {
@@ -299,5 +316,116 @@ class View
     public function surfaces(): array
     {
         return $this->surfaces;
+    }
+
+    /**
+     * @param Surface $baseSurf
+     * @param DrawableInterface[] $components
+     * @throws Exception
+     */
+    public static function renderLayout(Surface $baseSurf, array $components)
+    {
+        $perComponentWidth = $baseSurf->width() / count($components);
+        $perComponentHeight = $baseSurf->height() / count($components);
+        $offsetY = 0;
+        $offsetX = 0;
+        $minHeight = 0;
+        $lastComponent = end($components);
+        foreach (array_values($components) as $key => $component) {
+            $height = $component->minHeight($baseSurf->height(), $perComponentHeight);
+
+            if ($minHeight < $height) { // track min size for next row
+                $minHeight = $height;
+            }
+            if ($offsetX + $component->minWidth($baseSurf->width(), $perComponentWidth) > $baseSurf->width()) {
+                $offsetY += $minHeight;
+                $offsetX = 0;
+                $minHeight = 0;
+            }
+            if ($lastComponent === $component) {
+                $componentBottomY = $baseSurf->bottomRight()->getY();
+            } else {
+                $componentBottomY = $baseSurf->topLeft()->getY() + $offsetY + $height;
+            }
+
+            if (!$component->hasSurface()) {
+                $surf = self::getCalculatedSurface($baseSurf, $component, $offsetX, $offsetY, $perComponentWidth,
+                    $componentBottomY);
+                $component->setSurface($surf);
+            }
+
+            if ($component->displayType() === DrawableInterface::DISPLAY_BLOCK) {
+                $offsetY += $minHeight + 1;
+                $offsetX = 0;
+                $minHeight = 0;
+            } else {
+                $calculatedWidth = $component->minWidth($baseSurf->width(),
+                        $perComponentWidth) ?? $baseSurf->bottomRight()->getX();
+                $offsetX += $calculatedWidth;
+            }
+        }
+
+    }
+
+    /**
+     * @param Surface $surf
+     * @param DrawableInterface $component
+     * @param int $offsetX
+     * @param int $offsetY
+     * @param int $perComponentWidth
+     * @param int $bottomRightY
+     * @return Surface
+     * @throws Exception
+     */
+    public static function getCalculatedSurface(
+        Surface $surf,
+        DrawableInterface $component,
+        int $offsetX,
+        int $offsetY,
+        int $perComponentWidth,
+        int $bottomRightY
+    ): Surface {
+        return Surface::fromCalc(
+            "{$surf->getId()}.children.{$component->getId()}",
+            static function () use ($offsetX, $surf, $offsetY) {
+                $topLeft = $surf->topLeft();
+                return new Position($topLeft->getX() + $offsetX, $topLeft->getY() + $offsetY);
+            },
+            static function () use (
+                $perComponentWidth,
+                $offsetX,
+                $offsetY,
+                $surf,
+                $component,
+                $bottomRightY
+            ) {
+                $width = $surf->bottomRight()->getX();
+                if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
+                    $componentMinWidth = $component->minWidth($surf->width(), $perComponentWidth);
+                    if ($componentMinWidth) {
+                        $width = $componentMinWidth + $surf->topLeft()->getX();
+                    }
+                }
+                $width += $offsetX;
+                return new Position($width, $bottomRightY);
+            }
+        );
+    }
+
+    /**
+     * @param string $viewID
+     * @return bool
+     */
+    public function exists(string $viewID): bool
+    {
+        return !empty($this->containers($viewID));
+    }
+
+    /**
+     * @return string[]
+     */
+    public function existingViews(): array
+    {
+        return array_keys($this->containers);
     }
 }
