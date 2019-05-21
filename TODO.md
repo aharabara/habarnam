@@ -1,4 +1,4 @@
-# aharabara/habarnam
+> aharabara/habarnam
 ## TUI Framework
 #### V0.2.0
    - [x] Panel
@@ -24,7 +24,7 @@
    - [x] Correct surface partition for components      
    - [x] View switching
    
-#### v0.3.3
+#### v0.3.4
    - [ ] Composable Components (ex. Ordered list of checkboxes)
    - [ ] Make List a scrollable container for container of components AKA List of something
 
@@ -47,6 +47,8 @@
 
 
 #### ToDo
+   - [ ] CSS properties instead of xml attributes
+   - [ ] Keyboard shortcuts
    - [ ] List
      - [ ] Reordering
    - [ ] Table
