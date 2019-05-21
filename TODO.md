@@ -21,8 +21,8 @@
    - [x] XML schema generation for UI, with attributes and events checks.
 
 #### v0.3.2
-   - [ ] Correct surface partition for components      
-   - [ ] View switching
+   - [x] Correct surface partition for components      
+   - [x] View switching
    
 #### v0.3.3
    - [ ] Composable Components (ex. Ordered list of checkboxes)
