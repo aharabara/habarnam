@@ -11,13 +11,11 @@ class Button extends BaseComponent implements FocusableInterface
      */
     protected $callback;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $label;
 
     /** @var string */
-    protected $displayType;
+    protected $displayType = self::DISPLAY_INLINE;
 
     /**
      * Button constructor.
@@ -26,10 +24,6 @@ class Button extends BaseComponent implements FocusableInterface
     public function __construct(array $attrs)
     {
         $this->label = $attrs['text'];
-        $this->displayType = $attrs['display'] ?? self::DISPLAY_INLINE;
-        if (!in_array($this->displayType, [self::DISPLAY_INLINE, self::DISPLAY_BLOCK], true)) {
-            throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
-        }
         parent::__construct($attrs);
     }
 
@@ -63,14 +57,6 @@ class Button extends BaseComponent implements FocusableInterface
             Curse::writeAt('╚' . str_repeat('═', $width) . '╝', $color, ++$y, $x);
         }
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function displayType(): string
-    {
-        return $this->displayType;
     }
 
 }

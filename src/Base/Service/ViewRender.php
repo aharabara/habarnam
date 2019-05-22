@@ -36,6 +36,7 @@ class ViewRender
      */
     public function __construct(string $path)
     {
+        self::registerComponent('animation', Animation::class);
         self::registerComponent('hr', Divider::class);
         self::registerComponent('text', Text::class);
         self::registerComponent('point', Point::class);
@@ -155,9 +156,15 @@ class ViewRender
             }
             throw new UnexpectedValueException("There is no such <surface/> type '{$attrs['type']}'");
         }
+        $topLeftAttrs = [];
+        $bottomRightAttrs = [];
         [$topLeft, $bottomRight] = $surfNode->children();
-        $topLeftAttrs = $this->getAttributes($topLeft);
-        $bottomRightAttrs = $this->getAttributes($bottomRight);
+        if (!empty($topLeft)) {
+            $topLeftAttrs = $this->getAttributes($topLeft);
+        }
+        if (!empty($bottomRight)) {
+            $bottomRightAttrs = $this->getAttributes($bottomRight);
+        }
         return Surface::fromCalc(
             $attrs['id'],
             function () use ($topLeftAttrs) {
@@ -189,7 +196,7 @@ class ViewRender
             $attrs = $this->getAttributes($subNode);
             $class = $this->getComponentClass($subNode->getName());
             /** @var DrawableInterface $component */
-            if (is_a(new $class([]), ComponentsContainerInterface::class)) {
+            if ($this->isContainer($class)) {
                 $component = $this->containerFromNode($subNode);
             } else {
                 $component = new $class($attrs);
@@ -290,6 +297,9 @@ class ViewRender
         if ($y < 0) {
             $y = Terminal::height() - abs($y);
         }
+        if ($y > 0 && $y < Terminal::height()) {
+            $y--; // to prevent vertical intersections
+        }
         return new Position($x, $y);
     }
 
@@ -304,8 +314,14 @@ class ViewRender
         }
         foreach ($attrs as $key => $entry) {
             if (strpos($key, 'on.') === 0) {
-                [$class, $method] = explode('@', $entry);
-                $component->listen(substr($key, 3), [$class, $method]);
+                if (strpos($entry, '#') === 0) {
+                    $component->listen(substr($key, 3), static function () use ($entry) {
+                        Application::getInstance()->switchTo(substr($entry, 1));
+                    });
+                } else {
+                    [$class, $method] = explode('@', $entry);
+                    $component->listen(substr($key, 3), [$class, $method]);
+                }
             }
         }
     }
@@ -400,6 +416,7 @@ class ViewRender
                 $bottomRightY
             ) {
                 $width = $surf->bottomRight()->getX();
+
                 if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
                     $componentMinWidth = $component->minWidth($surf->width(), $perComponentWidth);
                     if ($componentMinWidth) {
@@ -407,6 +424,8 @@ class ViewRender
                     }
                 }
                 $width += $offsetX;
+
+                /* @fixme Bottom right is not calculated properly on resize */
                 return new Position($width, $bottomRightY);
             }
         );
@@ -427,5 +446,15 @@ class ViewRender
     public function existingViews(): array
     {
         return array_keys($this->containers);
+    }
+
+    /**
+     * @param string $class
+     * @return bool
+     * @throws \ReflectionException
+     */
+    protected function isContainer(string $class): bool
+    {
+        return (new \ReflectionClass($class))->implementsInterface(ComponentsContainerInterface::class);
     }
 }

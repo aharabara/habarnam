@@ -2,6 +2,7 @@
 
 namespace Base;
 
+
 trait EventBusTrait
 {
     protected $listeners = [];

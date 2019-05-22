@@ -15,6 +15,8 @@ class Text extends BaseComponent
     public const CENTER_MIDDLE = 'center-middle';
     public const CENTER_BOTTOM = 'center-bottom';
 
+    protected $displayType = self::DISPLAY_BLOCK;
+
     public const ALIGN_TYPES = [
         self::CENTER_BOTTOM,
         self::CENTER_MIDDLE,
@@ -37,7 +39,11 @@ class Text extends BaseComponent
         if (!in_array($attrs['align'], self::ALIGN_TYPES, true)) {
             throw new RuntimeException('Align type is not supported');
         }
-        $this->text = $attrs['text'] ?? '';
+        if (isset($attrs['from'])) {
+            $this->text = file_get_contents($attrs['from']);
+        } else {
+            $this->text = $attrs['text'] ?? '';
+        }
         $this->align = $attrs['align'];
         parent::__construct($attrs);
     }
@@ -80,7 +86,7 @@ class Text extends BaseComponent
 
         $renderedLines = $this->getLines($text);
         foreach ($renderedLines as $line) {
-            Curse::writeAt($line, null, ++$y, $x);
+            Curse::writeAt($line, null, $y++, $x);
         }
     }
 
@@ -94,11 +100,15 @@ class Text extends BaseComponent
 
         $renderedLines = $this->getLines($text);
 
-        $y = $pos->getY() + round($this->surface->height() - count($renderedLines) / 2) / 2;
+        $heightWithoutLines = $this->surface->height() - count($renderedLines) / 2;
+        if($heightWithoutLines < 2){
+            $heightWithoutLines = 3;
+        }
+        $y = $pos->getY() + floor($heightWithoutLines) / 2;
 
         foreach ($renderedLines as $line) {
             $x = $pos->getX() + $this->surface->width() / 2 - mb_strlen($line) / 2;
-            Curse::writeAt($line, null, ++$y, $x);
+            Curse::writeAt($line, null, $y++, $x);
         }
     }
 
@@ -136,13 +146,5 @@ class Text extends BaseComponent
             $arr[] = mb_substr($str, $i, $len, 'UTF-8');
         }
         return $arr;
-    }
-
-    /**
-     * @return string
-     */
-    public function displayType(): string
-    {
-        return self::DISPLAY_BLOCK;
     }
 }

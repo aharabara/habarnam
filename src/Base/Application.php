@@ -65,19 +65,39 @@ class Application
         $this->currentView = $currentView;
     }
 
+    protected $updateRate = 10;
+    protected $updateCounter = 0;
+
     /**
      * @param int|null $timeout
      * @return int|null
      */
     public function getNonBlockCh(?int $timeout = null): ?int
     {
+        $wasUpdated = false;
         $read = array(STDIN);
         $null = null;    // stream_select() uses references, thus variables are necessary for the first 3 parameters
-        if (stream_select($read, $null, $null, floor($timeout / 1000000), $timeout % 1000000) != 1) {
+        if (@stream_select($read, $null, $null, floor($timeout / 1000000), $timeout % 1000000) != 1) {
             $key = null;
         } else {
             $key = Curse::getCh();
         }
+
+        while ($key === 410) {
+            if (!$wasUpdated) {
+                Terminal::update();
+                $wasUpdated = true;
+            }
+            $key = Curse::getCh();
+        }
+        if ($key === null) {
+            $this->updateCounter++;
+            if ($this->updateCounter % $this->updateRate === 0){
+                $this->updateCounter = 0;
+                Terminal::update();
+            }
+        }
+
         if ($this->repeatingKeys) {
             $key = $key ?? $this->getLastValidKey();
         }
@@ -105,8 +125,7 @@ class Application
     {
         $this->currentComponentIndex = 0;
         while (true) {
-            Terminal::update();
-            $pressedKey = $this->getNonBlockCh(100000); // use a non blocking getch() instead of $ncurses->getCh()
+            $pressedKey = $this->getNonBlockCh(10000); // use a non blocking getch() instead of $ncurses->getCh()
             if ($callback) {
                 $callback($this, $pressedKey);
             }
@@ -331,10 +350,14 @@ class Application
 
             for ($y = $higherBound; $y <= $lowerBound; $y++) {
                 $title = $component->getId() ?? $name;
+                $repeat = $width - strlen($title);
+                if ($repeat < 0){
+                    $repeat = 0;
+                }
                 if ($y === $higherBound) {
-                    $text = 'v' . $title . str_repeat('-', $width - strlen($title)) . 'v';
+                    $text = 'v' . $title . str_repeat('-', $repeat) . 'v';
                 } elseif ($y === $lowerBound) {
-                    $text = '^' . $title . str_repeat('-', $width - strlen($title)) . '^';
+                    $text = '^' . $title . str_repeat('-', $repeat) . '^';
                 } else {
                     $text = '|' . str_repeat(' ', $width) . '|';
                 }

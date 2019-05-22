@@ -32,6 +32,9 @@ abstract class BaseComponent implements DrawableInterface
     /** @var int[] */
     protected $margin = [0, 0];
 
+    /** @var string */
+    protected $displayType = self::DISPLAY_BLOCK;
+
     public function __construct(array $attrs)
     {
         $this->id = $attrs['id'] ?? null;
@@ -41,7 +44,14 @@ abstract class BaseComponent implements DrawableInterface
         if (isset($attrs['min-width'])) {
             $this->minWidth = $attrs['min-width'] ?? null;
         }
-        /* @todo try to use it for all components */
+
+        if (isset($attrs['display'])){
+            $this->displayType = $attrs['display'];
+            if (!in_array($this->displayType, [self::DISPLAY_INLINE, self::DISPLAY_BLOCK], true)) {
+                throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
+            }
+        }
+
         $this->fillWithPropValue($this->margin, $attrs['margin'] ?? '');
         $this->fillWithPropValue($this->padding, $attrs['padding'] ?? '');
 
@@ -140,14 +150,6 @@ abstract class BaseComponent implements DrawableInterface
     }
 
     /**
-     * @return string
-     */
-    public function displayType(): string
-    {
-        return self::DISPLAY_BLOCK;
-    }
-
-    /**
      * @param string $property
      * @param $result
      * @return array
@@ -162,5 +164,13 @@ abstract class BaseComponent implements DrawableInterface
             }
         }
         return $result;
+    }
+
+    /**
+     * @return string
+     */
+    public function displayType(): string
+    {
+        return $this->displayType;
     }
 }

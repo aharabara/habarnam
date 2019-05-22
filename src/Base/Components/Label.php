@@ -17,4 +17,11 @@ class Label extends Text
         $attrs['align'] = self::DEFAULT_FILL;
         parent::__construct($attrs);
     }
+    
+    protected function getLines(string $text): array
+    {
+        $lines = parent::getLines($text);
+        array_unshift($lines, ''); // draw 1 line lower
+        return $lines;
+    }
 }
