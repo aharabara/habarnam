@@ -28,17 +28,17 @@
 #### v0.4.0
    - [ ] New line correct handling for textarea
 
-#### v0.4.1
+#### v0.5.0
    - [ ] Composable Components (ex. Ordered list of checkboxes)
    - [ ] Make List a scrollable container for container of components AKA List of something
 
-#### V0.4.2
+#### V0.6.0
    - [ ] Notifications
    - [ ] TemporaryComponentInterface
    - [ ] SelectBox
    - [ ] CheckBox
    
-#### v0.5.0
+#### v0.7.0
    - [ ] ScrollableComponentInterface
    - [ ] Scrolling in:
        - [ ] Textarea
@@ -46,10 +46,17 @@
        - [ ] CheckBox
        - [ ] Panel
 
+#### v0.8.0
+   - [ ] CSS files for components instead of xml attributes
+   - [ ] Theming
+
+#### v0.9.0
+  - [ ] Keyboard shortcuts
+
+#### v1.0.0
+   - [ ] Multithreading (optional)
 
 #### ToDo
-   - [ ] CSS properties instead of xml attributes
-   - [ ] Keyboard shortcuts
    - [ ] List
      - [ ] Reordering
    - [ ] Table
@@ -67,10 +74,6 @@
       - [ ] Syntax highlighting
    - [ ] Menu bar
  - Features
-   - [x] XML based UI rendering
    - [ ] Autocomplete for input and textareas
    - [ ] Spellcheck for input and textareas
-   - [ ] Keymapping
-   - [ ] Theming
-   - [ ] Multithreading (optional)
    - [ ] Copy&Paste
