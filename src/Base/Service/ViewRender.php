@@ -38,17 +38,26 @@ class ViewRender
     {
         self::registerComponent('animation', Animation::class);
         self::registerComponent('hr', Divider::class);
-        self::registerComponent('text', Text::class);
+        self::registerComponent('p', Text::class);
         self::registerComponent('point', Point::class);
         self::registerComponent('square', Point::class);
-        self::registerComponent('list', OrderedList::class);
+        self::registerComponent('ol', OrderedList::class);
         self::registerComponent('input', Input::class);
         self::registerComponent('label', Label::class);
-        self::registerComponent('panel', Panel::class);
+        self::registerComponent('section', Section::class);
         self::registerComponent('button', Button::class);
         self::registerComponent('textarea', TextArea::class);
         Terminal::update(); // to allow php to parse columns and rows
         $this->path = $path;
+    }
+
+    /**
+     * @param string $className
+     * @return |null
+     */
+    public static function getComponentTag(string $className)
+    {
+        return array_flip(self::$componentsMapping)[$className] ?? null;
     }
 
     /**
@@ -93,32 +102,29 @@ class ViewRender
      */
     public function parseFile(string $filePath): self
     {
-        $xml = simplexml_load_string(file_get_contents($filePath));
-        foreach ($xml as $node) {
-            switch ($node->getName()) {
-                case 'surfaces':
-                    foreach ($node->children() as $surfNode) {
-                        $surface = $this->surfaceFromNode($surfNode);
-                        $this->surfaces[$surface->getId()] = $surface;
-                    }
-                    break;
-                case 'view':
-                    $nodeAttrs = $this->getAttributes($node);
-                    if (!isset($nodeAttrs['id'])) {
-                        throw new UnexpectedValueException("<view> tag requires 'id' attribute to be specified.");
-                    }
-                    foreach ($node->children() as $panelNode) {
-                        $container = $this->containerFromNode($panelNode);
-                        if ($container->getId()) {
-                            $this->containers[$nodeAttrs['id']][$container->getId()] = $container;
-                        } else {
-                            $this->containers[$nodeAttrs['id']][] = $container;
-                        }
-                    }
-                    break;
-                default:
-                    throw new UnexpectedValueException('Only <surface/> and <view/> tags are allowed to be used inside <application/> tag.');
+        $root = simplexml_load_string(file_get_contents($filePath));
+        $rootNodeName = $root->getName();
+        if ($rootNodeName === 'template') {
+            $nodeAttrs = $this->getAttributes($root);
+            if (!isset($nodeAttrs['id'])) {
+                throw new UnexpectedValueException("<template> tag requires 'id' attribute to be specified.");
             }
+            foreach ($root->children() as $panelNode) {
+                $container = $this->containerFromNode($panelNode);
+                if ($container->getId()) {
+                    $this->containers[$nodeAttrs['id']][$container->getId()] = $container;
+                } else {
+                    $this->containers[$nodeAttrs['id']][] = $container;
+                }
+            }
+        } elseif ($rootNodeName === 'surfaces') {
+            foreach ($root->children() as $surfNode) {
+                $surface = $this->surfaceFromNode($surfNode);
+                $this->surfaces[$surface->getId()] = $surface;
+            }
+
+        } else {
+            throw new UnexpectedValueException("Only <surfaces/> and <template/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
         }
         return $this;
     }
@@ -192,6 +198,7 @@ class ViewRender
         if (isset($nodeAttrs['surface'])) {
             $container->setSurface($this->surface($nodeAttrs['surface']));
         }
+
         foreach ($node->children() as $subNode) {
             $attrs = $this->getAttributes($subNode);
             $class = $this->getComponentClass($subNode->getName());
@@ -201,6 +208,7 @@ class ViewRender
             } else {
                 $component = new $class($attrs);
             }
+            $component->setSelector("{$container->getSelector()} > {$component->getSelector()}");
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
             }
@@ -363,6 +371,10 @@ class ViewRender
             } else {
                 $componentBottomY = $baseSurf->topLeft()->getY() + $offsetY + $height;
             }
+
+//            if ($component instanceof TextArea){
+//                throw new UnexpectedValueException(var_export([$baseSurf->topLeft()->getY(), $offsetY, $height, "or", $baseSurf->bottomRight()->getY()], true));
+//            }
 
             if (!$component->hasSurface()) {
                 $surf = self::getCalculatedSurface($baseSurf, $component, $offsetX, $offsetY, $perComponentWidth,

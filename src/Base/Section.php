@@ -2,7 +2,7 @@
 
 namespace Base;
 
-class Panel extends Square implements ComponentsContainerInterface
+class Section extends Square implements ComponentsContainerInterface
 {
 
     /** @var string */
@@ -29,7 +29,7 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /**
      * @param int|null $key
-     * @return Panel
+     * @return Section
      * @throws \Exception
      */
     public function draw(?int $key): self
@@ -60,10 +60,10 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /**
      * @param DrawableInterface ...$components
-     * @return Panel
+     * @return Section
      * @throws \Exception
      */
-    public function setComponents(DrawableInterface ...$components): Panel
+    public function setComponents(DrawableInterface ...$components): Section
     {
         $this->components = $components;
         $this->setComponentsSurface();
@@ -73,10 +73,10 @@ class Panel extends Square implements ComponentsContainerInterface
     /**
      * @param int $index
      * @param DrawableInterface $component
-     * @return Panel
+     * @return Section
      * @throws \Exception
      */
-    public function replaceComponent(int $index, DrawableInterface $component): Panel
+    public function replaceComponent(int $index, DrawableInterface $component): Section
     {
         $this->components[$index] = $component;
         $this->setComponentsSurface();

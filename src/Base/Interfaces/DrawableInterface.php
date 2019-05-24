@@ -55,4 +55,15 @@ interface DrawableInterface
      * @return string
      */
     public function displayType(): string;
+
+    /**
+     * @param string|null $selector
+     * @return self
+     */
+    public function setSelector(?string $selector);
+
+    /**
+     * @return string
+     */
+    public function getSelector(): string;
 }

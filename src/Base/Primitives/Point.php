@@ -110,4 +110,21 @@ class Point implements DrawableInterface
     {
         return self::DISPLAY_INLINE;
     }
+
+    /**
+     * @param string|null $selector
+     * @return self
+     */
+    public function setSelector(?string $selector)
+    {
+        // TODO: Implement setSelector() method.
+    }
+
+    /**
+     * @return string
+     */
+    public function getSelector(): string
+    {
+        // TODO: Implement getSelector() method.
+    }
 }

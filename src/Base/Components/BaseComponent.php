@@ -34,6 +34,8 @@ abstract class BaseComponent implements DrawableInterface
 
     /** @var string */
     protected $displayType = self::DISPLAY_BLOCK;
+    /** @var string|null */
+    protected $selector;
 
     public function __construct(array $attrs)
     {
@@ -45,7 +47,7 @@ abstract class BaseComponent implements DrawableInterface
             $this->minWidth = $attrs['min-width'] ?? null;
         }
 
-        if (isset($attrs['display'])){
+        if (isset($attrs['display'])) {
             $this->displayType = $attrs['display'];
             if (!in_array($this->displayType, [self::DISPLAY_INLINE, self::DISPLAY_BLOCK], true)) {
                 throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
@@ -172,5 +174,27 @@ abstract class BaseComponent implements DrawableInterface
     public function displayType(): string
     {
         return $this->displayType;
+    }
+
+    public function setSelector(?string $selector)
+    {
+        $this->selector = $selector;
+    }
+
+    public function getSelector(): string
+    {
+        $tag = ViewRender::getComponentTag(get_class($this)) ?? 'wtf?';
+        $result = '';
+        if ($this->selector) {
+            $result = $this->selector;
+        } elseif (!$this->id) {
+            $result = $tag;
+        } else {
+            $result = "{$tag}#{$this->id}";
+        }
+        if ($this->isFocused()) {
+            $result .= ':focused';
+        }
+        return $result;
     }
 }

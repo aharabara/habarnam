@@ -48,21 +48,32 @@ class Application
      * @var ViewRender
      */
     protected $render;
+    /**
+     * @var Workspace
+     */
+    private $workspace;
 
     /**
      * @return Application
      */
-    public function getInstance(): Application
+    public static function getInstance(): Application
     {
         return self::$instance;
     }
 
-    public function __construct(ViewRender $render, string $currentView)
+    /**
+     * Application constructor.
+     * @param Workspace $workspace
+     * @param ViewRender $render
+     * @param string $currentView
+     */
+    public function __construct(Workspace $workspace, ViewRender $render, string $currentView)
     {
         Curse::initialize();
         self::$instance = $this;
         $this->render = $render;
         $this->currentView = $currentView;
+        $this->workspace = $workspace;
     }
 
     protected $updateRate = 10;
@@ -294,7 +305,7 @@ class Application
     public function controller(string $class)
     {
         if (!isset($this->controllers[$class])) {
-            $this->controllers[$class] = new $class($this);
+            $this->controllers[$class] = new $class($this, $this->workspace);
         }
         return $this->controllers[$class];
     }
@@ -349,17 +360,17 @@ class Application
             $width = $surface->width() - 2; // 2 symbols for borders
 
             for ($y = $higherBound; $y <= $lowerBound; $y++) {
-                $title = $component->getId() ?? $name;
-                $repeat = $width - strlen($title);
+                $title = $component->getSelector() ?? $name;
+                $repeat = $width - strlen($title) - 1;
                 if ($repeat < 0){
                     $repeat = 0;
                 }
                 if ($y === $higherBound) {
-                    $text = 'v' . $title . str_repeat('-', $repeat) . 'v';
+                    $text = '╔─' . $title . str_repeat('─', $repeat) . '╗';
                 } elseif ($y === $lowerBound) {
-                    $text = '^' . $title . str_repeat('-', $repeat) . '^';
+                    $text = '╚' . str_repeat('─', $width) . '╝';
                 } else {
-                    $text = '|' . str_repeat(' ', $width) . '|';
+                    $text = '│' . str_repeat(' ', $width) . '│';
                 }
                 Curse::writeAt($text, $color, $y, $surface->topLeft()->getX());
             }

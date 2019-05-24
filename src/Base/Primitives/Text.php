@@ -40,7 +40,7 @@ class Text extends BaseComponent
             throw new RuntimeException('Align type is not supported');
         }
         if (isset($attrs['from'])) {
-            $this->text = file_get_contents($attrs['from']);
+            $this->text = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']).'/'.ltrim($attrs['from'], './'));
         } else {
             $this->text = $attrs['text'] ?? '';
         }
