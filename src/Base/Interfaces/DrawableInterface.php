@@ -49,7 +49,7 @@ interface DrawableInterface
      * @param bool $visible
      * @return $this
      */
-    public function setVisibility(bool $visible);
+    public function visibility(bool $visible);
 
     /**
      * @return string
@@ -66,4 +66,10 @@ interface DrawableInterface
      * @return string
      */
     public function getSelector(): string;
+
+    /**
+     * @param array $styles
+     * @return self
+     */
+    public function setStyles(array $styles);
 }

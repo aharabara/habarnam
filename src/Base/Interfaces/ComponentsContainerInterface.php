@@ -2,19 +2,20 @@
 
 namespace Base;
 
-interface ComponentsContainerInterface
+interface ComponentsContainerInterface extends DrawableInterface
 {
 
     /**
-     * @return array
+     * @return DrawableInterface[]
      */
     public function toComponentsArray(): array;
 
     /**
-     * @param DrawableInterface ...$components
+     * @param DrawableInterface $components
+     * @param string|null $id
      * @return self
      */
-    public function setComponents(DrawableInterface ...$components);
+    public function addComponent(DrawableInterface $components, ?string $id = null);
 
     /**
      * @param int $index
@@ -27,6 +28,12 @@ interface ComponentsContainerInterface
      * @return array
      */
     public function getComponents(): array;
+
+
+    /**
+     * @return self
+     */
+    public function recalculateSubSurfaces();
 
 
 }

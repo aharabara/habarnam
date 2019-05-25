@@ -43,16 +43,26 @@ class Curse
 
     public static function initColorPairs(): void
     {
-        ncurses_init_pair(Colors::BLACK_WHITE, NCURSES_COLOR_WHITE, NCURSES_COLOR_BLACK);
-        ncurses_init_pair(Colors::WHITE_BLACK, NCURSES_COLOR_BLACK, NCURSES_COLOR_WHITE);
-        ncurses_init_pair(Colors::BLACK_YELLOW, NCURSES_COLOR_YELLOW, NCURSES_COLOR_BLACK);
-        ncurses_init_pair(Colors::YELLOW_WHITE, NCURSES_COLOR_BLACK, NCURSES_COLOR_YELLOW);
-        ncurses_init_pair(Colors::BLACK_GREEN, NCURSES_COLOR_GREEN, NCURSES_COLOR_BLACK);
-        ncurses_init_pair(Colors::BLACK_RED, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
+        $colors = [
+            'BLACK' => NCURSES_COLOR_BLACK,
+            'WHITE' => NCURSES_COLOR_WHITE,
+            'RED' => NCURSES_COLOR_RED,
+            'MAGENTA' => NCURSES_COLOR_MAGENTA,
+            'BLUE' => NCURSES_COLOR_BLUE,
+            'GREEN' => NCURSES_COLOR_GREEN,
+            'YELLOW' => NCURSES_COLOR_YELLOW,
+        ];
+        
+        foreach ($colors as $bgColor => $bgConstant) {
+            foreach ($colors as $textColor => $textConstant) {
+                ncurses_init_pair(constant(Colors::class."::{$bgColor}_{$textColor}"), $textConstant, $bgConstant);
+            }
+        }
     }
 
     public static function initialize(): void
     {
+        Curse::initColorPairs();
         ncurses_init();
         if (ncurses_has_colors()) {
             ncurses_start_color();

@@ -54,9 +54,9 @@ class OrderedList extends BaseComponent implements FocusableInterface
             $symbol = ' ';
             $checked = $key === $this->selected ? $checked = '+' : ' ';
             if ($key === $this->focusedItem && $this->isFocused()) {
-                $color = Colors::YELLOW_WHITE;
+                $color = $this->focusedColorPair;
             } else {
-                $color = Colors::BLACK_WHITE;
+                $color = $this->colorPair;
             }
             $text = $item->getText();
             if (strlen($text) > $width) {

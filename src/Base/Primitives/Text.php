@@ -86,7 +86,7 @@ class Text extends BaseComponent
 
         $renderedLines = $this->getLines($text);
         foreach ($renderedLines as $line) {
-            Curse::writeAt($line, null, $y++, $x);
+            Curse::writeAt($line, $this->colorPair, $y++, $x);
         }
     }
 
@@ -108,7 +108,7 @@ class Text extends BaseComponent
 
         foreach ($renderedLines as $line) {
             $x = $pos->getX() + $this->surface->width() / 2 - mb_strlen($line) / 2;
-            Curse::writeAt($line, null, $y++, $x);
+            Curse::writeAt($line, $this->colorPair, $y++, $x);
         }
     }
 

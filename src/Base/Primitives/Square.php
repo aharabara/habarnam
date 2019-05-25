@@ -29,9 +29,6 @@ class Square extends BaseComponent
     /** @var string */
     protected $rightBottomSymbol = '╝';
 
-    /** @var int */
-    protected $defaultColorPair = Colors::BLACK_WHITE;
-
     /**
      * @param int|null $key
      * @throws \Exception
@@ -42,7 +39,7 @@ class Square extends BaseComponent
             return;
         }
         // draw two squares
-        $color = $this->defaultColorPair;
+        $color = $this->colorPair;
         $lowerBound = $this->surface->bottomRight()->getY();
         $higherBound = $this->surface->topLeft()->getY();
         $width = $this->surface->width() - 2; // 2 symbols for borders

@@ -293,7 +293,7 @@ class Application
     /**
      * @return ViewRender
      */
-    public function view(): ViewRender
+    public function render(): ViewRender
     {
         return $this->render;
     }
@@ -398,12 +398,12 @@ class Application
      */
     public function currentViewContainers(): array
     {
-        $this->currentView = $this->currentView ?? $this->render->existingViews()[0] ?? null;
+        $this->currentView = $this->currentView ?? $this->render->existingTemplates()[0] ?? null;
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
             $this->initialiseViews();
         }
-        return $this->render->containers($this->currentView);
+        return $this->render->template($this->currentView)->allContainers();
     }
 
     /**

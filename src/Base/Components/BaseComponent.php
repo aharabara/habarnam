@@ -23,6 +23,9 @@ abstract class BaseComponent implements DrawableInterface
     /** @var string */
     protected $id;
 
+    /** @var string[] */
+    protected $classes;
+
     /** @var bool */
     protected $visible;
 
@@ -37,9 +40,18 @@ abstract class BaseComponent implements DrawableInterface
     /** @var string|null */
     protected $selector;
 
+    /** @var int */
+    protected $colorPair;
+
+    /** @var int */
+    protected $focusedColorPair;
+
+
     public function __construct(array $attrs)
     {
         $this->id = $attrs['id'] ?? null;
+        $this->classes = array_filter(explode(' ', $attrs['class'] ?? ''));
+
         if (isset($attrs['min-height'])) {
             $this->minHeight = $attrs['min-height'];
         }
@@ -53,13 +65,10 @@ abstract class BaseComponent implements DrawableInterface
                 throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
             }
         }
-
-        $this->fillWithPropValue($this->margin, $attrs['margin'] ?? '');
-        $this->fillWithPropValue($this->padding, $attrs['padding'] ?? '');
-
+        
         $attrs['visible'] = $attrs['visible'] ?? true;
         $attrs['visible'] = ($attrs['visible'] === 'false') ? false : true;
-        $this->setVisibility($attrs['visible']);
+        $this->visibility($attrs['visible']);
     }
 
     /**
@@ -145,27 +154,10 @@ abstract class BaseComponent implements DrawableInterface
      * @param bool $visible
      * @return $this
      */
-    public function setVisibility(bool $visible)
+    public function visibility(bool $visible)
     {
         $this->visible = $visible;
         return $this;
-    }
-
-    /**
-     * @param string $property
-     * @param $result
-     * @return array
-     */
-    protected function fillWithPropValue(array &$result, ?string $property = ''): array
-    {
-        if (isset($property)) {
-            foreach (array_map('trim', explode(',', $property)) as $key => $value) {
-                if (is_numeric($value)) {
-                    $result[$key] = -(int)$value;
-                }
-            }
-        }
-        return $result;
     }
 
     /**
@@ -176,15 +168,21 @@ abstract class BaseComponent implements DrawableInterface
         return $this->displayType;
     }
 
+    /**
+     * @param string|null $selector
+     * @return DrawableInterface|void
+     */
     public function setSelector(?string $selector)
     {
         $this->selector = $selector;
     }
 
+    /**
+     * @return string
+     */
     public function getSelector(): string
     {
         $tag = ViewRender::getComponentTag(get_class($this)) ?? 'wtf?';
-        $result = '';
         if ($this->selector) {
             $result = $this->selector;
         } elseif (!$this->id) {
@@ -192,9 +190,28 @@ abstract class BaseComponent implements DrawableInterface
         } else {
             $result = "{$tag}#{$this->id}";
         }
+        if (empty($this->selector) && !empty($this->classes)) {
+            $result .= '.' . implode('.', $this->classes);
+        }
+        
         if ($this->isFocused()) {
-            $result .= ':focused';
+            $result .= ':focus';
         }
         return $result;
+    }
+
+    /**
+     * @param array $styles
+     * @return $this|DrawableInterface
+     */
+    public function setStyles(array $styles)
+    {
+        $this->colorPair = $styles['base']['color-pair'];
+        $this->focusedColorPair = $styles['focus']['color-pair'] ?? Colors::BLACK_YELLOW;
+       
+        $this->margin = $styles['base']['margin'] ?? $this->margin;
+        $this->padding = $styles['base']['padding'] ?? $this->padding;
+        
+        return $this;
     }
 }

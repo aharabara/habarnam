@@ -37,9 +37,9 @@ class Button extends BaseComponent implements FocusableInterface
             Curse::color(Colors::BLACK_YELLOW);
             $this->dispatch(self::PRESS, []);
         }
-        $color = Colors::BLACK_WHITE;
+        $color = $this->colorPair;
         if ($this->isFocused()) {
-            $color = Colors::BLACK_YELLOW;
+            $color = $this->focusedColorPair;
         }
         $surf = $this->surface;
         $width = $surf->width() - 2;

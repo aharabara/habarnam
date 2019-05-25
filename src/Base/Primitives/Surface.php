@@ -93,10 +93,10 @@ class Surface
         return self::fromCalc(
             $this->id . '.children.' . random_int(0, 1000),
             function () use ($right, $top, $left) {
-                return new Position($this->topLeft()->getX() - ($left ?? $right ?? $top), $this->topLeft()->getY() - $top);
+                return new Position($this->topLeft()->getX() + ($left ?? $right ?? $top), $this->topLeft()->getY() + $top);
             },
             function () use ($bottom, $right, $top) {
-                return new Position($this->bottomRight()->getX() + $right ?? $top, $this->bottomRight()->getY() + ($bottom ?? $top));
+                return new Position($this->bottomRight()->getX() - $right ?? $top, $this->bottomRight()->getY() - ($bottom ?? $top));
             }
         );
     }

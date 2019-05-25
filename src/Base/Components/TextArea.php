@@ -15,12 +15,6 @@ class TextArea extends Text implements FocusableInterface
     protected $maxLength = 256;
 
     /** @var int */
-    protected $focusedColorPair = Colors::BLACK_YELLOW;
-
-    /** @var int */
-    protected $defaultColorPair = Colors::BLACK_WHITE;
-
-    /** @var int */
     protected $cursorColorPair = Colors::WHITE_BLACK;
     protected $infill = ' ';
 
@@ -48,7 +42,7 @@ class TextArea extends Text implements FocusableInterface
         if ($this->isFocused()) {
             Curse::color($this->focusedColorPair);
         } else {
-            Curse::color($this->defaultColorPair);
+            Curse::color($this->colorPair);
         }
         parent::draw($key);
     }
@@ -93,11 +87,11 @@ class TextArea extends Text implements FocusableInterface
                     Curse::writeAt($cursor, $this->cursorColorPair, $y, $x += strlen($before));
                     Curse::writeAt($after, $this->focusedColorPair, $y, ++$x);
                 } else {
-                    Curse::writeAt($line, $this->defaultColorPair, ++$y, $x);
+                    Curse::writeAt($line, $this->colorPair, ++$y, $x);
                 }
                 $index -= strlen($line);
             } else {
-                Curse::writeAt($line, $this->defaultColorPair, ++$y, $x);
+                Curse::writeAt($line, $this->colorPair, ++$y, $x);
             }
         }
     }

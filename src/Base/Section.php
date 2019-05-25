@@ -15,7 +15,7 @@ class Section extends Square implements ComponentsContainerInterface
     protected $title;
 
     /** @var int[] */
-    protected $padding = [-1, -1];
+    protected $padding = [1, 1];
 
     /**
      * Window constructor.
@@ -40,7 +40,7 @@ class Section extends Square implements ComponentsContainerInterface
         parent::draw($key);
         $topLeft = $this->surface->topLeft();
         if ($this->title) {
-            $color = $this->isFocused() ? Colors::BLACK_YELLOW : null;
+            $color = $this->isFocused() ? $this->focusedColorPair : $this->colorPair;
             Curse::writeAt("| {$this->title} |", $color, $topLeft->getY(), $topLeft->getX() + 3);
         }
         return $this;
@@ -54,19 +54,23 @@ class Section extends Square implements ComponentsContainerInterface
     public function setSurface(Surface $surface)
     {
         $result = parent::setSurface($surface);
-        $this->setComponentsSurface();
+        $this->recalculateSubSurfaces();
         return $result;
     }
 
     /**
-     * @param DrawableInterface ...$components
+     * @param DrawableInterface $components
+     * @param string|null $id
      * @return Section
      * @throws \Exception
      */
-    public function setComponents(DrawableInterface ...$components): Section
+    public function addComponent(DrawableInterface $components, ?string $id = null): Section
     {
-        $this->components = $components;
-        $this->setComponentsSurface();
+        if ($id) {
+            $this->components[$id] = $components;
+        } else {
+            $this->components[] = $components;
+        }
         return $this;
     }
 
@@ -79,7 +83,7 @@ class Section extends Square implements ComponentsContainerInterface
     public function replaceComponent(int $index, DrawableInterface $component): Section
     {
         $this->components[$index] = $component;
-        $this->setComponentsSurface();
+        $this->recalculateSubSurfaces();
         return $this;
     }
 
@@ -95,7 +99,7 @@ class Section extends Square implements ComponentsContainerInterface
      * @return $this
      * @throws \Exception
      */
-    protected function setComponentsSurface(): self
+    public function recalculateSubSurfaces()
     {
         if (empty($this->components) || !$this->visible) {
             return $this;
@@ -145,9 +149,9 @@ class Section extends Square implements ComponentsContainerInterface
      * @param bool $visible
      * @return BaseComponent
      */
-    public function setVisibility(bool $visible)
+    public function visibility(bool $visible)
     {
-        return parent::setVisibility($visible);
+        return parent::visibility($visible);
     }
 
 }

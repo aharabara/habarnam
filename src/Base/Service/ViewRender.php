@@ -28,6 +28,7 @@ class ViewRender
 
     /** @var string */
     protected $path;
+    protected $templates = [];
 
 
     /**
@@ -36,11 +37,10 @@ class ViewRender
      */
     public function __construct(string $path)
     {
-        self::registerComponent('animation', Animation::class);
+        self::registerComponent('figure', Animation::class);
         self::registerComponent('hr', Divider::class);
         self::registerComponent('p', Text::class);
-        self::registerComponent('point', Point::class);
-        self::registerComponent('square', Point::class);
+        self::registerComponent('square', Square::class);
         self::registerComponent('ol', OrderedList::class);
         self::registerComponent('input', Input::class);
         self::registerComponent('label', Label::class);
@@ -104,19 +104,30 @@ class ViewRender
     {
         $root = simplexml_load_string(file_get_contents($filePath));
         $rootNodeName = $root->getName();
+        $attrs = $this->getAttributes($root);
+
         if ($rootNodeName === 'template') {
-            $nodeAttrs = $this->getAttributes($root);
-            if (!isset($nodeAttrs['id'])) {
+            if (!isset($attrs['id'])) {
                 throw new UnexpectedValueException("<template> tag requires 'id' attribute to be specified.");
             }
-            foreach ($root->children() as $panelNode) {
-                $container = $this->containerFromNode($panelNode);
-                if ($container->getId()) {
-                    $this->containers[$nodeAttrs['id']][$container->getId()] = $container;
-                } else {
-                    $this->containers[$nodeAttrs['id']][] = $container;
+            
+            $body = $root->xpath('//body')[0];
+            $head = $root->xpath('//head')[0];
+
+            $template = new Template($attrs['id']);
+            foreach ($head->xpath('//link') as $link) {
+                ['src' => $path] = $this->getAttributes($link);
+                if (empty($path)) {
+                    throw new UnexpectedValueException('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
                 }
+                $template->addStyleSheet(new StyleSheet($path));
             }
+
+            foreach ($body->children() as $panelNode) {
+                $container = $this->containerFromNode($template, $panelNode);
+                $template->addContainers($container, $container->getId());
+            }
+            $this->templates[$attrs['id']] = $template;
         } elseif ($rootNodeName === 'surfaces') {
             foreach ($root->children() as $surfNode) {
                 $surface = $this->surfaceFromNode($surfNode);
@@ -183,13 +194,13 @@ class ViewRender
     }
 
     /**
+     * @param Template $template
      * @param SimpleXMLElement $node
      * @return ComponentsContainerInterface
-     * @throws Exception
+     * @throws \ReflectionException
      */
-    protected function containerFromNode(SimpleXMLElement $node): ComponentsContainerInterface
+    protected function containerFromNode(Template $template, SimpleXMLElement $node): ComponentsContainerInterface
     {
-        $components = [];
         $nodeAttrs = $this->getAttributes($node);
         $class = $this->getComponentClass($node->getName());
         /** @var DrawableInterface|ComponentsContainerInterface $container */
@@ -204,7 +215,7 @@ class ViewRender
             $class = $this->getComponentClass($subNode->getName());
             /** @var DrawableInterface $component */
             if ($this->isContainer($class)) {
-                $component = $this->containerFromNode($subNode);
+                $component = $this->containerFromNode($template, $subNode);
             } else {
                 $component = new $class($attrs);
             }
@@ -212,16 +223,9 @@ class ViewRender
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
             }
-            if (isset($attrs['id'])) {
-                $components[$attrs['id']] = $component;
-                $this->components[$attrs['id']] = $component;
-            } else {
-                $components[] = $component;
-                $this->components[] = $component;
-            }
             $this->handleComponentEvents($component, $attrs);
+            $container->addComponent($component, $attrs['id'] ?? null);
         }
-        $container->setComponents(...array_values($components));
         return $container;
     }
 
@@ -238,22 +242,12 @@ class ViewRender
     }
 
     /**
-     * @param string $viewID
-     * @return array
+     * @param string $templateID
+     * @return Template
      */
-    public function containers(string $viewID): array
+    public function template(string $templateID): Template
     {
-        return $this->containers[$viewID];
-    }
-
-    /**
-     * @param string $viewID
-     * @param string $id
-     * @return ComponentsContainerInterface
-     */
-    public function container(string $viewID, string $id): ComponentsContainerInterface
-    {
-        return $this->containers[$viewID][$id];
+        return $this->templates[$templateID];
     }
 
     /**
@@ -263,15 +257,6 @@ class ViewRender
     public function surface(string $id): Surface
     {
         return $this->surfaces[$id];
-    }
-
-    /**
-     * @param string $id
-     * @return BaseComponent
-     */
-    public function component(string $id): BaseComponent
-    {
-        return $this->components[$id];
     }
 
     /**
@@ -444,18 +429,18 @@ class ViewRender
     }
 
     /**
-     * @param string $viewID
+     * @param string $templateID
      * @return bool
      */
-    public function exists(string $viewID): bool
+    public function exists(string $templateID): bool
     {
-        return !empty($this->containers($viewID));
+        return $this->template($templateID) !== null;
     }
 
     /**
      * @return string[]
      */
-    public function existingViews(): array
+    public function existingTemplates(): array
     {
         return array_keys($this->containers);
     }
