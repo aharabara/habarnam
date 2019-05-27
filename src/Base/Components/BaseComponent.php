@@ -65,7 +65,7 @@ abstract class BaseComponent implements DrawableInterface
                 throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
             }
         }
-        
+
         $attrs['visible'] = $attrs['visible'] ?? true;
         $attrs['visible'] = ($attrs['visible'] === 'false') ? false : true;
         $this->visibility($attrs['visible']);
@@ -193,7 +193,7 @@ abstract class BaseComponent implements DrawableInterface
         if (empty($this->selector) && !empty($this->classes)) {
             $result .= '.' . implode('.', $this->classes);
         }
-        
+
         if ($this->isFocused()) {
             $result .= ':focus';
         }
@@ -206,12 +206,13 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setStyles(array $styles)
     {
-        $this->colorPair = $styles['base']['color-pair'];
-        $this->focusedColorPair = $styles['focus']['color-pair'] ?? Colors::BLACK_YELLOW;
-       
-        $this->margin = $styles['base']['margin'] ?? $this->margin;
-        $this->padding = $styles['base']['padding'] ?? $this->padding;
-        
+        $this->colorPair = $styles['color-pair'];
+        $this->focusedColorPair = $styles['focus-color-pair'] ?? Colors::BLACK_YELLOW;
+
+        $this->margin = $styles['margin'] ?? $this->margin;
+        $this->padding = $styles['padding'] ?? $this->padding;
+        $this->visible = $styles['visibility'] ?? $this->visible;
+
         return $this;
     }
 }

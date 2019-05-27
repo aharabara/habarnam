@@ -3,10 +3,13 @@
 namespace Base;
 
 
+use Symfony\Component\CssSelector\CssSelectorConverter;
+
 class Application
 {
     /** @var self */
     protected static $instance;
+    public $selectorConverter;
 
     /** @var int|null */
     protected $lastValidKey;
@@ -69,6 +72,7 @@ class Application
      */
     public function __construct(Workspace $workspace, ViewRender $render, string $currentView)
     {
+        $this->selectorConverter = new CssSelectorConverter();
         Curse::initialize();
         self::$instance = $this;
         $this->render = $render;
@@ -208,6 +212,10 @@ class Application
         }
         if ($this->allowDebug && $key === NCURSES_KEY_F1) {
             $this->debug = !$this->debug;
+            return true;
+        }
+        if ($key === NCURSES_KEY_F5) {
+            $this->render->refreshDocuments();
             return true;
         }
         if ($key === NCURSES_KEY_BTAB) {
@@ -426,5 +434,35 @@ class Application
         $components = $this->getDrawableComponents();
         $this->currentComponentIndex = array_search($component, $components, true);
         return $this;
+    }
+
+
+    /**
+     * @param string $selector
+     * @param string|null $view
+     * @return BaseComponent[]
+     */
+    public function findAll(string $selector, ?string $view = null): array
+    {
+        /** @var ComplexXMLElement $document */
+        $document = $this->render->documents[$view ?? $this->currentView];
+        
+        /** @var ComplexXMLElement[] $elements */
+        $elements = $document->xpath($this->selectorConverter->toXPath($selector));
+        $result = [];
+        foreach ($elements as $element) {
+            $result[] = $element->getComponent();
+        }
+        return $result;
+    }
+
+    /**
+     * @param string $selector
+     * @param string|null $view
+     * @return BaseComponent|null
+     */
+    public function findFirst(string $selector, ?string $view = null): ?BaseComponent
+    {
+        return $this->findAll($selector, $view)[0] ?? null;
     }
 }

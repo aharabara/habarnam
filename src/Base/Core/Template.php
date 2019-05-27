@@ -35,22 +35,11 @@ class Template
         }
         // index components with IDs
         foreach ($container->toComponentsArray() as $component) {
-
-            $result = [];
-            [$base, $states] = StyleSheet::selectorWithStates($component->getSelector());
-            foreach ($this->styles as $style) {
-                $result['base'] = $style->propertiesBySelector($base);
-                foreach ($states as $state) {
-                    $result[$state] = $style->propertiesBySelector("$base:$state");
-                }
-            }
-            $component->setStyles($result);
             if ($container === $component && !$component->getId()) {
                 continue;
             }
             $this->components[$component->getId()] = $component;
         }
-        $container->recalculateSubSurfaces();
         return $this;
     }
 

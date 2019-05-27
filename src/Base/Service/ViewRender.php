@@ -5,14 +5,23 @@ namespace Base;
 use Exception;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Sabberworm\CSS\Parser;
+use Sabberworm\CSS\Rule\Rule;
+use Sabberworm\CSS\RuleSet\DeclarationBlock;
+use Sabberworm\CSS\Value\RuleValueList;
+use Sabberworm\CSS\Value\Size;
 use SimpleXMLElement;
 use SplFileInfo;
+use Symfony\Component\CssSelector\CssSelectorConverter;
 use UnexpectedValueException;
 
 class ViewRender
 {
     /** @var string[] */
     protected static $componentsMapping = [];
+
+    /** @var ComplexXMLElement[] */
+    public $documents = [];
 
     /** @var Surface[] */
     protected $surfaces = [];
@@ -102,32 +111,27 @@ class ViewRender
      */
     public function parseFile(string $filePath): self
     {
-        $root = simplexml_load_string(file_get_contents($filePath));
+        $root = simplexml_load_string(file_get_contents($filePath), ComplexXMLElement::class);
         $rootNodeName = $root->getName();
         $attrs = $this->getAttributes($root);
-
         if ($rootNodeName === 'template') {
             if (!isset($attrs['id'])) {
                 throw new UnexpectedValueException("<template> tag requires 'id' attribute to be specified.");
             }
-            
+            $this->documents[$attrs['id']] = $root;
+
             $body = $root->xpath('//body')[0];
             $head = $root->xpath('//head')[0];
 
             $template = new Template($attrs['id']);
-            foreach ($head->xpath('//link') as $link) {
-                ['src' => $path] = $this->getAttributes($link);
-                if (empty($path)) {
-                    throw new UnexpectedValueException('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
-                }
-                $template->addStyleSheet(new StyleSheet($path));
-            }
 
             foreach ($body->children() as $panelNode) {
                 $container = $this->containerFromNode($template, $panelNode);
                 $template->addContainers($container, $container->getId());
             }
             $this->templates[$attrs['id']] = $template;
+            $this->applyStyle($head);
+
         } elseif ($rootNodeName === 'surfaces') {
             foreach ($root->children() as $surfNode) {
                 $surface = $this->surfaceFromNode($surfNode);
@@ -199,7 +203,7 @@ class ViewRender
      * @return ComponentsContainerInterface
      * @throws \ReflectionException
      */
-    protected function containerFromNode(Template $template, SimpleXMLElement $node): ComponentsContainerInterface
+    protected function containerFromNode(Template $template, ComplexXMLElement $node): ComponentsContainerInterface
     {
         $nodeAttrs = $this->getAttributes($node);
         $class = $this->getComponentClass($node->getName());
@@ -211,6 +215,7 @@ class ViewRender
         }
 
         foreach ($node->children() as $subNode) {
+            /** @var ComplexXMLElement $subNode */
             $attrs = $this->getAttributes($subNode);
             $class = $this->getComponentClass($subNode->getName());
             /** @var DrawableInterface $component */
@@ -225,7 +230,9 @@ class ViewRender
             }
             $this->handleComponentEvents($component, $attrs);
             $container->addComponent($component, $attrs['id'] ?? null);
+            $subNode->setMappedComponent($component);
         }
+        $node->setMappedComponent($container);
         return $container;
     }
 
@@ -453,5 +460,112 @@ class ViewRender
     protected function isContainer(string $class): bool
     {
         return (new \ReflectionClass($class))->implementsInterface(ComponentsContainerInterface::class);
+    }
+
+    /**
+     * @param SimpleXMLElement $head
+     */
+    protected function applyStyle(SimpleXMLElement $head): void
+    {
+        $convertor = new CssSelectorConverter();
+        foreach ($head->xpath('//link') as $link) {
+            ['src' => $path] = $this->getAttributes($link);
+            if (empty($path)) {
+                throw new UnexpectedValueException('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
+            }
+            $parser = new Parser(file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . ltrim($path, './')));
+            $document = $parser->parse();
+
+            /* @var DeclarationBlock[] $declarations */
+            $declarations = $document->getAllDeclarationBlocks();
+            foreach ($declarations as $declaration) {
+                $rules = $declaration->getRules();
+                foreach ($this->documents as $docs) {
+                    /* @var ComplexXMLElement $docs */
+                    foreach ($declaration->getSelectors() as $selector) {
+                        /* @var ComplexXMLElement[] $elements */
+                        $elements = $docs->xpath($convertor->toXPath($selector->getSelector()));
+                        if (!empty($elements)) {
+                            foreach ($elements as $element) {
+                                $element->getComponent()->setStyles($this->getCssProperties(...$rules));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        /* recalculate surfaces */
+        foreach ($this->templates as $template) {
+            foreach ($template->allContainers() as $container) {
+                $container->recalculateSubSurfaces();
+            }
+        }
+
+    }
+
+    /**
+     * @param Rule[] $rules
+     * @return array
+     */
+    protected function getCssProperties(Rule ...$rules): array
+    {
+        $bgColor = null;
+        $textColor = null;
+        $focusColor = null;
+        $props = [];
+        foreach ($rules as $rule) {
+            $props[$rule->getRule()] = $rule->getValue();
+            switch ($rule->getRule()) {
+                case 'color':
+                    $textColor = strtolower($rule->getValue());
+                    break;
+                case 'border-color':
+                    $borderColor = strtolower($rule->getValue());
+                    break;
+                case 'outline-color':
+                    $focusBgColor = strtolower($rule->getValue());
+                    break;
+                case 'caret-color':
+                    $focusColor = strtolower($rule->getValue());
+                    break;
+                case 'visibility':
+                    $props['visibility'] = strtolower($rule->getValue()) !== 'hidden';
+                    break;
+                case 'background':
+                case 'background-color':
+                    $bgColor = strtolower($rule->getValue());
+                    break;
+                case 'padding':
+                case 'margin':
+                    /** @var RuleValueList $value */
+                    $value = $rule->getValue();
+                    $sizes = array_map(static function (Size $size) {
+                        return $size->getSize();
+                    }, $value->getListComponents());
+
+                    $props[$rule->getRule()] = $sizes;
+                    break;
+            }
+        }
+
+        $bgColor = $bgColor ?? 'black';
+        $focusBgColor = $focusBgColor ?? 'black';
+        $textColor = $textColor ?? 'white';
+        $focusColor = $focusColor ?? 'black';
+        $borderColor = $borderColor ?? 'white';
+        $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
+        $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
+        $props['focus-color-pair'] = constant(Colors::class . '::' . strtoupper("{$focusBgColor}_{$focusColor}"));
+        return $props;
+    }
+
+    public function refreshDocuments()
+    {
+        foreach ($this->documents as $document) {
+            $head = $document->xpath('//head');
+            if (!empty($head)) {
+                $this->applyStyle($head[0]);
+            }
+        }
     }
 }

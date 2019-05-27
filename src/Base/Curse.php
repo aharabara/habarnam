@@ -62,7 +62,6 @@ class Curse
 
     public static function initialize(): void
     {
-        Curse::initColorPairs();
         ncurses_init();
         if (ncurses_has_colors()) {
             ncurses_start_color();
