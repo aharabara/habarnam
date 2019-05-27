@@ -13,6 +13,14 @@ Give a :star: if like it and write me if you don't and we will make it better.
 Made with `habarnam`:
  - [HTodo](https://github.com/aharabara/htodo)
 
+Soon could be implemented:
+ - Chat
+ - Redis or MySQL browser
+ - Reddit browser
+ - Ascii drawing tool
+ 
+If you have some ideas, then create an issue and we will disscuss it :metal:
+
 Usage:
 ```bash
 #go to you project directory and require it into your project
