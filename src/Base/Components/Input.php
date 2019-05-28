@@ -18,7 +18,7 @@ class Input extends TextArea
             $key = null;
         }
         $this->handleKeyPress($key);
-        $this->defaultRender(str_pad(substr(str_replace(' ', '_', $this->text), 0, $length), $length, '_'));
+        $this->defaultRender($this->mbStrPad(mb_substr(mb_ereg_replace(' ', '_', $this->text), 0, $length), $length, '_'));
     }
 
     /**

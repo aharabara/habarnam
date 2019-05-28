@@ -72,4 +72,11 @@ interface DrawableInterface
      * @return self
      */
     public function setStyles(array $styles);
+
+    /**
+     * @param array $properties
+     * @return self
+     */
+    public function setOnFocusStyles(array $properties);
+
 }

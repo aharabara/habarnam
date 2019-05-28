@@ -14,7 +14,9 @@
         "ext-ncurses": "*",
         "ext-ctype": "*",
         "ext-mbstring": "*",
-        "ext-simplexml": "*"
+        "ext-simplexml": "*",
+        "sabberworm/php-css-parser": "^8.3",
+        "symfony/css-selector": "^4.2"
     },
     "autoload": {
         "classmap": [

@@ -202,17 +202,26 @@ abstract class BaseComponent implements DrawableInterface
 
     /**
      * @param array $styles
-     * @return $this|DrawableInterface
+     * @return $this
      */
     public function setStyles(array $styles)
     {
         $this->colorPair = $styles['color-pair'];
-        $this->focusedColorPair = $styles['focus-color-pair'] ?? Colors::BLACK_YELLOW;
 
         $this->margin = $styles['margin'] ?? $this->margin;
         $this->padding = $styles['padding'] ?? $this->padding;
         $this->visible = $styles['visibility'] ?? $this->visible;
 
+        return $this;
+    }
+
+    /**
+     * @param array $properties
+     * @return $this|DrawableInterface
+     */
+    public function setOnFocusStyles(array $properties)
+    {
+        $this->focusedColorPair = $properties['color-pair'] ?? Colors::BLACK_YELLOW;
         return $this;
     }
 }

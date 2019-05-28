@@ -26,10 +26,10 @@ class TextArea extends Text implements FocusableInterface
      */
     public function __construct(array $attrs)
     {
-        $attrs['text']  = $attrs['text'] ?? '';
+        $attrs['text'] = $attrs['text'] ?? '';
         $attrs['align'] = self::DEFAULT_FILL;
         parent::__construct($attrs);
-        $this->cursorIndex = strlen($attrs['text']);
+        $this->cursorIndex = mb_strlen($attrs['text']);
     }
 
     /**
@@ -62,7 +62,7 @@ class TextArea extends Text implements FocusableInterface
     public function setText(?string $text = ''): self
     {
         $this->text = $text;
-        $this->cursorIndex = strlen($this->text) + 1;
+        $this->cursorIndex = mb_strlen($this->text) + 1;
         return $this;
     }
 
@@ -79,17 +79,17 @@ class TextArea extends Text implements FocusableInterface
             # line 2 for test
             $x = $pos->getX();
             if ($this->isFocused() && $index >= 0) {
-                if ($index <= strlen($line) + 1) {
-                    $before = substr($line, 0, $index - 1);
-                    $cursor = substr($line, $index - 1, $index);
-                    $after = substr($line, $index);
+                if ($index <= mb_strlen($line) + 1) {
+                    $before = mb_substr($line, 0, $index - 1);
+                    $cursor = mb_substr($line, $index - 1, $index);
+                    $after = mb_substr($line, $index);
                     Curse::writeAt($before, $this->focusedColorPair, ++$y, $x);
-                    Curse::writeAt($cursor, $this->cursorColorPair, $y, $x += strlen($before));
+                    Curse::writeAt($cursor, $this->cursorColorPair, $y, $x += mb_strlen($before));
                     Curse::writeAt($after, $this->focusedColorPair, $y, ++$x);
                 } else {
                     Curse::writeAt($line, $this->colorPair, ++$y, $x);
                 }
-                $index -= strlen($line);
+                $index -= mb_strlen($line);
             } else {
                 Curse::writeAt($line, $this->colorPair, ++$y, $x);
             }
@@ -106,14 +106,14 @@ class TextArea extends Text implements FocusableInterface
             case NCURSES_KEY_DL:
             case NCURSES_KEY_DC:
                 if ($this->text && $this->cursorIndex > 1) {
-                    $this->text = substr($this->text, 0, $this->cursorIndex - 1)
-                        . substr($this->text, $this->cursorIndex);
+                    $this->text = mb_substr($this->text, 0, $this->cursorIndex - 1)
+                        . mb_substr($this->text, $this->cursorIndex);
                 }
                 break;
             case NCURSES_KEY_BACKSPACE:
                 if ($this->text && $this->cursorIndex > 1) {
-                    $this->text = substr($this->text, 0, $this->cursorIndex - 2)
-                        . substr($this->text, $this->cursorIndex - 1);
+                    $this->text = mb_substr($this->text, 0, $this->cursorIndex - 2)
+                        . mb_substr($this->text, $this->cursorIndex - 1);
                 }
             case NCURSES_KEY_LEFT:
                 if ($this->cursorIndex > 0) {
@@ -123,7 +123,7 @@ class TextArea extends Text implements FocusableInterface
                 }
                 break;
             case NCURSES_KEY_UP:
-                if($this->cursorIndex > $lineLength){
+                if ($this->cursorIndex > $lineLength) {
                     $this->cursorIndex -= $lineLength;
                 }
                 break;
@@ -131,25 +131,26 @@ class TextArea extends Text implements FocusableInterface
                 $this->cursorIndex += $lineLength;
                 break;
             case NCURSES_KEY_RIGHT:
-                if ($this->cursorIndex <= strlen($this->text)) {
+                if ($this->cursorIndex <= mb_strlen($this->text)) {
                     $this->cursorIndex++;
                 }
                 break;
             default:
-                if (strlen($this->text) === $this->maxLength) {
+                if (mb_strlen($this->text) === $this->maxLength) {
                     break;
                 }
                 if ($key === 10) {
                     $padding = $this->cursorIndex - $this->cursorIndex % $lineLength + $lineLength;
-                    $this->text = str_pad(substr($this->text, 0, $this->cursorIndex - 1), $padding, $this->infill)
-                        . substr($this->text, $this->cursorIndex - 1);
+                    $this->text = $this->mbStrPad(substr($this->text, 0, $this->cursorIndex - 1), $padding,
+                            $this->infill)
+                        . mb_substr($this->text, $this->cursorIndex - 1);
                     $this->cursorIndex = $padding + 1;
 
                 } elseif (ctype_alnum($key) || ctype_space($key) || ctype_punct($key)) {
-                    $this->text = substr($this->text, 0, $this->cursorIndex - 1)
+                    $this->text = mb_substr($this->text, 0, $this->cursorIndex - 1)
                         . chr($key)
-                        . substr($this->text, $this->cursorIndex - 1);
-                    $this->cursorIndex++;
+                        . mb_substr($this->text, $this->cursorIndex - 1);
+                        $this->cursorIndex++;
                 }
         }
     }
@@ -166,5 +167,21 @@ class TextArea extends Text implements FocusableInterface
             $lines[$key] = str_pad($line, $length, $this->infill);
         }
         return $lines;
+    }
+
+    /**
+     * mb_str_pad
+     *
+     * @param string $input
+     * @param int $pad_length
+     * @param string $pad_string
+     * @param int $pad_type
+     * @return string
+     * @author Kari "Haprog" Sderholm
+     */
+    public function mbStrPad($input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
+    {
+        $diff = strlen($input) - mb_strlen($input);
+        return str_pad($input, $pad_length + $diff, $pad_string, $pad_type);
     }
 }

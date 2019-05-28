@@ -483,11 +483,22 @@ class ViewRender
                 foreach ($this->documents as $docs) {
                     /* @var ComplexXMLElement $docs */
                     foreach ($declaration->getSelectors() as $selector) {
+                        $selector = $selector->getSelector();
+                        $onFocusProperties = false;
+                        if (strpos($selector, ':focus') !== false) {
+                            $selector = str_replace(':focus', '', $selector);
+                            $onFocusProperties = true;
+                        }
                         /* @var ComplexXMLElement[] $elements */
-                        $elements = $docs->xpath($convertor->toXPath($selector->getSelector()));
+                        $elements = $docs->xpath($convertor->toXPath($selector));
                         if (!empty($elements)) {
+                            $properties = $this->getCssProperties(...$rules);
                             foreach ($elements as $element) {
-                                $element->getComponent()->setStyles($this->getCssProperties(...$rules));
+                                if ($onFocusProperties) {
+                                    $element->getComponent()->setOnFocusStyles($properties);
+                                } else {
+                                    $element->getComponent()->setStyles($properties);
+                                }
                             }
                         }
                     }
@@ -514,19 +525,12 @@ class ViewRender
         $focusColor = null;
         $props = [];
         foreach ($rules as $rule) {
-            $props[$rule->getRule()] = $rule->getValue();
             switch ($rule->getRule()) {
                 case 'color':
                     $textColor = strtolower($rule->getValue());
                     break;
                 case 'border-color':
                     $borderColor = strtolower($rule->getValue());
-                    break;
-                case 'outline-color':
-                    $focusBgColor = strtolower($rule->getValue());
-                    break;
-                case 'caret-color':
-                    $focusColor = strtolower($rule->getValue());
                     break;
                 case 'visibility':
                     $props['visibility'] = strtolower($rule->getValue()) !== 'hidden';
@@ -539,23 +543,27 @@ class ViewRender
                 case 'margin':
                     /** @var RuleValueList $value */
                     $value = $rule->getValue();
+                    if ($value instanceof Size) {
+                        $value = [$value];
+                    } else {
+                        $value = $value->getListComponents();
+                    }
                     $sizes = array_map(static function (Size $size) {
                         return $size->getSize();
-                    }, $value->getListComponents());
+                    }, $value);
 
                     $props[$rule->getRule()] = $sizes;
                     break;
+                default:
+                    $props[$rule->getRule()] = $rule->getValue();
             }
         }
 
         $bgColor = $bgColor ?? 'black';
-        $focusBgColor = $focusBgColor ?? 'black';
         $textColor = $textColor ?? 'white';
-        $focusColor = $focusColor ?? 'black';
         $borderColor = $borderColor ?? 'white';
         $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
         $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
-        $props['focus-color-pair'] = constant(Colors::class . '::' . strtoupper("{$focusBgColor}_{$focusColor}"));
         return $props;
     }
 
