@@ -8,16 +8,9 @@ class Label extends Text
     protected $minHeight = 1;
 
     /**
-     * Point constructor.
-     * @param array $attrs
-     * @throws \Exception
+     * @param string $text
+     * @return array
      */
-    public function __construct(array $attrs)
-    {
-        $attrs['align'] = self::DEFAULT_FILL;
-        parent::__construct($attrs);
-    }
-    
     protected function getLines(string $text): array
     {
         $lines = parent::getLines($text);

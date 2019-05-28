@@ -62,9 +62,9 @@ class ViewRender
 
     /**
      * @param string $className
-     * @return |null
+     * @return string|null
      */
-    public static function getComponentTag(string $className)
+    public static function getComponentTag(string $className): ?string
     {
         return array_flip(self::$componentsMapping)[$className] ?? null;
     }
@@ -199,7 +199,7 @@ class ViewRender
 
     /**
      * @param Template $template
-     * @param SimpleXMLElement $node
+     * @param ComplexXMLElement $node
      * @return ComponentsContainerInterface
      * @throws \ReflectionException
      */
@@ -224,7 +224,6 @@ class ViewRender
             } else {
                 $component = new $class($attrs);
             }
-            $component->setSelector("{$container->getSelector()} > {$component->getSelector()}");
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
             }
@@ -364,10 +363,6 @@ class ViewRender
                 $componentBottomY = $baseSurf->topLeft()->getY() + $offsetY + $height;
             }
 
-//            if ($component instanceof TextArea){
-//                throw new UnexpectedValueException(var_export([$baseSurf->topLeft()->getY(), $offsetY, $height, "or", $baseSurf->bottomRight()->getY()], true));
-//            }
-
             if (!$component->hasSurface()) {
                 $surf = self::getCalculatedSurface($baseSurf, $component, $offsetX, $offsetY, $perComponentWidth,
                     $componentBottomY);
@@ -494,10 +489,12 @@ class ViewRender
                         if (!empty($elements)) {
                             $properties = $this->getCssProperties(...$rules);
                             foreach ($elements as $element) {
+                                $component = $element->getComponent();
+                                $component->addSelector($selector);
                                 if ($onFocusProperties) {
-                                    $element->getComponent()->setOnFocusStyles($properties);
+                                    $component->setOnFocusStyles($properties);
                                 } else {
-                                    $element->getComponent()->setStyles($properties);
+                                    $component->setStyles($properties);
                                 }
                             }
                         }
@@ -535,6 +532,9 @@ class ViewRender
                 case 'visibility':
                     $props['visibility'] = strtolower($rule->getValue()) !== 'hidden';
                     break;
+                case 'caret-color':
+                    $caretColor = strtolower($rule->getValue());
+                    break;
                 case 'background':
                 case 'background-color':
                     $bgColor = strtolower($rule->getValue());
@@ -555,19 +555,33 @@ class ViewRender
                     $props[$rule->getRule()] = $sizes;
                     break;
                 default:
-                    $props[$rule->getRule()] = $rule->getValue();
+                    $props[$rule->getRule()] = trim($rule->getValue(), '"');
             }
         }
 
-        $bgColor = $bgColor ?? 'black';
-        $textColor = $textColor ?? 'white';
-        $borderColor = $borderColor ?? 'white';
-        $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
-        $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
+        if(!empty($bgColor) || !empty($textColor)){
+            $bgColor = $bgColor ?? 'black';
+            $textColor = $textColor ?? 'white';
+            $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
+        }
+        if(!empty($borderColor)) {
+            $bgColor = $bgColor ?? 'black';
+            $borderColor = $borderColor ?? 'white';
+            $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
+        }
+        
+        if(!empty($caretColor)) {
+            $bgColor = $bgColor ?? 'black';
+            $caretColor = $caretColor ?? 'white';
+            $props['caret-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$caretColor}"));
+        }
         return $props;
     }
 
-    public function refreshDocuments()
+    /**
+     * @return $this
+     */
+    public function refreshDocuments(): self
     {
         foreach ($this->documents as $document) {
             $head = $document->xpath('//head');
@@ -575,5 +589,6 @@ class ViewRender
                 $this->applyStyle($head[0]);
             }
         }
+        return $this;
     }
 }

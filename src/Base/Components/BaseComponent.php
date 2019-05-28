@@ -27,7 +27,7 @@ abstract class BaseComponent implements DrawableInterface
     protected $classes;
 
     /** @var bool */
-    protected $visible;
+    protected $visible = true;
 
     /** @var int[] */
     protected $padding = [0, 0];
@@ -37,8 +37,9 @@ abstract class BaseComponent implements DrawableInterface
 
     /** @var string */
     protected $displayType = self::DISPLAY_BLOCK;
-    /** @var string|null */
-    protected $selector;
+    
+    /** @var string[]  */
+    protected $selectors = [];
 
     /** @var int */
     protected $colorPair;
@@ -65,10 +66,6 @@ abstract class BaseComponent implements DrawableInterface
                 throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
             }
         }
-
-        $attrs['visible'] = $attrs['visible'] ?? true;
-        $attrs['visible'] = ($attrs['visible'] === 'false') ? false : true;
-        $this->visibility($attrs['visible']);
     }
 
     /**
@@ -172,9 +169,10 @@ abstract class BaseComponent implements DrawableInterface
      * @param string|null $selector
      * @return DrawableInterface|void
      */
-    public function setSelector(?string $selector)
+    public function addSelector(?string $selector)
     {
-        $this->selector = $selector;
+        $this->selectors[] = $selector;
+        $this->selectors = array_unique($this->selectors);
     }
 
     /**
@@ -183,14 +181,14 @@ abstract class BaseComponent implements DrawableInterface
     public function getSelector(): string
     {
         $tag = ViewRender::getComponentTag(get_class($this)) ?? 'wtf?';
-        if ($this->selector) {
-            $result = $this->selector;
+        if ($this->selectors) {
+            $result = implode(',', $this->selectors);
         } elseif (!$this->id) {
             $result = $tag;
         } else {
             $result = "{$tag}#{$this->id}";
         }
-        if (empty($this->selector) && !empty($this->classes)) {
+        if (empty($this->selectors) && !empty($this->classes)) {
             $result .= '.' . implode('.', $this->classes);
         }
 
@@ -206,12 +204,11 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setStyles(array $styles)
     {
-        $this->colorPair = $styles['color-pair'];
+        $this->colorPair = $styles['color-pair'] ?? $this->colorPair;
 
         $this->margin = $styles['margin'] ?? $this->margin;
         $this->padding = $styles['padding'] ?? $this->padding;
         $this->visible = $styles['visibility'] ?? $this->visible;
-
         return $this;
     }
 
@@ -221,7 +218,7 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setOnFocusStyles(array $properties)
     {
-        $this->focusedColorPair = $properties['color-pair'] ?? Colors::BLACK_YELLOW;
+        $this->focusedColorPair = $properties['color-pair'] ?? $this->focusedColorPair ?? Colors::BLACK_YELLOW;
         return $this;
     }
 }

@@ -73,4 +73,11 @@ class Curse
         //ncurses_nonl();
         ncurses_curs_set(Curse::CURSOR_INVISIBLE);
     }
+
+    public static function exit(): void
+    {
+        ncurses_echo();
+        ncurses_curs_set(Curse::CURSOR_VISIBLE);
+        ncurses_end();
+    }
 }

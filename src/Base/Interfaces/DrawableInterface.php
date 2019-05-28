@@ -60,7 +60,7 @@ interface DrawableInterface
      * @param string|null $selector
      * @return self
      */
-    public function setSelector(?string $selector);
+    public function addSelector(?string $selector);
 
     /**
      * @return string

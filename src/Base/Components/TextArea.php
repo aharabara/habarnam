@@ -26,8 +26,6 @@ class TextArea extends Text implements FocusableInterface
      */
     public function __construct(array $attrs)
     {
-        $attrs['text'] = $attrs['text'] ?? '';
-        $attrs['align'] = self::DEFAULT_FILL;
         parent::__construct($attrs);
         $this->cursorIndex = mb_strlen($attrs['text']);
     }
@@ -166,6 +164,9 @@ class TextArea extends Text implements FocusableInterface
         foreach (parent::getLines($text) as $key => $line) {
             $lines[$key] = str_pad($line, $length, $this->infill);
         }
+        if (empty($lines)){
+            $lines[] = str_repeat($this->infill, $length);
+        }
         return $lines;
     }
 
@@ -179,9 +180,19 @@ class TextArea extends Text implements FocusableInterface
      * @return string
      * @author Kari "Haprog" Sderholm
      */
-    public function mbStrPad($input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
+    public function mbStrPad($input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT): string
     {
         $diff = strlen($input) - mb_strlen($input);
         return str_pad($input, $pad_length + $diff, $pad_string, $pad_type);
+    }
+
+    /**
+     * @param array $styles
+     * @return Text
+     */
+    public function setStyles(array $styles)
+    {
+        $this->cursorColorPair = $styles['caret-color-pair'] ?? $this->visible;
+        return parent::setStyles($styles);
     }
 }

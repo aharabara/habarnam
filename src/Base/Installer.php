@@ -38,8 +38,9 @@ class Installer
         return $this->workspace->get(Configurations::INSTALLED) ?? false;
     }
 
-    public function run()
+    public function run(): void
     {
+        /** @todo execute as separated commands */
         exec(__DIR__ . '/../../install.sh', $output, $result);
         print implode("\n", $output);
         if ($result !== 0) {

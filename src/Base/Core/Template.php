@@ -4,9 +4,6 @@ namespace Base;
 
 class Template
 {
-    /** @var StyleSheet[] */
-    protected $styles;
-
     /** @var ComponentsContainerInterface[] */
     protected $containers = [];
 
@@ -68,15 +65,4 @@ class Template
     {
         return $this->components[$id];
     }
-
-    /**
-     * @param StyleSheet $styleSheet
-     * @return self
-     */
-    public function addStyleSheet(StyleSheet $styleSheet): self
-    {
-        $this->styles[] = $styleSheet;
-        return $this;
-    }
-
 }

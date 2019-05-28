@@ -72,12 +72,12 @@ class Application
      */
     public function __construct(Workspace $workspace, ViewRender $render, string $currentView)
     {
-        $this->selectorConverter = new CssSelectorConverter();
         Curse::initialize();
         self::$instance = $this;
         $this->render = $render;
-        $this->currentView = $currentView;
         $this->workspace = $workspace;
+        $this->currentView = $currentView;
+        $this->selectorConverter = new CssSelectorConverter();
     }
 
     protected $updateRate = 10;
@@ -172,17 +172,6 @@ class Application
     }
 
     /**
-     * @return Application
-     */
-    public function exit(): self
-    {
-        ncurses_echo();
-        ncurses_curs_set(Curse::CURSOR_VISIBLE);
-        ncurses_end();
-        return $this;
-    }
-
-    /**
      * @return int|null
      */
     public function getLastValidKey(): ?int
@@ -216,6 +205,10 @@ class Application
         }
         if ($key === NCURSES_KEY_F5) {
             $this->render->refreshDocuments();
+            return true;
+        }
+        if ($key === NCURSES_KEY_F12) {
+//            $this->render->showDebugBar();
             return true;
         }
         if ($key === NCURSES_KEY_BTAB) {
@@ -407,19 +400,21 @@ class Application
     public function currentViewContainers(): array
     {
         $this->currentView = $this->currentView ?? $this->render->existingTemplates()[0] ?? null;
+        $containers = $this->render->template($this->currentView)->allContainers();
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
-            $this->initialiseViews();
+            $this->initialiseViews($containers);
         }
-        return $this->render->template($this->currentView)->allContainers();
+        return $containers;
     }
 
     /**
+     * @param array $containers
      * @return $this
      */
-    protected function initialiseViews(): self
+    protected function initialiseViews(array $containers): self
     {
-        foreach ($this->getDrawableComponents() as $component) {
+        foreach ($containers as $component) {
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
         }
         return $this;
