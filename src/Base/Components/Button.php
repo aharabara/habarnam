@@ -43,7 +43,7 @@ class Button extends BaseComponent implements FocusableInterface
         }
         $surf = $this->surface;
         $width = $surf->width() - 2;
-        $width = $width > $this->minWidth() ? $width : $this->minWidth();
+        $width = $width > $this->width() ? $width : $this->width();
         $x = $surf->topLeft()->getX();
         $y = $surf->topLeft()->getY();
         if ($key === 10) {

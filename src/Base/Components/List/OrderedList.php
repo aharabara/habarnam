@@ -2,7 +2,7 @@
 
 namespace Base;
 
-class OrderedList extends BaseComponent implements FocusableInterface
+class OrderedList extends BaseComponent implements FocusableInterface, ComponentsContainerInterface
 {
     public const EVENT_SELECTED = 'item.selected';
     public const EVENT_DELETING = 'item.deleting';
@@ -26,8 +26,6 @@ class OrderedList extends BaseComponent implements FocusableInterface
      */
     public function __construct(array $attrs)
     {
-        $this->selected = null;
-        $this->focusedItem = 0;
         $this->itemsAreDeletable = boolval($attrs['deletable-items'] ?? false);
         parent::__construct($attrs);
     }
@@ -35,15 +33,12 @@ class OrderedList extends BaseComponent implements FocusableInterface
 
     /**
      * @param int|null $pressedKey
+     * @throws \Exception
      */
     public function draw(?int $pressedKey)
     {
-        $topLeft = $this->surface->topLeft();
-        $y = $topLeft->getY();
-        $x = $topLeft->getX();
         $items = array_values($this->items);
         $height = $this->surface->height();
-        $width = $this->surface->width();
 
         if (count($items) > $height) {
             $items = array_slice($items, 0, $height + 1);
@@ -51,19 +46,7 @@ class OrderedList extends BaseComponent implements FocusableInterface
         $this->handleKeyPress($pressedKey);
 
         foreach ($items as $key => $item) {
-            $symbol = ' ';
-            $checked = $key === $this->selected ? $checked = '+' : ' ';
-            if ($key === $this->focusedItem && $this->isFocused()) {
-                $color = $this->focusedColorPair;
-            } else {
-                $color = $this->colorPair;
-            }
-            $text = $item->getText();
-            if (strlen($text) > $width) {
-                $text = substr($text, 0, $width - 7); // 6 = 3 for dots in the end and 3 for "[ ]"
-                $symbol = '.';
-            }
-            Curse::writeAt(str_pad("[$checked] $text", $width, $symbol), $color, $y++, $x);
+            $item->draw($pressedKey, $this->isFocused() && $key === $this->focusedItem );
         }
     }
 
@@ -73,6 +56,7 @@ class OrderedList extends BaseComponent implements FocusableInterface
      */
     public function addItems(ListItem ...$items): self
     {
+        $this->setItemsStyles($items);
         array_push($this->items, ...$items);
         return $this;
     }
@@ -172,13 +156,23 @@ class OrderedList extends BaseComponent implements FocusableInterface
         return $this->itemsAreDeletable;
     }
 
+    public function setSurface(Surface $surface)
+    {
+        $result = parent::setSurface($surface);
+        $this->recalculateSubSurfaces();
+        return $result;
+    }
+
     /**
      * @param array|ListItem[] $items
      * @return OrderedList
+     * @throws \Exception
      */
     public function setItems(array $items): self
     {
-        $this->items = $items;
+        $this->items = [];
+        $this->addItems(...$items);
+        $this->recalculateSubSurfaces();
         return $this;
     }
 
@@ -190,4 +184,81 @@ class OrderedList extends BaseComponent implements FocusableInterface
         return $this->items;
     }
 
+    /**
+     * @return DrawableInterface[]
+     *
+     */
+    public function toComponentsArray(): array
+    {
+        // do not expose list items to global draw loop,
+        //because we do not need tab based navigation or global focus
+        return [$this];
+    }
+
+    /**
+     * @param DrawableInterface $listItem
+     * @param string|null $id
+     * @return void
+     */
+    public function addComponent(DrawableInterface $listItem, ?string $id = null)
+    {
+        $this->addItems($listItem);
+    }
+
+    /**
+     * @return array|DrawableInterface[]
+     */
+    public function getComponents(): array
+    {
+        return $this->items;
+    }
+
+    /**
+     * @return self
+     * @throws \Exception
+     */
+    public function recalculateSubSurfaces()
+    {
+        ViewRender::recalculateLayoutWithinSurface($this->surface->resize(...$this->padding), $this->items);
+        return $this;
+    }
+
+    public function setStyles(array $styles)
+    {
+        foreach ($this->items as $item) {
+            $item->setStyles($styles);
+        }
+        return parent::setStyles($styles);
+    }
+
+    public function setOnFocusStyles(array $styles)
+    {
+        foreach ($this->items as $item) {
+            $item->setOnFocusStyles($styles);
+        }
+        return parent::setStyles($styles);
+    }
+
+    /**
+     * @param ListItem[] $items
+     */
+    protected function setItemsStyles(array $items)
+    {
+        foreach ($items as $item) {
+            $item->setStyles([
+                'color-pair' => $this->colorPair,
+            ]);
+            $item->setOnFocusStyles([
+                'color-pair' => $this->focusedColorPair,
+            ]);
+        }
+    }
+    
+    public function debugDraw(): void
+    {
+        parent::debugDraw();
+        foreach ($this->items as $item) {
+            $item->debugDraw();
+        }
+    }
 }

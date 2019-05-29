@@ -9,7 +9,7 @@ class TextArea extends Text implements FocusableInterface
     protected $cursorIndex;
 
     /** @var int */
-    protected $minHeight = 10;
+    protected $height = 10;
 
     /** @var int */
     protected $maxLength = 256;

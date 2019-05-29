@@ -18,13 +18,6 @@ interface ComponentsContainerInterface extends DrawableInterface
     public function addComponent(DrawableInterface $components, ?string $id = null);
 
     /**
-     * @param int $index
-     * @param DrawableInterface $component
-     * @return self
-     */
-    public function replaceComponent(int $index, DrawableInterface $component);
-
-    /**
      * @return array
      */
     public function getComponents(): array;

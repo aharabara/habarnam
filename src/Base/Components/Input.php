@@ -5,7 +5,7 @@ namespace Base;
 class Input extends TextArea
 {
 
-    protected $minHeight = 1;
+    protected $height = 1;
 
     /**
      * @param int|null $key

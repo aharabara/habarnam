@@ -5,7 +5,7 @@ namespace Base;
 class Label extends Text
 {
 
-    protected $minHeight = 1;
+    protected $height = 1;
 
     /**
      * @param string $text

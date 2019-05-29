@@ -20,9 +20,6 @@ class Application
     /** @var int */
     protected $maxHeight;
 
-    /** @var array */
-    protected $layers = [];
-
     /** @var bool */
     protected $repeatingKeys = false;
 
@@ -140,7 +137,7 @@ class Application
     {
         $this->currentComponentIndex = 0;
         while (true) {
-            $pressedKey = $this->getNonBlockCh(10000); // use a non blocking getch() instead of $ncurses->getCh()
+            $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
             if ($callback) {
                 $callback($this, $pressedKey);
             }
@@ -177,16 +174,6 @@ class Application
     public function getLastValidKey(): ?int
     {
         return $this->lastValidKey;
-    }
-
-    /**
-     * @param BaseComponent $layer
-     * @return $this
-     */
-    public function addLayer(BaseComponent $layer): self
-    {
-        $this->layers[] = $layer;
-        return $this;
     }
 
     /**
@@ -325,9 +312,6 @@ class Application
         return $this;
     }
 
-
-    protected $debugInfo = [];
-
     /**
      * @param $key
      * @param BaseComponent $component
@@ -337,44 +321,7 @@ class Application
     protected function drawComponent($key, BaseComponent $component, ?int $pressedKey): void
     {
         if ($this->debug) {
-            $surface = $component->surface();
-            $colors = [
-                Colors::BLACK_YELLOW,
-                Colors::YELLOW_WHITE,
-                Colors::WHITE_BLACK,
-                Colors::BLACK_WHITE,
-                Colors::BLACK_RED,
-                Colors::BLACK_GREEN
-            ];
-            $id = spl_object_hash($component);
-            if (!isset($this->debugInfo[$id])) {
-                $pieces = explode('\\', get_class($component));
-                $this->debugInfo[$id] = [
-                    'color' => array_rand($colors),
-                    'name' => array_pop($pieces) . random_int(0, 1000),
-                ];
-            }
-            $color = $this->debugInfo[$id]['color'];
-            $name = $this->debugInfo[$id]['name'];
-            $lowerBound = $surface->bottomRight()->getY();
-            $higherBound = $surface->topLeft()->getY();
-            $width = $surface->width() - 2; // 2 symbols for borders
-
-            for ($y = $higherBound; $y <= $lowerBound; $y++) {
-                $title = $component->getSelector() ?? $name;
-                $repeat = $width - strlen($title) - 1;
-                if ($repeat < 0){
-                    $repeat = 0;
-                }
-                if ($y === $higherBound) {
-                    $text = '╔─' . $title . str_repeat('─', $repeat) . '╗';
-                } elseif ($y === $lowerBound) {
-                    $text = '╚' . str_repeat('─', $width) . '╝';
-                } else {
-                    $text = '│' . str_repeat(' ', $width) . '│';
-                }
-                Curse::writeAt($text, $color, $y, $surface->topLeft()->getX());
-            }
+            $component->debugDraw();
             return;
         }
         if ($this->currentComponentIndex === (int)$key) {

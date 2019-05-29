@@ -33,7 +33,7 @@ class ViewRender
     protected $components = [];
 
     /** @var string[] */
-    protected $tagsWithContent = ['button', 'text', 'label'];
+    protected $tagsWithContent = ['button', 'text', 'li', 'label'];
 
     /** @var string */
     protected $path;
@@ -49,8 +49,10 @@ class ViewRender
         self::registerComponent('figure', Animation::class);
         self::registerComponent('hr', Divider::class);
         self::registerComponent('p', Text::class);
+        self::registerComponent('p', Text::class);
         self::registerComponent('square', Square::class);
         self::registerComponent('ol', OrderedList::class);
+        self::registerComponent('li', ListItem::class);
         self::registerComponent('input', Input::class);
         self::registerComponent('label', Label::class);
         self::registerComponent('section', Section::class);
@@ -338,8 +340,11 @@ class ViewRender
      * @param DrawableInterface[] $components
      * @throws Exception
      */
-    public static function renderLayout(Surface $baseSurf, array $components)
+    public static function recalculateLayoutWithinSurface(Surface $baseSurf, array $components)
     {
+        if (empty($components)) {
+            return; // nothing to recalculate
+        }
         $perComponentWidth = $baseSurf->width() / count($components);
         $perComponentHeight = $baseSurf->height() / count($components);
         $offsetY = 0;
@@ -347,12 +352,12 @@ class ViewRender
         $minHeight = 0;
         $lastComponent = end($components);
         foreach (array_values($components) as $key => $component) {
-            $height = $component->minHeight($baseSurf->height(), $perComponentHeight);
+            $height = $component->height($baseSurf->height(), $perComponentHeight);
 
             if ($minHeight < $height) { // track min size for next row
                 $minHeight = $height;
             }
-            if ($offsetX + $component->minWidth($baseSurf->width(), $perComponentWidth) > $baseSurf->width()) {
+            if ($offsetX + $component->width($baseSurf->width(), $perComponentWidth) > $baseSurf->width()) {
                 $offsetY += $minHeight;
                 $offsetX = 0;
                 $minHeight = 0;
@@ -374,7 +379,7 @@ class ViewRender
                 $offsetX = 0;
                 $minHeight = 0;
             } else {
-                $calculatedWidth = $component->minWidth($baseSurf->width(),
+                $calculatedWidth = $component->width($baseSurf->width(),
                         $perComponentWidth) ?? $baseSurf->bottomRight()->getX();
                 $offsetX += $calculatedWidth;
             }
@@ -417,7 +422,7 @@ class ViewRender
                 $width = $surf->bottomRight()->getX();
 
                 if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
-                    $componentMinWidth = $component->minWidth($surf->width(), $perComponentWidth);
+                    $componentMinWidth = $component->width($surf->width(), $perComponentWidth);
                     if ($componentMinWidth) {
                         $width = $componentMinWidth + $surf->topLeft()->getX();
                     }
@@ -559,18 +564,18 @@ class ViewRender
             }
         }
 
-        if(!empty($bgColor) || !empty($textColor)){
+        if (!empty($bgColor) || !empty($textColor)) {
             $bgColor = $bgColor ?? 'black';
             $textColor = $textColor ?? 'white';
             $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
         }
-        if(!empty($borderColor)) {
+        if (!empty($borderColor)) {
             $bgColor = $bgColor ?? 'black';
             $borderColor = $borderColor ?? 'white';
             $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
         }
-        
-        if(!empty($caretColor)) {
+
+        if (!empty($caretColor)) {
             $bgColor = $bgColor ?? 'black';
             $caretColor = $caretColor ?? 'white';
             $props['caret-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$caretColor}"));

@@ -36,14 +36,14 @@ interface DrawableInterface
      * @param int|null $defaultHeight
      * @return int|null
      */
-    public function minHeight(?int $fullHeight = null, ?int $defaultHeight = null): ?int;
+    public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int;
 
     /**
      * @param int|null $fullWidth
      * @param int|null $defaultWidth
      * @return int|null
      */
-    public function minWidth(?int $fullWidth = null, ?int $defaultWidth = null): ?int;
+    public function width(?int $fullWidth = null, ?int $defaultWidth = null): ?int;
 
     /**
      * @param bool $visible

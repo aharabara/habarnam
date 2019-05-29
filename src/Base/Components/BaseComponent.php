@@ -15,10 +15,10 @@ abstract class BaseComponent implements DrawableInterface
     protected $surface;
 
     /** @var int|null */
-    protected $minHeight;
+    protected $height;
 
     /** @var int|null */
-    protected $minWidth;
+    protected $width;
 
     /** @var string */
     protected $id;
@@ -37,8 +37,8 @@ abstract class BaseComponent implements DrawableInterface
 
     /** @var string */
     protected $displayType = self::DISPLAY_BLOCK;
-    
-    /** @var string[]  */
+
+    /** @var string[] */
     protected $selectors = [];
 
     /** @var int */
@@ -52,13 +52,6 @@ abstract class BaseComponent implements DrawableInterface
     {
         $this->id = $attrs['id'] ?? null;
         $this->classes = array_filter(explode(' ', $attrs['class'] ?? ''));
-
-        if (isset($attrs['min-height'])) {
-            $this->minHeight = $attrs['min-height'];
-        }
-        if (isset($attrs['min-width'])) {
-            $this->minWidth = $attrs['min-width'] ?? null;
-        }
 
         if (isset($attrs['display'])) {
             $this->displayType = $attrs['display'];
@@ -75,6 +68,7 @@ abstract class BaseComponent implements DrawableInterface
     {
         return $this->focused ?? false;
     }
+
 
     /**
      * @param bool $focused
@@ -118,12 +112,12 @@ abstract class BaseComponent implements DrawableInterface
      * @param int|null $defaultHeight
      * @return int|null
      */
-    public function minHeight(?int $fullHeight = null, ?int $defaultHeight = null): ?int
+    public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int
     {
-        if (strpos('%', $this->minHeight)) {
-            return floor($fullHeight / 100 * ((int)trim($this->minHeight, '%')));
+        if ($this->height && strpos('%', $this->height)) {
+            return floor($fullHeight / 100 * ((int)trim($this->height, '%')));
         }
-        return $this->minHeight ?? $defaultHeight;
+        return $this->height ?? $defaultHeight;
     }
 
     /**
@@ -131,12 +125,12 @@ abstract class BaseComponent implements DrawableInterface
      * @param int|null $defaultWidth
      * @return int|null
      */
-    public function minWidth(?int $fullWidth = null, ?int $defaultWidth = null): ?int
+    public function width(?int $fullWidth = null, ?int $defaultWidth = null): ?int
     {
-        if (strpos($this->minWidth, '%')) {
-            return floor(($fullWidth / 100) * ((int)trim($this->minWidth, '%')));
+        if ($this->width && strpos($this->width, '%')) {
+            return floor(($fullWidth / 100) * ((int)trim($this->width, '%')));
         }
-        return $this->minWidth ?? $defaultWidth;
+        return $this->width ?? $defaultWidth;
     }
 
     /**
@@ -209,6 +203,8 @@ abstract class BaseComponent implements DrawableInterface
         $this->margin = $styles['margin'] ?? $this->margin;
         $this->padding = $styles['padding'] ?? $this->padding;
         $this->visible = $styles['visibility'] ?? $this->visible;
+        $this->height = $styles['height'] ?? $this->height;
+        $this->width = $styles['width'] ?? $this->width;
         return $this;
     }
 
@@ -220,5 +216,27 @@ abstract class BaseComponent implements DrawableInterface
     {
         $this->focusedColorPair = $properties['color-pair'] ?? $this->focusedColorPair ?? Colors::BLACK_YELLOW;
         return $this;
+    }
+
+    public function debugDraw(): void
+    {
+        $lowerBound = $this->surface->bottomRight()->getY();
+        $higherBound = $this->surface->topLeft()->getY();
+        $width = $this->surface->width() - 2; // 2 symbols for borders
+
+        for ($y = $higherBound; $y <= $lowerBound; $y++) {
+            $repeat = $width - strlen($this->getSelector()) - 1;
+            if ($repeat < 0){
+                $repeat = 0;
+            }
+            if ($y === $higherBound) {
+                $text = '╔─' . $this->getSelector() . str_repeat('─', $repeat) . '╗';
+            } elseif ($y === $lowerBound) {
+                $text = '╚' . str_repeat('─', $width) . '╝';
+            } else {
+                $text = '│' . str_repeat(' ', $width) . '│';
+            }
+            Curse::writeAt($text, $this->colorPair, $y, $this->surface->topLeft()->getX());
+        }
     }
 }

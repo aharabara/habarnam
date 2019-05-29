@@ -4,7 +4,6 @@ namespace Base;
 
 class Section extends Square implements ComponentsContainerInterface
 {
-
     /** @var string */
     protected $id;
 
@@ -75,19 +74,6 @@ class Section extends Square implements ComponentsContainerInterface
     }
 
     /**
-     * @param int $index
-     * @param DrawableInterface $component
-     * @return Section
-     * @throws \Exception
-     */
-    public function replaceComponent(int $index, DrawableInterface $component): Section
-    {
-        $this->components[$index] = $component;
-        $this->recalculateSubSurfaces();
-        return $this;
-    }
-
-    /**
      * @return array|DrawableInterface[]
      */
     public function getComponents(): array
@@ -112,7 +98,7 @@ class Section extends Square implements ComponentsContainerInterface
             $component->setSurface($baseSurf);
             return $this;
         }
-        ViewRender::renderLayout($baseSurf, $this->components);
+        ViewRender::recalculateLayoutWithinSurface($baseSurf, $this->components);
         return $this;
     }
 
@@ -125,10 +111,20 @@ class Section extends Square implements ComponentsContainerInterface
             return [$this];
         }
         $components = [];
-        $components[] = $this;
-        if (!empty($this->components)) {
-            array_push($components, ...array_values($this->components) ?? []);
+
+        foreach ($this->components as $key => $component) {
+            if ($component instanceof ComponentsContainerInterface) {
+                $subComponents = $component->toComponentsArray();
+                foreach ($subComponents as $subComponent) {
+                    if ($component === $subComponent) {
+                        continue;
+                    }
+                    $components[] = $subComponent;
+                }
+            }
+            $components[] = $component;
         }
+        array_unshift($components, $this);
         return $components;
     }
 
