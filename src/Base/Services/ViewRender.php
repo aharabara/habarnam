@@ -10,6 +10,7 @@ use Base\Components\Input;
 use Base\Components\Label;
 use Base\Components\OrderedList\ListItem;
 use Base\Components\OrderedList\OrderedList;
+use Base\Components\Password;
 use Base\Components\Section;
 use Base\Components\Text;
 use Base\Components\TextArea;
@@ -73,6 +74,7 @@ class ViewRender
         self::registerComponent('ol', OrderedList::class);
         self::registerComponent('li', ListItem::class);
         self::registerComponent('input', Input::class);
+        self::registerComponent('password', Password::class);
         self::registerComponent('label', Label::class);
         self::registerComponent('section', Section::class);
         self::registerComponent('button', Button::class);
