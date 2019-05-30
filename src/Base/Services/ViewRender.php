@@ -1,7 +1,28 @@
 <?php
 
-namespace Base;
+namespace Base\Services;
 
+use Base\Application;
+use Base\Components\Animation;
+use Base\Components\Button;
+use Base\Components\Divider;
+use Base\Components\Input;
+use Base\Components\Label;
+use Base\Components\OrderedList\ListItem;
+use Base\Components\OrderedList\OrderedList;
+use Base\Components\Section;
+use Base\Components\Text;
+use Base\Components\TextArea;
+use Base\Core\BaseComponent;
+use Base\Core\ComplexXMLElement;
+use Base\Core\Template;
+use Base\Core\Terminal;
+use Base\Interfaces\Colors;
+use Base\Interfaces\ComponentsContainerInterface;
+use Base\Interfaces\DrawableInterface;
+use Base\Primitives\Position;
+use Base\Primitives\Square;
+use Base\Primitives\Surface;
 use Exception;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -13,7 +34,6 @@ use Sabberworm\CSS\Value\Size;
 use SimpleXMLElement;
 use SplFileInfo;
 use Symfony\Component\CssSelector\CssSelectorConverter;
-use UnexpectedValueException;
 
 class ViewRender
 {
@@ -48,7 +68,6 @@ class ViewRender
     {
         self::registerComponent('figure', Animation::class);
         self::registerComponent('hr', Divider::class);
-        self::registerComponent('p', Text::class);
         self::registerComponent('p', Text::class);
         self::registerComponent('square', Square::class);
         self::registerComponent('ol', OrderedList::class);

@@ -19,8 +19,8 @@
         "symfony/css-selector": "^4.2"
     },
     "autoload": {
-        "classmap": [
-            "src"
-        ]
+        "psr-4": {
+            "" : "src"
+        }
     }
 }

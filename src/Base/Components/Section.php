@@ -1,6 +1,14 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
+
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
+use Base\Interfaces\ComponentsContainerInterface;
+use Base\Interfaces\DrawableInterface;
+use Base\Primitives\Square;
+use Base\Primitives\Surface;
+use Base\Services\ViewRender;
 
 class Section extends Square implements ComponentsContainerInterface
 {

@@ -1,6 +1,8 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
+
+use Base\Interfaces\ConstantlyRefreshableInterface;
 
 class Animation extends Text implements ConstantlyRefreshableInterface
 {

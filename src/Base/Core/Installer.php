@@ -1,6 +1,8 @@
 <?php
 
-namespace Base;
+namespace Base\Core;
+
+use Base\Interfaces\Configurations;
 
 class Installer
 {

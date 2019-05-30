@@ -1,6 +1,10 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
+
+use Base\Core\Curse;
+use Base\Interfaces\Colors;
+use Base\Interfaces\FocusableInterface;
 
 class TextArea extends Text implements FocusableInterface
 {

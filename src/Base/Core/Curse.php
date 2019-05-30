@@ -1,6 +1,8 @@
 <?php
 
-namespace Base;
+namespace Base\Core;
+
+use Base\Interfaces\Colors;
 
 class Curse
 {
@@ -66,19 +68,19 @@ class Curse
         ncurses_init();
         if (ncurses_has_colors()) {
             ncurses_start_color();
-            Curse::initColorPairs();
+            self::initColorPairs();
         }
         //ncurses_echo();
         ncurses_noecho();
         ncurses_nl();
         //ncurses_nonl();
-        ncurses_curs_set(Curse::CURSOR_INVISIBLE);
+        ncurses_curs_set(self::CURSOR_INVISIBLE);
     }
 
     public static function exit(): void
     {
         ncurses_echo();
-        ncurses_curs_set(Curse::CURSOR_VISIBLE);
+        ncurses_curs_set(self::CURSOR_VISIBLE);
         ncurses_end();
     }
 }

@@ -1,8 +1,9 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
 
-use RuntimeException;
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
 
 class Text extends BaseComponent
 {

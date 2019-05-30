@@ -1,6 +1,6 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
 
 class Divider extends Text
 {

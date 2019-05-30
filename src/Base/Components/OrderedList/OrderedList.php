@@ -1,6 +1,13 @@
 <?php
 
-namespace Base;
+namespace Base\Components\OrderedList;
+
+use Base\Core\BaseComponent;
+use Base\Interfaces\ComponentsContainerInterface;
+use Base\Interfaces\DrawableInterface;
+use Base\Interfaces\FocusableInterface;
+use Base\Primitives\Surface;
+use Base\Services\ViewRender;
 
 class OrderedList extends BaseComponent implements FocusableInterface, ComponentsContainerInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Base;
+namespace Base\Interfaces;
 
 interface ComponentsContainerInterface extends DrawableInterface
 {

@@ -1,6 +1,11 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
+
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
+use Base\Interfaces\Colors;
+use Base\Interfaces\FocusableInterface;
 
 class Button extends BaseComponent implements FocusableInterface
 {

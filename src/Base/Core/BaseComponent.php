@@ -1,6 +1,12 @@
 <?php
 
-namespace Base;
+namespace Base\Core;
+
+use Base\Core\Traits\EventBusTrait;
+use Base\Interfaces\Colors;
+use Base\Interfaces\DrawableInterface;
+use Base\Primitives\Surface;
+use Base\Services\ViewRender;
 
 abstract class BaseComponent implements DrawableInterface
 {
@@ -52,14 +58,6 @@ abstract class BaseComponent implements DrawableInterface
     {
         $this->id = $attrs['id'] ?? null;
         $this->classes = array_filter(explode(' ', $attrs['class'] ?? ''));
-
-        if (isset($attrs['display'])) {
-            $this->displayType = $attrs['display'];
-            $allowedTypes = [self::DISPLAY_INLINE, self::DISPLAY_BLOCK, self::DISPLAY_COMPACT];
-            if (!in_array($this->displayType, $allowedTypes, true)) {
-                throw new \Error("Display type {$this->displayType} is not supported.");
-            }
-        }
     }
 
     /**
@@ -209,6 +207,7 @@ abstract class BaseComponent implements DrawableInterface
         $this->visible = $styles['visibility'] ?? $this->visible;
         $this->height = $styles['height'] ?? $this->height;
         $this->width = $styles['width'] ?? $this->width;
+        $this->displayType = $styles['display'] ?? $this->displayType;
         return $this;
     }
 
@@ -225,10 +224,15 @@ abstract class BaseComponent implements DrawableInterface
     public function debugDraw(): void
     {
         $topLeft = $this->surface->topLeft();
-        $lowerBound = $this->surface->bottomRight()->getY();
+        $bottomRight = $this->surface->bottomRight();
+        $lowerBound = $bottomRight->getY();
         $higherBound = $topLeft->getY();
         $width = $this->surface->width() - 2; // 2 symbols for borders
 
+        $lines = [];
+        $lines[] = "Left top: ({$topLeft->getX()},{$topLeft->getY()})";
+        $lines[] = "Right bottom: ({$bottomRight->getX()},{$bottomRight->getY()})";
+        $i = 0;
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
             $repeat = $width - strlen($this->getSelector()) - 1;
             if ($repeat < 0) {
@@ -241,7 +245,8 @@ abstract class BaseComponent implements DrawableInterface
             } elseif ($y === $lowerBound) {
                 $text = '╚' . str_repeat('─', $width) . '╝';
             } else {
-                $text = '│' . str_repeat(' ', $width) . '│';
+                $text = '│' . str_pad($lines[$i] ?? '', $width, ' ') . '│';
+                $i++;
             }
             Curse::writeAt($text, $this->colorPair, $y, $topLeft->getX());
         }

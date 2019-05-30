@@ -2,7 +2,17 @@
 
 namespace Base;
 
-
+use Base\Core\BaseComponent;
+use Base\Core\ComplexXMLElement;
+use Base\Core\Curse;
+use Base\Core\Terminal;
+use Base\Core\Workspace;
+use Base\Interfaces\Colors;
+use Base\Interfaces\ComponentsContainerInterface;
+use Base\Interfaces\ConstantlyRefreshableInterface;
+use Base\Interfaces\DrawableInterface;
+use Base\Interfaces\FocusableInterface;
+use Base\Services\ViewRender;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application

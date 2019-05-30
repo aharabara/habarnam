@@ -1,7 +1,9 @@
 <?php
 
-namespace Base;
+namespace Base\Core\Traits;
 
+
+use Base\Application;
 
 trait EventBusTrait
 {

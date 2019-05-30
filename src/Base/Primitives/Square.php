@@ -1,6 +1,10 @@
 <?php
 
-namespace Base;
+namespace Base\Primitives;
+
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
+use Base\Interfaces\Colors;
 
 class Square extends BaseComponent
 {

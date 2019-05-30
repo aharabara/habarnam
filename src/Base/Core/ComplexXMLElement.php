@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Base;
+namespace Base\Core;
 
 /**
  * @method ComplexXMLElement children()

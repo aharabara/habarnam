@@ -1,6 +1,8 @@
 <?php
 
-namespace Base;
+namespace Base\Interfaces;
+
+use Base\Primitives\Surface;
 
 interface DrawableInterface
 {
@@ -8,8 +10,8 @@ interface DrawableInterface
     public const DISPLAY_INLINE = 'inline';
     public const DISPLAY_COMPACT = 'compact';
 
-    public const BLOCK_DISPLAY_TYPES = [DrawableInterface::DISPLAY_BLOCK, DrawableInterface::DISPLAY_COMPACT];
-    public const INLINE_DISPLAY_TYPES = [DrawableInterface::DISPLAY_INLINE];
+    public const BLOCK_DISPLAY_TYPES = [self::DISPLAY_BLOCK, self::DISPLAY_COMPACT];
+    public const INLINE_DISPLAY_TYPES = [self::DISPLAY_INLINE];
 
 
     /**

@@ -1,6 +1,9 @@
 <?php
 
-namespace Base;
+namespace Base\Core;
+
+use Base\Interfaces\ComponentsContainerInterface;
+use Base\Interfaces\DrawableInterface;
 
 class Template
 {

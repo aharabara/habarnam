@@ -1,6 +1,9 @@
 <?php
 
-namespace Base;
+namespace Base\Components\OrderedList;
+
+use Base\Components\Text;
+use Base\Core\Curse;
 
 class ListItem extends Text
 {

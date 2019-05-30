@@ -1,5 +1,8 @@
 <?php
-namespace Base;
+namespace Base\Core;
+
+use Base\Application;
+use Base\Interfaces\DrawableInterface;
 
 abstract class BaseController
 {
