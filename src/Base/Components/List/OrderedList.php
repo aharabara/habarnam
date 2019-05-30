@@ -57,9 +57,11 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function addItems(ListItem ...$items): self
     {
-        $this->setItemsStyles($items);
-        array_push($this->items, ...$items);
-        $this->recalculateSubSurfaces();
+        if (!empty($items)){
+            $this->setItemsStyles($items);
+            array_push($this->items, ...$items);
+            $this->recalculateSubSurfaces();
+        }
         return $this;
     }
 
