@@ -15,25 +15,10 @@ class Application
     protected $lastValidKey;
 
     /** @var int */
-    protected $maxWidth;
-
-    /** @var int */
-    protected $maxHeight;
-
-    /** @var bool */
-    protected $repeatingKeys = false;
-
-    /** @var bool */
-    protected $singleLayerFocus;
-
-    /** @var int */
     protected $currentComponentIndex = 0;
 
     /** @var string */
     protected $currentView;
-
-    /** @var array */
-    protected $controllers;
 
     /** @var bool */
     protected $debug = false;
@@ -44,13 +29,14 @@ class Application
     /** @var string[] */
     protected $initializedViews = [];
 
-    /**
-     * @var ViewRender
-     */
+    /** @var ViewRender */
     protected $render;
-    /**
-     * @var Workspace
-     */
+    protected static $redrawDone = false;
+
+    /** @var bool */
+    protected $allowResize = false;
+
+    /** @var Workspace */
     private $workspace;
 
     /**
@@ -95,24 +81,25 @@ class Application
             $key = Curse::getCh();
         }
 
-        while ($key === 410) {
+        while ($key === 410) { // catch ALL repeating 410 keys
             if (!$wasUpdated) {
-                Terminal::update();
+                if ($this->allowResize) {
+                    Terminal::update();
+                    self::scheduleRedraw();
+                }
                 $wasUpdated = true;
             }
             $key = Curse::getCh();
         }
-        if ($key === null) {
+        if ($this->allowResize && $key === null) {
             $this->updateCounter++;
-            if ($this->updateCounter % $this->updateRate === 0){
+            if ($this->updateCounter % $this->updateRate === 0) {
                 $this->updateCounter = 0;
                 Terminal::update();
+                self::scheduleRedraw();
             }
         }
 
-        if ($this->repeatingKeys) {
-            $key = $key ?? $this->getLastValidKey();
-        }
         $this->lastValidKey = $key ?? $this->lastValidKey;
         return $key;
     }
@@ -125,7 +112,9 @@ class Application
     {
         ncurses_refresh(0);
         usleep($micros);
-        ncurses_erase();
+        if (!self::$redrawDone) {
+            ncurses_erase();
+        }
         return $this;
     }
 
@@ -147,33 +136,24 @@ class Application
             }
 
             $components = $this->getDrawableComponents();
+            $this->refresh(10000);
+
+            $fullRedraw = !self::$redrawDone; // keep current state for current iteration
+            self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
             foreach ($components as $key => $component) {
                 Curse::color(Colors::BLACK_WHITE);
-                if ($this->repeatingKeys) {
-                    $component->draw($pressedKey);
-                } else {
-                    $this
-                        // if it is a window with focus, then skip it
-                        ->handleNonFocusableComponents($component, $key)
-                        // if index is not within components quantity, then set it to 0 or count($components)
-                        ->handleFocusIndexOverflow($components)
-                        // check one more time if it is window
-                        ->handleNonFocusableComponents($component, $key)
-                        // set component as focused / not focused.
-                        ->handleComponentFocus($component, (int)$key);
-                    $this->drawComponent($key, $component, $pressedKey);
-                }
+                $this
+                    // if it is a window with focus, then skip it
+                    ->handleNonFocusableComponents($component, $key)
+                    // if index is not within components quantity, then set it to 0 or count($components)
+                    ->handleFocusIndexOverflow($components)
+                    // check one more time if it is window
+                    ->handleNonFocusableComponents($component, $key)
+                    // set component as focused / not focused.
+                    ->handleComponentFocus($component, (int)$key);
+                $this->drawComponent($key, $component, $pressedKey, $fullRedraw);
             }
-            $this->refresh(10000);
         }
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getLastValidKey(): ?int
-    {
-        return $this->lastValidKey;
     }
 
     /**
@@ -184,25 +164,28 @@ class Application
     {
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
-            return true;
-        }
-        if ($this->allowDebug && $key === NCURSES_KEY_F1) {
+            self::scheduleRedraw();
+        } elseif ($this->allowDebug && $key === NCURSES_KEY_F1) {
             $this->debug = !$this->debug;
-            return true;
-        }
-        if ($key === NCURSES_KEY_F5) {
+            self::scheduleRedraw();
+        } elseif ($key === NCURSES_KEY_F3) {
+            $this->allowResize = !$this->allowResize;
+            self::scheduleRedraw();
+        } elseif ($key === 27 /* ESC key*/) {
+            Curse::exit();
+        } elseif ($key === NCURSES_KEY_F5) {
             $this->render->refreshDocuments();
-            return true;
-        }
-        if ($key === NCURSES_KEY_F12) {
+            self::scheduleRedraw();
+        } elseif ($key === NCURSES_KEY_F12) {
 //            $this->render->showDebugBar();
-            return true;
-        }
-        if ($key === NCURSES_KEY_BTAB) {
+            self::scheduleRedraw();
+        } elseif ($key === NCURSES_KEY_BTAB) {
             $this->currentComponentIndex--;
-            return true;
+            self::scheduleRedraw();
+        } else {
+            return false;
         }
-        return false;
+        return true;
     }
 
     /** @var DrawableInterface[] $cachedComponents */
@@ -279,26 +262,6 @@ class Application
     }
 
     /**
-     * @return ViewRender
-     */
-    public function render(): ViewRender
-    {
-        return $this->render;
-    }
-
-    /**
-     * @param string $class
-     * @return mixed
-     */
-    public function controller(string $class)
-    {
-        if (!isset($this->controllers[$class])) {
-            $this->controllers[$class] = new $class($this, $this->workspace);
-        }
-        return $this->controllers[$class];
-    }
-
-    /**
      * @param string $name
      * @return $this
      */
@@ -309,6 +272,7 @@ class Application
         if (!$this->render->exists($name)) {
             throw new \UnexpectedValueException("There is no application view registered with name '$name'");
         }
+        self::scheduleRedraw();
         return $this;
     }
 
@@ -316,17 +280,20 @@ class Application
      * @param $key
      * @param BaseComponent $component
      * @param int|null $pressedKey
-     * @throws \Exception
+     * @param bool $fullRedraw
      */
-    protected function drawComponent($key, BaseComponent $component, ?int $pressedKey): void
+    protected function drawComponent($key, BaseComponent $component, ?int $pressedKey, bool $fullRedraw = false): void
     {
         if ($this->debug) {
             $component->debugDraw();
+            self::scheduleRedraw();
             return;
         }
         if ($this->currentComponentIndex === (int)$key) {
             $component->draw($pressedKey);
-        } else {
+        } elseif ($component instanceof ConstantlyRefreshableInterface) {
+            $component->draw(null);
+        } elseif ($fullRedraw) {
             $component->draw(null);
         }
     }
@@ -364,6 +331,7 @@ class Application
         foreach ($containers as $component) {
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
         }
+        self::scheduleRedraw();
         return $this;
     }
 
@@ -375,9 +343,14 @@ class Application
     {
         $components = $this->getDrawableComponents();
         $this->currentComponentIndex = array_search($component, $components, true);
+        self::scheduleRedraw();
         return $this;
     }
 
+    public static function scheduleRedraw(): void
+    {
+        self::$redrawDone = false;
+    }
 
     /**
      * @param string $selector
@@ -388,7 +361,7 @@ class Application
     {
         /** @var ComplexXMLElement $document */
         $document = $this->render->documents[$view ?? $this->currentView];
-        
+
         /** @var ComplexXMLElement[] $elements */
         $elements = $document->xpath($this->selectorConverter->toXPath($selector));
         $result = [];
@@ -406,5 +379,13 @@ class Application
     public function findFirst(string $selector, ?string $view = null): ?BaseComponent
     {
         return $this->findAll($selector, $view)[0] ?? null;
+    }
+
+    /**
+     * @return Workspace
+     */
+    public function workspace(): Workspace
+    {
+        return $this->workspace;
     }
 }

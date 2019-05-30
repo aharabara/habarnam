@@ -6,6 +6,11 @@ interface DrawableInterface
 {
     public const DISPLAY_BLOCK = 'block';
     public const DISPLAY_INLINE = 'inline';
+    public const DISPLAY_COMPACT = 'compact';
+
+    public const BLOCK_DISPLAY_TYPES = [DrawableInterface::DISPLAY_BLOCK, DrawableInterface::DISPLAY_COMPACT];
+    public const INLINE_DISPLAY_TYPES = [DrawableInterface::DISPLAY_INLINE];
+
 
     /**
      * @param int|null $key
@@ -15,9 +20,10 @@ interface DrawableInterface
 
     /**
      * @param Surface $surface
+     * @param bool $withResize
      * @return $this
      */
-    public function setSurface(Surface $surface);
+    public function setSurface(Surface $surface, bool $withResize = true);
 
     /** @return bool */
     public function hasSurface(): bool;

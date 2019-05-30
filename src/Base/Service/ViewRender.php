@@ -340,47 +340,57 @@ class ViewRender
      * @param DrawableInterface[] $components
      * @throws Exception
      */
-    public static function recalculateLayoutWithinSurface(Surface $baseSurf, array $components)
+    public static function recalculateLayoutWithinSurface(Surface $baseSurf, array $components): void
     {
         if (empty($components)) {
             return; // nothing to recalculate
         }
-        $perComponentWidth = $baseSurf->width() / count($components);
-        $perComponentHeight = $baseSurf->height() / count($components);
+        $baseWidth = $baseSurf->width();
+        $baseHeight = $baseSurf->height();
+        $baseBottomRight = $baseSurf->bottomRight();
+        $topLeft = $baseSurf->topLeft();
+
+
+        $perComponentWidth = $baseWidth / count($components);
+        $perComponentHeight = $baseHeight / count($components);
+
         $offsetY = 0;
         $offsetX = 0;
         $minHeight = 0;
         $lastComponent = end($components);
         foreach (array_values($components) as $key => $component) {
-            $height = $component->height($baseSurf->height(), $perComponentHeight);
+            $height = $component->height($baseHeight, $perComponentHeight);
 
             if ($minHeight < $height) { // track min size for next row
                 $minHeight = $height;
             }
-            if ($offsetX + $component->width($baseSurf->width(), $perComponentWidth) > $baseSurf->width()) {
+            if ($offsetX + $component->width($baseWidth, $perComponentWidth) > $baseWidth) {
                 $offsetY += $minHeight;
                 $offsetX = 0;
                 $minHeight = 0;
             }
-            if ($lastComponent === $component) {
-                $componentBottomY = $baseSurf->bottomRight()->getY();
+            if ($lastComponent === $component && $height === null) {
+                $componentBottomY = $baseBottomRight->getY();
             } else {
-                $componentBottomY = $baseSurf->topLeft()->getY() + $offsetY + $height;
+                $componentBottomY = $topLeft->getY() + $offsetY + $height;
             }
 
             if (!$component->hasSurface()) {
-                $surf = self::getCalculatedSurface($baseSurf, $component, $offsetX, $offsetY, $perComponentWidth,
-                    $componentBottomY);
+                $surf = self::getCalculatedSurface(
+                    $baseSurf, $component, $offsetX, $offsetY, $perComponentWidth, $componentBottomY
+                );
                 $component->setSurface($surf);
             }
 
             if ($component->displayType() === DrawableInterface::DISPLAY_BLOCK) {
-                $offsetY += $minHeight + 1;
+                $offsetY++;
+            }
+            if (in_array($component->displayType(), DrawableInterface::BLOCK_DISPLAY_TYPES, true)) {
+                $offsetY += $minHeight;
                 $offsetX = 0;
                 $minHeight = 0;
             } else {
-                $calculatedWidth = $component->width($baseSurf->width(),
-                        $perComponentWidth) ?? $baseSurf->bottomRight()->getX();
+                $calculatedWidth = $component->width($baseWidth, $perComponentWidth) ?? $baseBottomRight->getX();
                 $offsetX += $calculatedWidth;
             }
         }
@@ -420,11 +430,12 @@ class ViewRender
                 $bottomRightY
             ) {
                 $width = $surf->bottomRight()->getX();
+                $topLeft = $surf->topLeft();
 
                 if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
                     $componentMinWidth = $component->width($surf->width(), $perComponentWidth);
                     if ($componentMinWidth) {
-                        $width = $componentMinWidth + $surf->topLeft()->getX();
+                        $width = $componentMinWidth + $topLeft->getX();
                     }
                 }
                 $width += $offsetX;
@@ -467,7 +478,7 @@ class ViewRender
      */
     protected function applyStyle(SimpleXMLElement $head): void
     {
-        $convertor = new CssSelectorConverter();
+        $converter = new CssSelectorConverter();
         foreach ($head->xpath('//link') as $link) {
             ['src' => $path] = $this->getAttributes($link);
             if (empty($path)) {
@@ -490,7 +501,7 @@ class ViewRender
                             $onFocusProperties = true;
                         }
                         /* @var ComplexXMLElement[] $elements */
-                        $elements = $docs->xpath($convertor->toXPath($selector));
+                        $elements = $docs->xpath($converter->toXPath($selector));
                         if (!empty($elements)) {
                             $properties = $this->getCssProperties(...$rules);
                             foreach ($elements as $element) {
@@ -578,7 +589,8 @@ class ViewRender
         if (!empty($caretColor)) {
             $bgColor = $bgColor ?? 'black';
             $caretColor = $caretColor ?? 'white';
-            $props['caret-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$caretColor}"));
+            /* inverse colors */
+            $props['caret-color-pair'] = constant(Colors::class . '::' . strtoupper("{$caretColor}_{$bgColor}"));
         }
         return $props;
     }

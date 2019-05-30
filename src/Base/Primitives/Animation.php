@@ -2,7 +2,7 @@
 
 namespace Base;
 
-class Animation extends Text
+class Animation extends Text implements ConstantlyRefreshableInterface
 {
     public const EVENT_ANIMATION_END = 'animation.end';
 
@@ -16,9 +16,11 @@ class Animation extends Text
     protected $iterationsPerFrame = 10;
     /** @var int */
     protected $currentIteration = 0;
-    /** @var int */
+    /** @var int|null */
     protected $repetitions;
-
+    /** @var int[] */
+    protected $margin = [0, 0, 0, 0];
+    
     /**
      * Animation constructor.
      * @param array $attrs

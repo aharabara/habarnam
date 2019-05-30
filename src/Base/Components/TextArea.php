@@ -81,15 +81,15 @@ class TextArea extends Text implements FocusableInterface
                     $before = mb_substr($line, 0, $index - 1);
                     $cursor = mb_substr($line, $index - 1, $index);
                     $after = mb_substr($line, $index);
-                    Curse::writeAt($before, $this->focusedColorPair, ++$y, $x);
+                    Curse::writeAt($before, $this->focusedColorPair, $y, $x);
                     Curse::writeAt($cursor, $this->cursorColorPair, $y, $x += mb_strlen($before));
-                    Curse::writeAt($after, $this->focusedColorPair, $y, ++$x);
+                    Curse::writeAt($after, $this->focusedColorPair, $y++, ++$x);
                 } else {
-                    Curse::writeAt($line, $this->colorPair, ++$y, $x);
+                    Curse::writeAt($line, $this->colorPair, $y++, $x);
                 }
                 $index -= mb_strlen($line);
             } else {
-                Curse::writeAt($line, $this->colorPair, ++$y, $x);
+                Curse::writeAt($line, $this->colorPair, $y++, $x);
             }
         }
     }
@@ -148,7 +148,7 @@ class TextArea extends Text implements FocusableInterface
                     $this->text = mb_substr($this->text, 0, $this->cursorIndex - 1)
                         . chr($key)
                         . mb_substr($this->text, $this->cursorIndex - 1);
-                        $this->cursorIndex++;
+                    $this->cursorIndex++;
                 }
         }
     }
@@ -164,7 +164,7 @@ class TextArea extends Text implements FocusableInterface
         foreach (parent::getLines($text) as $key => $line) {
             $lines[$key] = str_pad($line, $length, $this->infill);
         }
-        if (empty($lines)){
+        if (empty($lines)) {
             $lines[] = str_repeat($this->infill, $length);
         }
         return $lines;
@@ -190,9 +190,9 @@ class TextArea extends Text implements FocusableInterface
      * @param array $styles
      * @return Text
      */
-    public function setStyles(array $styles)
+    public function setOnFocusStyles(array $styles)
     {
-        $this->cursorColorPair = $styles['caret-color-pair'] ?? $this->visible;
-        return parent::setStyles($styles);
+        $this->cursorColorPair = $styles['caret-color-pair'] ?? $this->cursorColorPair;
+        return parent::setOnFocusStyles($styles);
     }
 }

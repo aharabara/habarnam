@@ -15,6 +15,8 @@ class Section extends Square implements ComponentsContainerInterface
 
     /** @var int[] */
     protected $padding = [1, 1];
+    
+    protected $margin = [0, 0, 0, 0];
 
     /**
      * Window constructor.
@@ -47,12 +49,13 @@ class Section extends Square implements ComponentsContainerInterface
 
     /**
      * @param Surface $surface
+     * @param bool $withResize
      * @return Square
      * @throws \Exception
      */
-    public function setSurface(Surface $surface)
+    public function setSurface(Surface $surface, bool $withResize = true)
     {
-        $result = parent::setSurface($surface);
+        $result = parent::setSurface($surface, $withResize);
         $this->recalculateSubSurfaces();
         return $result;
     }
@@ -90,7 +93,7 @@ class Section extends Square implements ComponentsContainerInterface
         if (empty($this->components) || !$this->visible) {
             return $this;
         }
-        $baseSurf = $this->surface->resize(...$this->padding);
+        $baseSurf = $this->surface->resize($this->getSelector(), ...$this->padding);
         if (count($this->components) === 1) {
             /** @var DrawableInterface $component */
             $component = reset($this->components);

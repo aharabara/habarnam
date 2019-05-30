@@ -51,6 +51,7 @@ class Curse
             'BLUE' => NCURSES_COLOR_BLUE,
             'GREEN' => NCURSES_COLOR_GREEN,
             'YELLOW' => NCURSES_COLOR_YELLOW,
+            'CYAN' => NCURSES_COLOR_CYAN,
         ];
         
         foreach ($colors as $bgColor => $bgConstant) {

@@ -32,7 +32,7 @@ class Text extends BaseComponent
     public function __construct(array $attrs)
     {
         if (isset($attrs['from'])) {
-            $this->text = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']).'/'.ltrim($attrs['from'], './'));
+            $this->text = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . ltrim($attrs['from'], './'));
         } else {
             $this->text = $attrs['text'] ?? '';
         }
@@ -66,27 +66,34 @@ class Text extends BaseComponent
         $pos = $this->surface->topLeft();
         $x = $pos->getX();
         $y = $pos->getY();
+        $height = $this->surface->height();
 
         $renderedLines = $this->getLines($text);
         foreach ($renderedLines as $line) {
-            Curse::writeAt($line, $this->colorPair, $y++, $x);
+            if ($height > 0) {
+                $y++;
+            }
+            Curse::writeAt($line, $this->colorPair, $y, $x);
         }
     }
 
     protected function centerMiddleRender(?string $text): void
     {
+        $width = $this->surface->width();
+        $height = $this->surface->height();
+        
         $pos = $this->surface->topLeft();
-
         $renderedLines = $this->getLines($text);
 
-        $heightWithoutLines = $this->surface->height() - count($renderedLines) / 2;
-        if($heightWithoutLines < 2){
+        $heightWithoutLines = $height - count($renderedLines) / 2;
+        if ($heightWithoutLines < 2) {
             $heightWithoutLines = 3;
         }
         $y = $pos->getY() + floor($heightWithoutLines) / 2;
 
+
         foreach ($renderedLines as $line) {
-            $x = $pos->getX() + $this->surface->width() / 2 - mb_strlen($line) / 2;
+            $x = $pos->getX() + $width / 2 - mb_strlen($line) / 2;
             Curse::writeAt($line, $this->colorPair, $y++, $x);
         }
     }
@@ -105,7 +112,8 @@ class Text extends BaseComponent
         array_walk_recursive($result, static function ($a) use (&$lines) {
             $lines[] = $a;
         });
-        return array_slice($lines, 0, $this->surface->height());
+        $height = $this->surface->height() ?: 1;
+        return array_slice($lines, 0, $height);
     }
 
     /**
@@ -122,7 +130,7 @@ class Text extends BaseComponent
         }
         return $arr;
     }
-    
+
     public function setStyles(array $styles)
     {
         $this->align = $styles['text-align'] ?? $this->align;

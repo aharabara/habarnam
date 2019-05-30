@@ -46,18 +46,20 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         $this->handleKeyPress($pressedKey);
 
         foreach ($items as $key => $item) {
-            $item->draw($pressedKey, $this->isFocused() && $key === $this->focusedItem );
+            $item->draw($pressedKey, $this->isFocused() && $key === $this->focusedItem);
         }
     }
 
     /**
      * @param ListItem ...$items
      * @return $this
+     * @throws \Exception
      */
     public function addItems(ListItem ...$items): self
     {
         $this->setItemsStyles($items);
         array_push($this->items, ...$items);
+        $this->recalculateSubSurfaces();
         return $this;
     }
 
@@ -86,7 +88,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
                 if ($this->getSelectedItem()) {
                     $this->dispatch(self::EVENT_BEFORE_SELECT, [$this->getSelectedItem()]);
                 }
-                $this->selected = $this->focusedItem;
+                $this->selectByIndex($this->focusedItem);
                 $this->dispatch(self::EVENT_SELECTED, [$this->getSelectedItem()]);
                 break;
         }
@@ -105,7 +107,6 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         unset($this->items[$focusedItem]);
         $this->items = array_values($this->items);
         $this->focused = $focusedItem === 0 ? $focusedItem : $focusedItem - 1;
-        $this->selected = null;
     }
 
     /**
@@ -113,7 +114,12 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function getSelectedItem(): ?ListItem
     {
-        return $this->items[$this->selected] ?? null;
+        foreach ($this->items as $item) {
+            if ($item->isSelected()){
+                return $item;
+            }
+        }
+        return null;
     }
 
     /**
@@ -121,7 +127,12 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function hasSelected(): bool
     {
-        return isset($this->items[$this->selected]);
+        foreach ($this->items as $item) {
+            if ($item->isSelected()){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -130,8 +141,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function selectItem(ListItem $item): self
     {
-        $this->selected = array_search($item, $this->items, true);
-        $this->dispatch(self::EVENT_SELECTED, [$this->getSelectedItem()]);
+        $this->unselectAll();
+        $item->selected(true);
+        $this->dispatch(self::EVENT_SELECTED, [$item]);
         return $this;
     }
 
@@ -143,7 +155,6 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         foreach ($this->items as $key => $item) {
             if ($item->getValue() === $value) {
-                $this->selected = $key;
                 $this->dispatch(self::EVENT_SELECTED, [$this->getSelectedItem()]);
                 break;
             }
@@ -156,9 +167,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         return $this->itemsAreDeletable;
     }
 
-    public function setSurface(Surface $surface)
+    public function setSurface(Surface $surface, bool $withResize = true)
     {
-        $result = parent::setSurface($surface);
+        $result = parent::setSurface($surface, $withResize);
         $this->recalculateSubSurfaces();
         return $result;
     }
@@ -199,10 +210,12 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      * @param DrawableInterface $listItem
      * @param string|null $id
      * @return void
+     * @throws \Exception
      */
     public function addComponent(DrawableInterface $listItem, ?string $id = null)
     {
         $this->addItems($listItem);
+        $this->recalculateSubSurfaces();
     }
 
     /**
@@ -219,7 +232,10 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function recalculateSubSurfaces()
     {
-        ViewRender::recalculateLayoutWithinSurface($this->surface->resize(...$this->padding), $this->items);
+        if (!$this->surface) {
+            return;
+        } // silently skip
+        ViewRender::recalculateLayoutWithinSurface($this->surface->resize($this->getSelector(), ...$this->padding), $this->items);
         return $this;
     }
 
@@ -253,12 +269,42 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             ]);
         }
     }
-    
+
     public function debugDraw(): void
     {
         parent::debugDraw();
+        foreach ($this->items as $key => $item) {
+            $item->debugDraw($this->isFocused() && $key === $this->focusedItem);
+        }
+    }
+
+    public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int
+    {
+        if (count($this->items) > 0) {
+            return parent::height($fullHeight, count($this->items));
+        }
+        return parent::height($fullHeight, $defaultHeight);
+    }
+
+    /**
+     * @param int $index
+     * @return $this
+     */
+    protected function selectByIndex(int $index): self
+    {
+        $this->unselectAll();
+        $this->items[$index]->selected(true);
+        return $this;
+    }
+
+    protected function unselectAll(): void
+    {
         foreach ($this->items as $item) {
-            $item->debugDraw();
+            /** @var ListItem $item */
+            if ($item->isSelected()) {
+                $item->selected(false);
+                break;
+            }
         }
     }
 }

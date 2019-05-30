@@ -33,7 +33,7 @@ abstract class BaseComponent implements DrawableInterface
     protected $padding = [0, 0];
 
     /** @var int[] */
-    protected $margin = [0, 0];
+    protected $margin = [0, 0, 1];
 
     /** @var string */
     protected $displayType = self::DISPLAY_BLOCK;
@@ -55,7 +55,8 @@ abstract class BaseComponent implements DrawableInterface
 
         if (isset($attrs['display'])) {
             $this->displayType = $attrs['display'];
-            if (!in_array($this->displayType, [self::DISPLAY_INLINE, self::DISPLAY_BLOCK], true)) {
+            $allowedTypes = [self::DISPLAY_INLINE, self::DISPLAY_BLOCK, self::DISPLAY_COMPACT];
+            if (!in_array($this->displayType, $allowedTypes, true)) {
                 throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
             }
         }
@@ -82,12 +83,16 @@ abstract class BaseComponent implements DrawableInterface
 
     /**
      * @param Surface $surface
+     * @param bool $withResize
      * @return $this
      * @throws \Exception
      */
-    public function setSurface(Surface $surface)
+    public function setSurface(Surface $surface, bool $withResize = true)
     {
-        $this->surface = $surface->resize(...$this->margin);
+        if ($withResize) {
+            $surface = $surface->resize($this->getSelector(), ...$this->margin);
+        }
+        $this->surface = $surface;
         return $this;
     }
 
@@ -174,7 +179,7 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function getSelector(): string
     {
-        $tag = ViewRender::getComponentTag(get_class($this)) ?? 'wtf?';
+        $tag = ViewRender::getComponentTag(get_class($this)) ?? strtolower(basename(get_class($this)));
         if ($this->selectors) {
             $result = implode(',', $this->selectors);
         } elseif (!$this->id) {
@@ -199,7 +204,6 @@ abstract class BaseComponent implements DrawableInterface
     public function setStyles(array $styles)
     {
         $this->colorPair = $styles['color-pair'] ?? $this->colorPair;
-
         $this->margin = $styles['margin'] ?? $this->margin;
         $this->padding = $styles['padding'] ?? $this->padding;
         $this->visible = $styles['visibility'] ?? $this->visible;
@@ -220,23 +224,26 @@ abstract class BaseComponent implements DrawableInterface
 
     public function debugDraw(): void
     {
+        $topLeft = $this->surface->topLeft();
         $lowerBound = $this->surface->bottomRight()->getY();
-        $higherBound = $this->surface->topLeft()->getY();
+        $higherBound = $topLeft->getY();
         $width = $this->surface->width() - 2; // 2 symbols for borders
 
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
             $repeat = $width - strlen($this->getSelector()) - 1;
-            if ($repeat < 0){
+            if ($repeat < 0) {
                 $repeat = 0;
             }
-            if ($y === $higherBound) {
+            if ($y === $higherBound && $y === $lowerBound) {
+                $text = '<' . $this->getSelector() . str_repeat('─', $repeat) . '>';
+            } elseif ($y === $higherBound) {
                 $text = '╔─' . $this->getSelector() . str_repeat('─', $repeat) . '╗';
             } elseif ($y === $lowerBound) {
                 $text = '╚' . str_repeat('─', $width) . '╝';
             } else {
                 $text = '│' . str_repeat(' ', $width) . '│';
             }
-            Curse::writeAt($text, $this->colorPair, $y, $this->surface->topLeft()->getX());
+            Curse::writeAt($text, $this->colorPair, $y, $topLeft->getX());
         }
     }
 }
