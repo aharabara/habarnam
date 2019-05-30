@@ -80,7 +80,7 @@ class ViewRender
     {
         $surfacesFilePath = "{$this->path}/surfaces.xml";
         if (!file_exists($surfacesFilePath)) {
-            throw new UnexpectedValueException("View folder '{$this->path}' should contain suraces.xml with surfaces declarations.");
+            throw new \Error("View folder '{$this->path}' should contain suraces.xml with surfaces declarations.");
         }
         $this->parseFile($surfacesFilePath);
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->path));
@@ -101,7 +101,7 @@ class ViewRender
     public static function registerComponent(string $name, string $className): void
     {
         if (!class_exists($className)) {
-            throw new UnexpectedValueException("Class $className doesn't exist. Cant register component '$name'");
+            throw new \Error("Class $className doesn't exist. Cant register component '$name'");
         }
         self::$componentsMapping[$name] = $className;
     }
@@ -118,7 +118,7 @@ class ViewRender
         $attrs = $this->getAttributes($root);
         if ($rootNodeName === 'template') {
             if (!isset($attrs['id'])) {
-                throw new UnexpectedValueException("<template> tag requires 'id' attribute to be specified.");
+                throw new \Error("<template> tag requires 'id' attribute to be specified.");
             }
             $this->documents[$attrs['id']] = $root;
 
@@ -141,7 +141,7 @@ class ViewRender
             }
 
         } else {
-            throw new UnexpectedValueException("Only <surfaces/> and <template/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
+            throw new \Error("Only <surfaces/> and <template/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
         }
         return $this;
     }
@@ -177,7 +177,7 @@ class ViewRender
                     $attrs['id']
                 );
             }
-            throw new UnexpectedValueException("There is no such <surface/> type '{$attrs['type']}'");
+            throw new \Error("There is no such <surface/> type '{$attrs['type']}'");
         }
         $topLeftAttrs = [];
         $bottomRightAttrs = [];
@@ -244,7 +244,7 @@ class ViewRender
     protected function getComponentClass(string $name): string
     {
         if (!isset(self::$componentsMapping[$name])) {
-            throw new UnexpectedValueException("Component '{$name}' is not registered.");
+            throw new \Error("Component '{$name}' is not registered.");
         }
         return self::$componentsMapping[$name];
     }
@@ -482,7 +482,7 @@ class ViewRender
         foreach ($head->xpath('//link') as $link) {
             ['src' => $path] = $this->getAttributes($link);
             if (empty($path)) {
-                throw new UnexpectedValueException('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
+                throw new \Error('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
             }
             $parser = new Parser(file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . ltrim($path, './')));
             $document = $parser->parse();

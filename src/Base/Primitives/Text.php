@@ -46,7 +46,7 @@ class Text extends BaseComponent
     public function draw(?int $key): void
     {
         if (!$this->surface) {
-            throw new RuntimeException('Text surface not set.');
+            throw new \Error('Text surface not set.');
         }
         if (!$this->visible) {
             return;
@@ -58,7 +58,7 @@ class Text extends BaseComponent
         }
     }
 
-    /**
+    /**`
      * @param string|null $text
      */
     protected function defaultRender(?string $text): void

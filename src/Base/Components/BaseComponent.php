@@ -57,7 +57,7 @@ abstract class BaseComponent implements DrawableInterface
             $this->displayType = $attrs['display'];
             $allowedTypes = [self::DISPLAY_INLINE, self::DISPLAY_BLOCK, self::DISPLAY_COMPACT];
             if (!in_array($this->displayType, $allowedTypes, true)) {
-                throw new \UnexpectedValueException("Display type {$this->displayType} is not supported.");
+                throw new \Error("Display type {$this->displayType} is not supported.");
             }
         }
     }

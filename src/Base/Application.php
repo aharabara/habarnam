@@ -92,11 +92,11 @@ class Application
             $key = Curse::getCh();
         }
         if ($this->allowResize && $key === null) {
+            self::scheduleRedraw();
             $this->updateCounter++;
             if ($this->updateCounter % $this->updateRate === 0) {
                 $this->updateCounter = 0;
                 Terminal::update();
-                self::scheduleRedraw();
             }
         }
 
@@ -270,7 +270,7 @@ class Application
         $this->currentView = $name;
         $this->cachedComponents = []; // clear cached components
         if (!$this->render->exists($name)) {
-            throw new \UnexpectedValueException("There is no application view registered with name '$name'");
+            throw new \Error("There is no application view registered with name '$name'");
         }
         self::scheduleRedraw();
         return $this;

@@ -29,7 +29,7 @@ class Surface
         $this->topLeft = $topLeft;
         $this->bottomRight = $bottomRight;
         if ($topLeft && $bottomRight && ($this->width() < 0 || $this->height() < 0)) {
-            throw new \Exception('Incorrect positions for Surface class. Positions should give positive height and width.');
+            throw new \Error('Incorrect positions for Surface class. Positions should give positive height and width.');
         }
     }
 
