@@ -8,7 +8,7 @@ use Base\Core\Curse;
 class ListItem extends Text
 {
 
-    /** @var string */
+    /** @var mixed */
     protected $value;
 
     /** @var int */
@@ -37,9 +37,9 @@ class ListItem extends Text
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getValue(): ?string
+    public function getValue()
     {
         return $this->value;
     }

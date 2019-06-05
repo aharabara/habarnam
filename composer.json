@@ -16,7 +16,8 @@
         "ext-mbstring": "*",
         "ext-simplexml": "*",
         "sabberworm/php-css-parser": "^8.3",
-        "symfony/css-selector": "^4.2"
+        "symfony/css-selector": "^4.2",
+        "analog/analog": "^1.0"
     },
     "autoload": {
         "psr-4": {

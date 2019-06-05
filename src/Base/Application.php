@@ -2,6 +2,9 @@
 
 namespace Base;
 
+use Analog\Analog;
+use Analog\Handler\File;
+use Analog\Handler\Ignore;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
@@ -66,11 +69,13 @@ class Application
     public function __construct(Workspace $workspace, ViewRender $render, string $currentView)
     {
         Curse::initialize();
-        self::$instance = $this;
         $this->render = $render;
         $this->workspace = $workspace;
         $this->currentView = $currentView;
         $this->selectorConverter = new CssSelectorConverter();
+        self::$instance = $this;
+
+        \Analog::handler(Ignore::init());
     }
 
     protected $updateRate = 10;
@@ -135,34 +140,39 @@ class Application
     public function handle(?\Closure $callback = null): void
     {
         $this->currentComponentIndex = 0;
-        while (true) {
-            $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
-            if ($callback) {
-                $callback($this, $pressedKey);
-            }
+        try {
 
-            if ($this->handleKeyPress($pressedKey)) {
-                $pressedKey = null;
-            }
+            while (true) {
+                $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
+                if ($callback) {
+                    $callback($this, $pressedKey);
+                }
 
-            $components = $this->getDrawableComponents();
-            $this->refresh(10000);
+                if ($this->handleKeyPress($pressedKey)) {
+                    $pressedKey = null;
+                }
 
-            $fullRedraw = !self::$redrawDone; // keep current state for current iteration
-            self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
-            foreach ($components as $key => $component) {
-                Curse::color(Colors::BLACK_WHITE);
-                $this
-                    // if it is a window with focus, then skip it
-                    ->handleNonFocusableComponents($component, $key)
-                    // if index is not within components quantity, then set it to 0 or count($components)
-                    ->handleFocusIndexOverflow($components)
-                    // check one more time if it is window
-                    ->handleNonFocusableComponents($component, $key)
-                    // set component as focused / not focused.
-                    ->handleComponentFocus($component, (int)$key);
-                $this->drawComponent($key, $component, $pressedKey, $fullRedraw);
+                $components = $this->getDrawableComponents();
+                $this->refresh(10000);
+
+                $fullRedraw = !self::$redrawDone; // keep current state for current iteration
+                self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
+                foreach ($components as $key => $component) {
+                    Curse::color(Colors::BLACK_WHITE);
+                    $this
+                        // if it is a window with focus, then skip it
+                        ->handleNonFocusableComponents($component, $key)
+                        // if index is not within components quantity, then set it to 0 or count($components)
+                        ->handleFocusIndexOverflow($components)
+                        // check one more time if it is window
+                        ->handleNonFocusableComponents($component, $key)
+                        // set component as focused / not focused.
+                        ->handleComponentFocus($component, (int)$key);
+                    $this->drawComponent($key, $component, $pressedKey, $fullRedraw);
+                }
             }
+        } catch (\Throwable $exception) {
+            Analog::error($exception->getMessage() . "\n" . $exception->getTraceAsString());
         }
     }
 
@@ -315,6 +325,7 @@ class Application
     public function debug(bool $debug): self
     {
         $this->allowDebug = $debug;
+        \Analog::handler(File::init(getcwd() . '/logs/debug.log'));
         return $this;
     }
 

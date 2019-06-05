@@ -117,8 +117,11 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int
     {
-        if ($this->height && strpos('%', $this->height)) {
+        if ($this->height && strpos($this->height, '%')) {
             return floor($fullHeight / 100 * ((int)trim($this->height, '%')));
+        }
+        if (strpos($this->height, 'px')){
+            return (int) str_replace('px', '', $this->height);
         }
         return $this->height ?? $defaultHeight;
     }
@@ -234,14 +237,15 @@ abstract class BaseComponent implements DrawableInterface
         $lines[] = "Right bottom: ({$bottomRight->getX()},{$bottomRight->getY()})";
         $i = 0;
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
-            $repeat = $width - strlen($this->getSelector()) - 1;
+            $selector = "{$this->getSelector()}:{$this->surface->width()}x{$this->surface->height()}";
+            $repeat = $width - strlen($selector) - 1;
             if ($repeat < 0) {
                 $repeat = 0;
             }
             if ($y === $higherBound && $y === $lowerBound) {
-                $text = '<' . $this->getSelector() . str_repeat('─', $repeat) . '>';
+                $text = '<' . $selector . str_repeat('─', $repeat) . '>';
             } elseif ($y === $higherBound) {
-                $text = '╔─' . $this->getSelector() . str_repeat('─', $repeat) . '╗';
+                $text = '╔─' . $selector . str_repeat('─', $repeat) . '╗';
             } elseif ($y === $lowerBound) {
                 $text = '╚' . str_repeat('─', $width) . '╝';
             } else {

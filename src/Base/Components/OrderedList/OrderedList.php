@@ -290,7 +290,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int
     {
         if (count($this->items) > 0) {
-            return parent::height($fullHeight, count($this->items));
+            return parent::height($fullHeight, count($this->items) + 2 /* for borders */);
         }
         return parent::height($fullHeight, $defaultHeight);
     }

@@ -35,7 +35,7 @@ trait EventBusTrait
      */
     private function controller(string $class)
     {
-        if (!isset($this->controllers[$class])) {
+        if (!isset(self::$controllers[$class])) {
             $app = Application::getInstance();
             self::$controllers[$class] = new $class($app, $app->workspace());
         }

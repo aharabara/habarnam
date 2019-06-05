@@ -3,6 +3,7 @@
 namespace Base\Core;
 
 use Base\Interfaces\Colors;
+use Base\Primitives\Surface;
 
 class Curse
 {
@@ -55,10 +56,10 @@ class Curse
             'YELLOW' => NCURSES_COLOR_YELLOW,
             'CYAN' => NCURSES_COLOR_CYAN,
         ];
-        
+
         foreach ($colors as $bgColor => $bgConstant) {
             foreach ($colors as $textColor => $textConstant) {
-                ncurses_init_pair(constant(Colors::class."::{$bgColor}_{$textColor}"), $textConstant, $bgConstant);
+                ncurses_init_pair(constant(Colors::class . "::{$bgColor}_{$textColor}"), $textConstant, $bgConstant);
             }
         }
     }
@@ -82,5 +83,19 @@ class Curse
         ncurses_echo();
         ncurses_curs_set(self::CURSOR_VISIBLE);
         ncurses_end();
+    }
+
+    /**
+     * @param Surface $surface
+     */
+    public static function clearSurface(Surface $surface): void
+    {
+        $bottomRight = $surface->bottomRight();
+        $topLeft = $surface->topLeft();
+        $infill = str_repeat(' ', $surface->width());
+        foreach (range($topLeft->getY(), $bottomRight->getY()) as $y) {
+            ncurses_move($y, $topLeft->getX());
+            ncurses_addstr($infill);
+        }
     }
 }
