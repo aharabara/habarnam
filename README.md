@@ -14,12 +14,12 @@ Made with `habarnam`:
  - [HTodo](https://github.com/aharabara/htodo)
 
 Soon could be implemented:
- - Chat
+ - Chat (WIP)
  - Redis or MySQL browser
  - Reddit browser
  - Ascii drawing tool
  
-If you have some ideas, then create an issue and we will disscuss it :metal:
+If you have some ideas, then create an issue and we will discuss it :metal:
 
 Usage:
 ```bash
@@ -31,102 +31,94 @@ composer require aharabara/habarnam
 ./vendor/aharabara/habarnam/install.sh
 
 touch ./index.php
+mkdir ./src/
+mkdir ./logs/
 mkdir ./views/
+mkdir ./assets/
 touch ./views/surfaces.xml
 touch ./views/main.xml
+touch ./assets/styles.css
 ```
 
 **index.php** content
 ```php
 <?php
-use Base\{Application, ViewRender};
 
-chdir(__DIR__);
-require './vendor/autoload.php';
+use Base\{Application, Core\Installer, Core\Workspace, Services\ViewRender};
 
-/* folder with surfaces.xml and other view files*/
-$viewsFolder   ='./views/';
-$currentViewID ='main';
+require __DIR__ . '/vendor/autoload.php';
 
-$render = (new ViewRender( $viewsFolder))->prepare();
-(new Application($render, $currentViewID))
+
+$projectName = '<You project name>'; // will be used to create a folder inside ~/.config
+$workspace = new Workspace("habarnam-{$projectName}");
+$installer = new Installer($workspace);
+
+$installer->checkCompatibility();
+
+if (!$installer->isInstalled()) {
+    $installer->run();
+}
+
+/* folder with surfaces.xml and other view files */
+$render = new ViewRender(__DIR__. '/views/');
+
+(new Application($workspace, $render->prepare(), 'main'))
+    ->debug(true)
     ->handle();
-
 ```
 
 **surface.xml** content
 ```xml
-<application>
-    <surfaces>
-        <!-- each surface should be declared inside application>surfaces element
-             and should have 'id' attribute
-        -->
-        <surface id="example.middle">
-            <!-- top left corner of the surface-->
-            <pos x="10" y="4"/>
-            <!-- top bottom corner of the surface-->
-            <pos x="-10" y="8"/>
+<surfaces>
+    <!-- each surface should be declared inside application>surfaces element
+         and should have 'id' attribute
+    -->
+    <surface id="example.middle">
+        <!-- top left corner of the surface-->
+        <pos x="10" y="4"/>
+        <!-- top bottom corner of the surface-->
+        <pos x="-10" y="8"/>
 
-            <!-- y="-5"  will lead to calculation from bottom and not from the top -->
-            <!-- x="-5"  will lead to calculation from right and not from the left -->
-        </surface>
-        <surface id="example.fullscreen">
-            <!-- by default [x=0] and [y=0] for top left corner -->
-            <pos/>
-            <!-- and [x=<terminal width>] and [y=<terminal width>] for top right bottom -->
-            <pos/>
-        </surface>
-        <!-- In some cases you just need a popup, so you can use [type=centered]
-             and specify it's [height] and [width]
-         -->
-        <surface id="example.popup" height="7" type="centered"/>
-    </surfaces>
-</application>
+        <!-- y="-5"  will lead to calculation from bottom and not from the top -->
+        <!-- x="-5"  will lead to calculation from right and not from the left -->
+    </surface>
+    <surface id="example.fullscreen"/>
+    <!-- In some cases you just need a popup, so you can use [type=centered]
+         and specify it's [height] and [width]
+     -->
+    <surface id="example.popup" height="7" type="centered"/>
+</surfaces>
 ```
 
 **main.xml** content
 ```xml
-<application>
-    <!-- each view should be declared inside application element
-         and should have 'id' attribute
-    -->
-    <view id="main">
-        <!-- only <panel> tag can be top-level element inside <view> tag
-             [surface="<surface ID>"] attributeshould be specified in order
-             to assign a specific surface to panel
-             
-             <panel margin="<top>, <right>, <left>, <bottom>"
-                    padding="<top>, <right>, <left>, <bottom>"
-                    visible="<bool>"
-                    min-width="<int>"
-                    min-height="<int>"
-                    id="<string>"
-                    title="<string>"
-             />
-             Common component attributes:
-                 - margin
-                 - visible
-                 - id
-                 - min-height
-                 - min-width
-        -->
-        <panel title="Fullscreen panel" surface="example.fullscreen">
-            <!-- <text align="default|center-middle" margin="<top>, <right>, <left>, <bottom>">-->
-            <text>This panel is fullscreen</text>
-        </panel>
-        <panel title="Middle panel" surface="example.middle">
-            <text>This panel is in the middle</text>
-        </panel>
-        <panel surface="example.popup">
-            <text align="center-middle">Do you like it?</text>
-            <button min-width="50%" margin="1, 1">Yes</button>
-            <button min-width="50%" margin="1, 1">No</button>
-        </panel>
-    </view>
-</application>
+<template id="main"> <!-- template tag represents a screen with components -->
+    <!-- you can jump between view using Application->switchTo('TemplateID') or BaseController->switchTo('TemplateID')-->
+    <head>
+        <!-- you can specify here which css files you want to load for this template-->
+        <link src="/assets/styles.css"/> 
+    </head>
+    <body>
+        <section title="Users" surface="column.left"> <!-- surface attribute will set section size and position -->
+            <ol id="users" on.item.selected="\App\UserController@login"> <!-- on.* are events that are triggered during interaction -->
+                <li value="user-1">User</li> <!-- you can nest some components, for example ol > li -->
+            </ol>
+        </section>
+        <section title="History" surface="column.right.top"> <!-- or section > * -->
+            <textarea id="info"/>
+        </section>
+        <section title="Message" surface="column.right.bottom">
+            <input id="message"/> <!-- you can address any (non-dynamic) component via Application->findFirst('.css>selector')-->
+            <button on.press="\App\UserController@login" id="send">Send</button> <!-- or via Application->findAll('selector')-->
+        </section>
+    </body>
+</template>
 ```
 #### Tips
  - To navigate through components use `Tab` and `Shift + Tab` or keyboard arrows.
  - Call `Application->debug(true)` and then press F1 and you will be able 
  to see components surfaces. Surface calculation is still glitchy, but you can use it.
+ - Press `F3` to toggle resize mode
+ - Press `F5` to refresh styles from css files. (:cool:)
+ - Press `Ctrl+X` to exit application. Be careful and save everything before doing it. 
  - more coming...

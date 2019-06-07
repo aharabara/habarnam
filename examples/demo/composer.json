@@ -1,5 +1,7 @@
 {
-    "require": {
-        "aharabara/habarnam": "0.3.4"
+    "autoload": {
+        "classmap": [
+            "src"
+        ]
     }
 }

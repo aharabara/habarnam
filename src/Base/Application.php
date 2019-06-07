@@ -15,6 +15,8 @@ use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\ConstantlyRefreshableInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
+use Base\Primitives\Position;
+use Base\Primitives\Surface;
 use Base\Services\ViewRender;
 use Dotenv\Dotenv;
 use Symfony\Component\CssSelector\CssSelectorConverter;
@@ -77,7 +79,9 @@ class Application
         self::$instance = $this;
 
         \Analog::handler(Ignore::init());
-        Dotenv::create($this->projectRoot())->load();;
+        if (file_exists($this->projectRoot().'/.env')){
+            Dotenv::create($this->projectRoot())->load();
+        }
     }
 
     protected $updateRate = 10;
@@ -197,7 +201,7 @@ class Application
             self::scheduleRedraw();
         } elseif ($key === 27 /* ESC key*/) {
             Curse::exit();
-        } elseif ($key === NCURSES_KEY_F5) {
+        } elseif ($key === NCURSES_KEY_F5 || $key === 18 /* ctrl + R */) {
             $this->render->refreshDocuments();
             self::scheduleRedraw();
         } elseif ($key === NCURSES_KEY_F12) {
@@ -296,6 +300,8 @@ class Application
         if (!$this->render->exists($name)) {
             throw new \Error("There is no application view registered with name '$name'");
         }
+        // to prevent glitches
+        Curse::clearSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
         self::scheduleRedraw();
         return $this;
     }
