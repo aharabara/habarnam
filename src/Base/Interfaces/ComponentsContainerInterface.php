@@ -1,32 +1,32 @@
 <?php
 
-namespace Base;
+namespace Base\Interfaces;
 
-interface ComponentsContainerInterface
+interface ComponentsContainerInterface extends DrawableInterface
 {
 
     /**
-     * @return array
+     * @return DrawableInterface[]
      */
     public function toComponentsArray(): array;
 
     /**
-     * @param DrawableInterface ...$components
+     * @param DrawableInterface $components
+     * @param string|null $id
      * @return self
      */
-    public function setComponents(DrawableInterface ...$components);
-
-    /**
-     * @param int $index
-     * @param DrawableInterface $component
-     * @return self
-     */
-    public function replaceComponent(int $index, DrawableInterface $component);
+    public function addComponent(DrawableInterface $components, ?string $id = null);
 
     /**
      * @return array
      */
     public function getComponents(): array;
+
+
+    /**
+     * @return self
+     */
+    public function recalculateSubSurfaces();
 
 
 }

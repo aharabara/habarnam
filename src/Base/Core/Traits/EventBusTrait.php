@@ -1,11 +1,16 @@
 <?php
 
-namespace Base;
+namespace Base\Core\Traits;
 
+
+use Base\Application;
 
 trait EventBusTrait
 {
     protected $listeners = [];
+
+    /** @var array */
+    protected static $controllers = [];
 
     /**
      * @param string $event
@@ -16,12 +21,25 @@ trait EventBusTrait
         foreach ($this->listeners[$event] ?? [] as $listener) {
             if (is_array($listener)) {
                 [$class, $method] = $listener;
-                $controller = Application::getInstance()->controller($class);
+                $controller = $this->controller($class);
                 $controller->$method(...$params);
             } else {
                 $listener(...$params);
             }
+            Application::scheduleRedraw();
         }
+    }
+    /**
+     * @param string $class
+     * @return mixed
+     */
+    private function controller(string $class)
+    {
+        if (!isset(self::$controllers[$class])) {
+            $app = Application::getInstance();
+            self::$controllers[$class] = new $class($app, $app->workspace());
+        }
+        return self::$controllers[$class];
     }
 
     /**

@@ -1,8 +1,9 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
 
-use RuntimeException;
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
 
 class Text extends BaseComponent
 {
@@ -10,24 +11,20 @@ class Text extends BaseComponent
     /** @var string */
     protected $text;
 
-    public const DEFAULT_FILL = 'default';
-    public const CENTER_TOP = 'center-top';
-    public const CENTER_MIDDLE = 'center-middle';
-    public const CENTER_BOTTOM = 'center-bottom';
+    public const DEFAULT_FILL = 'left';
+    public const CENTER_MIDDLE = 'center';
 
     protected $displayType = self::DISPLAY_BLOCK;
 
     public const ALIGN_TYPES = [
-        self::CENTER_BOTTOM,
         self::CENTER_MIDDLE,
-        self::CENTER_TOP,
         self::DEFAULT_FILL
     ];
 
     /**
      * @var int
      */
-    protected $align;
+    protected $align = self::DEFAULT_FILL;
 
     /**
      * Point constructor.
@@ -35,16 +32,11 @@ class Text extends BaseComponent
      */
     public function __construct(array $attrs)
     {
-        $attrs['align'] = $attrs['align'] ?? self::DEFAULT_FILL;
-        if (!in_array($attrs['align'], self::ALIGN_TYPES, true)) {
-            throw new RuntimeException('Align type is not supported');
-        }
         if (isset($attrs['from'])) {
-            $this->text = file_get_contents($attrs['from']);
+            $this->text = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . ltrim($attrs['from'], './'));
         } else {
             $this->text = $attrs['text'] ?? '';
         }
-        $this->align = $attrs['align'];
         parent::__construct($attrs);
     }
 
@@ -55,27 +47,19 @@ class Text extends BaseComponent
     public function draw(?int $key): void
     {
         if (!$this->surface) {
-            throw new RuntimeException('Text surface not set.');
+            throw new \Error('Text surface not set.');
         }
         if (!$this->visible) {
             return;
         }
-        switch ($this->align) {
-            case self::CENTER_TOP:
-                $this->centerTopRender($this->text);
-                break;
-            case self::CENTER_MIDDLE:
-                $this->centerMiddleRender($this->text);
-                break;
-            case self::CENTER_BOTTOM:
-                $this->centerBottomRender($this->text);
-                break;
-            default:
-                $this->defaultRender($this->text);
+        if ($this->align === self::CENTER_MIDDLE) {
+            $this->centerMiddleRender($this->text);
+        } else {
+            $this->defaultRender($this->text);
         }
     }
 
-    /**
+    /**`
      * @param string|null $text
      */
     protected function defaultRender(?string $text): void
@@ -86,34 +70,29 @@ class Text extends BaseComponent
 
         $renderedLines = $this->getLines($text);
         foreach ($renderedLines as $line) {
-            Curse::writeAt($line, null, $y++, $x);
+            Curse::writeAt($line, $this->colorPair, $y, $x);
         }
-    }
-
-    protected function centerTopRender(?string $text)
-    {
     }
 
     protected function centerMiddleRender(?string $text): void
     {
-        $pos = $this->surface->topLeft();
+        $width = $this->surface->width();
+        $height = $this->surface->height();
 
+        $pos = $this->surface->topLeft();
         $renderedLines = $this->getLines($text);
 
-        $heightWithoutLines = $this->surface->height() - count($renderedLines) / 2;
-        if($heightWithoutLines < 2){
+        $heightWithoutLines = $height - count($renderedLines) / 2;
+        if ($heightWithoutLines < 2) {
             $heightWithoutLines = 3;
         }
         $y = $pos->getY() + floor($heightWithoutLines) / 2;
 
-        foreach ($renderedLines as $line) {
-            $x = $pos->getX() + $this->surface->width() / 2 - mb_strlen($line) / 2;
-            Curse::writeAt($line, null, $y++, $x);
-        }
-    }
 
-    protected function centerBottomRender(?string $text)
-    {
+        foreach ($renderedLines as $line) {
+            $x = $pos->getX() + $width / 2 - mb_strlen($line) / 2;
+            Curse::writeAt($line, $this->colorPair, $y++, $x);
+        }
     }
 
     /**
@@ -124,13 +103,14 @@ class Text extends BaseComponent
     {
         $result = [];
         foreach (explode("\n", $text) as $sentence) {
-            $result[] = $this->mbStrSplit($sentence, $this->surface->width());
+            array_push($result, ...$this->mbStrSplit($sentence, $this->surface->width()));
         }
         $lines = [];
         array_walk_recursive($result, static function ($a) use (&$lines) {
             $lines[] = $a;
         });
-        return array_slice($lines, 0, $this->surface->height());
+        $height = $this->surface->height() ?: 1;
+        return array_slice($lines, 0, $height);
     }
 
     /**
@@ -145,6 +125,12 @@ class Text extends BaseComponent
         for ($i = 0; $i < $length; $i += $len) {
             $arr[] = mb_substr($str, $i, $len, 'UTF-8');
         }
-        return $arr;
+        return $arr ?: [''];
+    }
+
+    public function setStyles(array $styles)
+    {
+        $this->align = $styles['text-align'] ?? $this->align;
+        return parent::setStyles($styles);
     }
 }

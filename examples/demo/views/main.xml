@@ -7,7 +7,7 @@
             <text>This panel is in the middle</text>
         </panel>
         <panel surface="example.popup">
-            <text align="center-middle">Do you like it?</text>
+            <text>Do you like it?</text>
             <button min-width="50%" margin="1, 1">Yes</button>
             <button min-width="50%" margin="1, 1">No</button>
         </panel>

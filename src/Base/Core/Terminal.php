@@ -1,6 +1,9 @@
 <?php
 
-namespace Base;
+namespace Base\Core;
+
+use Base\Primitives\Position;
+use Base\Primitives\Surface;
 
 class Terminal
 {

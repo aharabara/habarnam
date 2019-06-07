@@ -1,27 +1,25 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
 
 class Divider extends Text
 {
-    protected $minHeight = 1;
+    public $infill = '─';
 
-    /**
-     * Divider constructor.
-     * @param array $attr
-     */
-    public function __construct(array $attr = [])
-    {
-        parent::__construct(['align' => self::DEFAULT_FILL]);
-    }
-
+    protected $height = 1;
     /**
      * @param int|null $key
      * @throws \Exception
      */
     public function draw(?int $key): void
     {
-        $this->text = str_repeat('─', $this->surface->width());
+        $this->text = str_repeat($this->infill, $this->surface->width());
         parent::draw($key);
+    }
+    
+    public function setStyles(array $styles)
+    {
+        $this->infill = $styles['content'] ?? $this->infill;
+        return parent::setStyles($styles);
     }
 }

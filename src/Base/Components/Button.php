@@ -1,6 +1,11 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
+
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
+use Base\Interfaces\Colors;
+use Base\Interfaces\FocusableInterface;
 
 class Button extends BaseComponent implements FocusableInterface
 {
@@ -37,13 +42,13 @@ class Button extends BaseComponent implements FocusableInterface
             Curse::color(Colors::BLACK_YELLOW);
             $this->dispatch(self::PRESS, []);
         }
-        $color = Colors::BLACK_WHITE;
+        $color = $this->colorPair;
         if ($this->isFocused()) {
-            $color = Colors::BLACK_YELLOW;
+            $color = $this->focusedColorPair;
         }
         $surf = $this->surface;
         $width = $surf->width() - 2;
-        $width = $width > $this->minWidth() ? $width : $this->minWidth();
+        $width = $width > $this->width() ? $width : $this->width();
         $x = $surf->topLeft()->getX();
         $y = $surf->topLeft()->getY();
         if ($key === 10) {

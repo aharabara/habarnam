@@ -54,6 +54,7 @@
   - [ ] Keyboard shortcuts
 
 #### v1.0.0
+   - [ ] PSR-4 namespacing
    - [ ] Multithreading (optional)
 
 #### ToDo

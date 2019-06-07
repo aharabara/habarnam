@@ -1,11 +1,11 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
 
 class Input extends TextArea
 {
 
-    protected $minHeight = 1;
+    protected $height = 1;
 
     /**
      * @param int|null $key
@@ -18,7 +18,7 @@ class Input extends TextArea
             $key = null;
         }
         $this->handleKeyPress($key);
-        $this->defaultRender(str_pad(substr(str_replace(' ', '_', $this->text), 0, $length), $length, '_'));
+        $this->defaultRender($this->mbStrPad(mb_substr(mb_ereg_replace(' ', '_', $this->text), 0, $length), $length, '_'));
     }
 
     /**

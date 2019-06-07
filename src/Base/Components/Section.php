@@ -1,10 +1,17 @@
 <?php
 
-namespace Base;
+namespace Base\Components;
 
-class Panel extends Square implements ComponentsContainerInterface
+use Base\Core\BaseComponent;
+use Base\Core\Curse;
+use Base\Interfaces\ComponentsContainerInterface;
+use Base\Interfaces\DrawableInterface;
+use Base\Primitives\Square;
+use Base\Primitives\Surface;
+use Base\Services\ViewRender;
+
+class Section extends Square implements ComponentsContainerInterface
 {
-
     /** @var string */
     protected $id;
 
@@ -15,7 +22,9 @@ class Panel extends Square implements ComponentsContainerInterface
     protected $title;
 
     /** @var int[] */
-    protected $padding = [-1, -1];
+    protected $padding = [1, 1];
+    
+    protected $margin = [0, 0, 0, 0];
 
     /**
      * Window constructor.
@@ -29,7 +38,7 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /**
      * @param int|null $key
-     * @return Panel
+     * @return Section
      * @throws \Exception
      */
     public function draw(?int $key): self
@@ -40,7 +49,7 @@ class Panel extends Square implements ComponentsContainerInterface
         parent::draw($key);
         $topLeft = $this->surface->topLeft();
         if ($this->title) {
-            $color = $this->isFocused() ? Colors::BLACK_YELLOW : null;
+            $color = $this->isFocused() ? $this->focusedColorPair : $this->colorPair;
             Curse::writeAt("| {$this->title} |", $color, $topLeft->getY(), $topLeft->getX() + 3);
         }
         return $this;
@@ -48,38 +57,30 @@ class Panel extends Square implements ComponentsContainerInterface
 
     /**
      * @param Surface $surface
+     * @param bool $withResize
      * @return Square
      * @throws \Exception
      */
-    public function setSurface(Surface $surface)
+    public function setSurface(Surface $surface, bool $withResize = true)
     {
-        $result = parent::setSurface($surface);
-        $this->setComponentsSurface();
+        $result = parent::setSurface($surface, $withResize);
+        $this->recalculateSubSurfaces();
         return $result;
     }
 
     /**
-     * @param DrawableInterface ...$components
-     * @return Panel
+     * @param DrawableInterface $components
+     * @param string|null $id
+     * @return Section
      * @throws \Exception
      */
-    public function setComponents(DrawableInterface ...$components): Panel
+    public function addComponent(DrawableInterface $components, ?string $id = null): Section
     {
-        $this->components = $components;
-        $this->setComponentsSurface();
-        return $this;
-    }
-
-    /**
-     * @param int $index
-     * @param DrawableInterface $component
-     * @return Panel
-     * @throws \Exception
-     */
-    public function replaceComponent(int $index, DrawableInterface $component): Panel
-    {
-        $this->components[$index] = $component;
-        $this->setComponentsSurface();
+        if ($id) {
+            $this->components[$id] = $components;
+        } else {
+            $this->components[] = $components;
+        }
         return $this;
     }
 
@@ -95,12 +96,12 @@ class Panel extends Square implements ComponentsContainerInterface
      * @return $this
      * @throws \Exception
      */
-    protected function setComponentsSurface(): self
+    public function recalculateSubSurfaces()
     {
         if (empty($this->components) || !$this->visible) {
             return $this;
         }
-        $baseSurf = $this->surface->resize(...$this->padding);
+        $baseSurf = $this->surface->resize($this->getSelector(), ...$this->padding);
         if (count($this->components) === 1) {
             /** @var DrawableInterface $component */
             $component = reset($this->components);
@@ -108,7 +109,7 @@ class Panel extends Square implements ComponentsContainerInterface
             $component->setSurface($baseSurf);
             return $this;
         }
-        ViewRender::renderLayout($baseSurf, $this->components);
+        ViewRender::recalculateLayoutWithinSurface($baseSurf, $this->components);
         return $this;
     }
 
@@ -121,10 +122,20 @@ class Panel extends Square implements ComponentsContainerInterface
             return [$this];
         }
         $components = [];
-        $components[] = $this;
-        if (!empty($this->components)) {
-            array_push($components, ...array_values($this->components) ?? []);
+
+        foreach ($this->components as $key => $component) {
+            if ($component instanceof ComponentsContainerInterface) {
+                $subComponents = $component->toComponentsArray();
+                foreach ($subComponents as $subComponent) {
+                    if ($component === $subComponent) {
+                        continue;
+                    }
+                    $components[] = $subComponent;
+                }
+            }
+            $components[] = $component;
         }
+        array_unshift($components, $this);
         return $components;
     }
 
@@ -145,9 +156,9 @@ class Panel extends Square implements ComponentsContainerInterface
      * @param bool $visible
      * @return BaseComponent
      */
-    public function setVisibility(bool $visible)
+    public function visibility(bool $visible)
     {
-        return parent::setVisibility($visible);
+        return parent::visibility($visible);
     }
 
 }
