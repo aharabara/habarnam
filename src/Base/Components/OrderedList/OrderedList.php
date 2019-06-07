@@ -91,6 +91,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             case NCURSES_KEY_DC:
                 if ($this->itemsAreDeletable()) {
                     $this->dispatch(self::EVENT_DELETING, [$this]);
+                    $this->recalculateSubSurfaces();
                 }
                 break;
             case 10:// 10 is for 'Enter' key

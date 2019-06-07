@@ -69,14 +69,16 @@ class ListItem extends Text
         $width = $this->surface->width() - strlen($prefix);
         $beginPos = $this->surface->topLeft();
 
+        $text = $this->text;
         if (strlen($this->text) > $width) {
             $padSymbol = '.';
+            $text = str_split($text, $width - 2)[0];
         }
         $color = $this->colorPair;
         if ($this->isFocused()) {
             $color = $this->focusedColorPair;
         }
-        Curse::writeAt($prefix . str_pad("{$this->text}", $width, $padSymbol), $color, $beginPos->getY(),
+        Curse::writeAt($prefix . str_pad("{$text}", $width, $padSymbol), $color, $beginPos->getY(),
             $beginPos->getX());
     }
 
