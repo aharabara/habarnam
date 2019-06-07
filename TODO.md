@@ -32,6 +32,7 @@
    - [x] CSS files for components instead of xml attributes
 
 #### v0.5.0
+   - [ ] XML tree update fro dynamical elements
    - [ ] Composable Components (ex. Ordered list of checkboxes)
    - [ ] Make List a scrollable container for container of components AKA List of something
 
