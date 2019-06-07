@@ -136,6 +136,9 @@ abstract class BaseComponent implements DrawableInterface
         if ($this->width && strpos($this->width, '%')) {
             return floor(($fullWidth / 100) * ((int)trim($this->width, '%')));
         }
+        if (strpos($this->width, 'px')){
+            return (int) str_replace('px', '', $this->width);
+        }
         return $this->width ?? $defaultWidth;
     }
 

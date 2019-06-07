@@ -54,7 +54,7 @@ class ViewRender
     protected $components = [];
 
     /** @var string[] */
-    protected $tagsWithContent = ['button', 'text', 'li', 'label'];
+    protected $tagsWithContent = ['button', 'p', 'li', 'label'];
 
     /** @var string */
     protected $path;
@@ -505,7 +505,7 @@ class ViewRender
             if (empty($path)) {
                 throw new \Error('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
             }
-            $parser = new Parser(file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . ltrim($path, './')));
+            $parser = new Parser(file_get_contents($_SERVER['PWD'] . '/' . ltrim($path, './')));
             $document = $parser->parse();
 
             /* @var DeclarationBlock[] $declarations */

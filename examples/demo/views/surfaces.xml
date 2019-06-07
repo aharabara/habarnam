@@ -1,27 +1,19 @@
-<application>
-    <surfaces>
-        <!-- each surface should be declared inside application>surfaces element
-             and should have 'id' attribute
-        -->
-        <surface id="example.middle">
-            <!-- top left corner of the surface-->
-            <pos x="10" y="4"/>
-            <!-- top bottom corner of the surface-->
-            <pos x="-10" y="8"/>
+<surfaces>
+    <!-- each surface should be declared inside application>surfaces element
+         and should have 'id' attribute
+    -->
+    <surface id="example.middle">
+        <!-- top left corner of the surface-->
+        <pos x="10" y="4"/>
+        <!-- top bottom corner of the surface-->
+        <pos x="-10" y="15"/>
 
-            <!-- y="-5"  will lead to calculation from bottom and not from the top -->
-            <!-- x="-5"  will lead to calculation from right and not from the left -->
-        </surface>
-        <surface id="example.fullscreen">
-            <!-- by default [x=0] and [y=0] for top left corner -->
-            <pos/>
-            <!-- and [x=<terminal width>] and [y=<terminal width>] for top right bottom -->
-            <pos/>
-        </surface>
-
-        <!-- In some cases you just need a popup, so you can use [type=centered]
-             and specify it's [height] and [width]
-         -->
-        <surface id="example.popup" height="7" type="centered"/>
-    </surfaces>
-</application>
+        <!-- y="-5"  will lead to calculation from bottom and not from the top -->
+        <!-- x="-5"  will lead to calculation from right and not from the left -->
+    </surface>
+    <surface id="example.fullscreen"/>
+    <!-- In some cases you just need a popup, so you can use [type=centered]
+         and specify it's [height] and [width]
+     -->
+    <surface id="example.popup" height="10" type="centered"/>
+</surfaces>

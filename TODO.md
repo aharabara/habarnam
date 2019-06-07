@@ -1,7 +1,7 @@
 > aharabara/habarnam
 ## TUI Framework
 #### V0.2.0
-   - [x] Panel
+   - [x] Section
    - [x] List
    - [x] Input
    - [x] Divider
@@ -26,7 +26,10 @@
    
 
 #### v0.4.0
-   - [ ] New line correct handling for textarea
+   - [x] New line correct handling for textarea
+
+#### v0.4.5
+   - [x] CSS files for components instead of xml attributes
 
 #### v0.5.0
    - [ ] Composable Components (ex. Ordered list of checkboxes)
@@ -44,17 +47,15 @@
        - [ ] Textarea
        - [ ] SelectBox
        - [ ] CheckBox
-       - [ ] Panel
+       - [ ] Section
 
 #### v0.8.0
-   - [ ] CSS files for components instead of xml attributes
-   - [ ] Theming
 
 #### v0.9.0
   - [ ] Keyboard shortcuts
 
 #### v1.0.0
-   - [ ] PSR-4 namespacing
+   - [X] PSR-4 namespacing
    - [ ] Multithreading (optional)
 
 #### ToDo
@@ -69,7 +70,7 @@
    - [ ] CheckBox
    - [ ] SelectBox
       - [ ] Multiple
-   - [ ] Buttons
+   - [x] Buttons
    - [ ] TextArea
       - [ ] Read only
       - [ ] Syntax highlighting

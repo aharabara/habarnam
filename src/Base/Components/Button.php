@@ -19,6 +19,9 @@ class Button extends BaseComponent implements FocusableInterface
     /** @var string */
     protected $label;
 
+
+    protected $margin= [0, 1, 1, 0];
+
     /** @var string */
     protected $displayType = self::DISPLAY_INLINE;
 
@@ -38,6 +41,7 @@ class Button extends BaseComponent implements FocusableInterface
      */
     public function draw(?int $key)
     {
+        if (!$this->visible) return $this;
         if ($key === 10 /* Enter */) {
             Curse::color(Colors::BLACK_YELLOW);
             $this->dispatch(self::PRESS, []);

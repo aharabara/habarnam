@@ -1,15 +1,17 @@
-<application>
-    <view id="main">
-        <panel title="Fullscreen panel" surface="example.fullscreen">
-            <text>This panel is fullscreen</text>
-        </panel>
-        <panel title="Middle panel" surface="example.middle">
-            <text>This panel is in the middle</text>
-        </panel>
-        <panel surface="example.popup">
-            <text>Do you like it?</text>
-            <button min-width="50%" margin="1, 1">Yes</button>
-            <button min-width="50%" margin="1, 1">No</button>
-        </panel>
-    </view>
-</application>
+<template id="main">
+    <head>
+        <link src="/assets/styles.css"/>
+    </head>
+    <body>
+        <section title="Fullscreen section" surface="example.fullscreen">
+            <p>This section is fullscreen</p>
+        </section>
+        <section title="Middle section" id="main-popup" surface="example.middle">
+            <p id="time-text">
+                This section is in the middle
+            </p>
+            <button id="go-to" on.press="#confirm">Go to confirm</button>
+            <button on.press="\App\ExampleController@time">Time</button>
+        </section>
+    </body>
+</template>

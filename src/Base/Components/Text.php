@@ -133,4 +133,22 @@ class Text extends BaseComponent
         $this->align = $styles['text-align'] ?? $this->align;
         return parent::setStyles($styles);
     }
+
+    /**
+     * @return string
+     */
+    public function getText(): string
+    {
+        return $this->text;
+    }
+
+    /**
+     * @param string $text
+     * @return self
+     */
+    public function setText(string $text)
+    {
+        $this->text = $text;
+        return $this;
+    }
 }
