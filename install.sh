@@ -11,7 +11,7 @@ printf "%s\n" "${yel}We need super powers to help you.${end}";
 rm -rf ./build
 mkdir ./build
 cd ./build
-sudo apt-get install php-cli php-pear php-dev libncurses5-dev ncurses-doc libncursesw5-dev
+sudo apt-get install php-cli php-pear php-dev libncurses5-dev ncurses-doc libncursesw5-dev php-mbstring
 wget https://pecl.php.net/get/ncurses-1.0.2.tgz \
 && tar -zxvf ncurses-1.0.2.tgz \
 && wget "https://bugs.php.net/patch-display.php?bug_id=71299&patch=ncurses-php7-support-again.patch&revision=1474549490&download=1"  -O ncurses.patch \

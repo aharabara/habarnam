@@ -87,20 +87,6 @@ class ListItem extends Text
     }
 
     /**
-     * @param int|null $fullHeight
-     * @param int|null $defaultHeight
-     * @return int|null
-     */
-    public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int
-    {
-        if ($this->height && strpos('%', $this->height)) {
-            return floor($fullHeight / 100 * ((int)trim($this->height, '%')));
-        }
-        return $this->height;
-    }
-
-
-    /**
      * @param bool $selected
      * @return self
      */

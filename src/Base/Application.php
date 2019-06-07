@@ -16,6 +16,7 @@ use Base\Interfaces\ConstantlyRefreshableInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
 use Base\Services\ViewRender;
+use Dotenv\Dotenv;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application
@@ -76,6 +77,7 @@ class Application
         self::$instance = $this;
 
         \Analog::handler(Ignore::init());
+        Dotenv::create($this->projectRoot())->load();;
     }
 
     protected $updateRate = 10;
@@ -185,6 +187,8 @@ class Application
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
             self::scheduleRedraw();
+        } elseif ($key === 24 /* ctrl + x */) {
+            Curse::exit(); die;
         } elseif ($this->allowDebug && $key === NCURSES_KEY_F1) {
             $this->debug = !$this->debug;
             self::scheduleRedraw();
@@ -325,7 +329,7 @@ class Application
     public function debug(bool $debug): self
     {
         $this->allowDebug = $debug;
-        \Analog::handler(File::init(getcwd() . '/logs/debug.log'));
+        \Analog::handler(File::init($this->projectRoot() . '/logs/debug.log'));
         return $this;
     }
 
@@ -408,5 +412,13 @@ class Application
     public function workspace(): Workspace
     {
         return $this->workspace;
+    }
+
+    /**
+     * @return string
+     */
+    public function projectRoot(): string
+    {
+        return $_SERVER['PWD'];
     }
 }
