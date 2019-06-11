@@ -18,6 +18,7 @@ use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Template;
 use Base\Core\Terminal;
+use Base\Core\Workspace;
 use Base\Interfaces\Colors;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
@@ -25,6 +26,7 @@ use Base\Primitives\Position;
 use Base\Primitives\Square;
 use Base\Primitives\Surface;
 use Exception;
+use Illuminate\Container\Container;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Sabberworm\CSS\Parser;
@@ -63,9 +65,8 @@ class ViewRender
 
     /**
      * View constructor.
-     * @param string $path
      */
-    public function __construct(string $path)
+    public function __construct()
     {
         self::registerComponent('figure', Animation::class);
         self::registerComponent('hr', Divider::class);
@@ -80,11 +81,13 @@ class ViewRender
         self::registerComponent('button', Button::class);
         self::registerComponent('textarea', TextArea::class);
         Terminal::update(); // to allow php to parse columns and rows
-        $this->path = $path;
+        $this->path = Workspace::projectRoot() . '/' . getenv('RESOURCE_FOLDER') . '/views/';
+        $this->prepare();
     }
 
     /**
      * @param string $className
+     *
      * @return string|null
      */
     public static function getComponentTag(string $className): ?string
@@ -97,7 +100,7 @@ class ViewRender
      * @return ViewRender
      * @throws Exception
      */
-    public function prepare(): self
+    protected function prepare(): self
     {
         $surfacesFilePath = "{$this->path}/surfaces.xml";
         if (!file_exists($surfacesFilePath)) {
@@ -112,6 +115,7 @@ class ViewRender
             }
             $this->parseFile($file->getPathname());
         }
+
         return $this;
     }
 
@@ -129,14 +133,15 @@ class ViewRender
 
     /**
      * @param string $filePath
+     *
      * @return $this
      * @throws Exception
      */
     public function parseFile(string $filePath): self
     {
-        $root = simplexml_load_string(file_get_contents($filePath), ComplexXMLElement::class);
+        $root         = simplexml_load_string(file_get_contents($filePath), ComplexXMLElement::class);
         $rootNodeName = $root->getName();
-        $attrs = $this->getAttributes($root);
+        $attrs        = $this->getAttributes($root);
         if ($rootNodeName === 'template') {
             if (!isset($attrs['id'])) {
                 throw new \Error("<template> tag requires 'id' attribute to be specified.");
@@ -157,33 +162,37 @@ class ViewRender
 
         } elseif ($rootNodeName === 'surfaces') {
             foreach ($root->children() as $surfNode) {
-                $surface = $this->surfaceFromNode($surfNode);
+                $surface                           = $this->surfaceFromNode($surfNode);
                 $this->surfaces[$surface->getId()] = $surface;
             }
 
         } else {
             throw new \Error("Only <surfaces/> and <template/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
         }
+
         return $this;
     }
 
     /**
      * @param SimpleXMLElement $node
+     *
      * @return array
      */
     protected function getAttributes(SimpleXMLElement $node): array
     {
         $attributes = array_map('strval', iterator_to_array($node->attributes()));
-        $content = null;
+        $content    = null;
         if (in_array($node->getName(), $this->tagsWithContent, true)) {
             $content = trim(strip_tags($node->asXml()), " \n");
         }
         $attributes['text'] = $content ?? $attributes['text'] ?? '';
+
         return $attributes;
     }
 
     /**
      * @param SimpleXMLElement $surfNode
+     *
      * @return Surface
      * @throws Exception
      */
@@ -200,7 +209,7 @@ class ViewRender
             }
             throw new \Error("There is no such <surface/> type '{$attrs['type']}'");
         }
-        $topLeftAttrs = [];
+        $topLeftAttrs     = [];
         $bottomRightAttrs = [];
         [$topLeft, $bottomRight] = $surfNode->children();
         if (!empty($topLeft)) {
@@ -209,6 +218,7 @@ class ViewRender
         if (!empty($bottomRight)) {
             $bottomRightAttrs = $this->getAttributes($bottomRight);
         }
+
         return Surface::fromCalc(
             $attrs['id'],
             function () use ($topLeftAttrs) {
@@ -221,15 +231,16 @@ class ViewRender
     }
 
     /**
-     * @param Template $template
+     * @param Template          $template
      * @param ComplexXMLElement $node
+     *
      * @return ComponentsContainerInterface
      * @throws \ReflectionException
      */
     protected function containerFromNode(Template $template, ComplexXMLElement $node): ComponentsContainerInterface
     {
         $nodeAttrs = $this->getAttributes($node);
-        $class = $this->getComponentClass($node->getName());
+        $class     = $this->getComponentClass($node->getName());
         /** @var DrawableInterface|ComponentsContainerInterface $container */
         $container = new $class($nodeAttrs);
 
@@ -246,20 +257,22 @@ class ViewRender
                 $component = $this->containerFromNode($template, $subNode);
             } else {
                 $component = new $class($attrs);
+                $subNode->setMappedComponent($component);
             }
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
             }
             $this->handleComponentEvents($component, $attrs);
             $container->addComponent($component, $attrs['id'] ?? null);
-            $subNode->setMappedComponent($component);
         }
         $node->setMappedComponent($container);
+
         return $container;
     }
 
     /**
      * @param string $name
+     *
      * @return string
      */
     protected function getComponentClass(string $name): string
@@ -267,11 +280,18 @@ class ViewRender
         if (!isset(self::$componentsMapping[$name])) {
             throw new \Error("Component '{$name}' is not registered.");
         }
+
         return self::$componentsMapping[$name];
+    }
+
+    public static function getComponentsMapping()
+    {
+        return self::$componentsMapping;
     }
 
     /**
      * @param string $templateID
+     *
      * @return Template
      */
     public function template(string $templateID): Template
@@ -281,6 +301,7 @@ class ViewRender
 
     /**
      * @param string $id
+     *
      * @return Surface
      */
     public function surface(string $id): Surface
@@ -290,6 +311,7 @@ class ViewRender
 
     /**
      * @param array $position
+     *
      * @return Position
      */
     protected function getTopLeftCoords(array $position): Position
@@ -302,11 +324,13 @@ class ViewRender
         if ($y < 0) {
             $y = Terminal::height() - abs($y);
         }
+
         return new Position($x, $y);
     }
 
     /**
      * @param array $position
+     *
      * @return Position
      */
     protected function getBottomRightCoords(array $position): Position
@@ -322,12 +346,13 @@ class ViewRender
         if ($y > 0 && $y < Terminal::height()) {
             $y--; // to prevent vertical intersections
         }
+
         return new Position($x, $y);
     }
 
     /**
      * @param DrawableInterface $component
-     * @param string[] $attrs
+     * @param string[]          $attrs
      */
     protected function handleComponentEvents(DrawableInterface $component, array $attrs): void
     {
@@ -338,7 +363,7 @@ class ViewRender
             if (strpos($key, 'on.') === 0) {
                 if (strpos($entry, '#') === 0) {
                     $component->listen(substr($key, 3), static function () use ($entry) {
-                        Application::getInstance()->switchTo(substr($entry, 1));
+                        Container::getInstance()->make(Application::class)->switchTo(substr($entry, 1));
                     });
                 } else {
                     [$class, $method] = explode('@', $entry);
@@ -357,8 +382,9 @@ class ViewRender
     }
 
     /**
-     * @param Surface $baseSurf
+     * @param Surface             $baseSurf
      * @param DrawableInterface[] $components
+     *
      * @throws Exception
      */
     public static function recalculateLayoutWithinSurface(Surface $baseSurf, array $components): void
@@ -366,18 +392,18 @@ class ViewRender
         if (empty($components)) {
             return; // nothing to recalculate
         }
-        $baseWidth = $baseSurf->width();
-        $baseHeight = $baseSurf->height();
+        $baseWidth       = $baseSurf->width();
+        $baseHeight      = $baseSurf->height();
         $baseBottomRight = $baseSurf->bottomRight();
-        $topLeft = $baseSurf->topLeft();
+        $topLeft         = $baseSurf->topLeft();
 
 
-        $perComponentWidth = $baseWidth / count($components);
+        $perComponentWidth  = $baseWidth / count($components);
         $perComponentHeight = $baseHeight / count($components);
 
-        $offsetY = 0;
-        $offsetX = 0;
-        $minHeight = 0;
+        $offsetY       = 0;
+        $offsetX       = 0;
+        $minHeight     = 0;
         $lastComponent = end($components);
         foreach (array_values($components) as $key => $component) {
             $height = $component->height($baseHeight, $perComponentHeight);
@@ -386,8 +412,8 @@ class ViewRender
                 $minHeight = $height;
             }
             if ($offsetX + $component->width($baseWidth, $perComponentWidth) > $baseWidth) {
-                $offsetY += $minHeight;
-                $offsetX = 0;
+                $offsetY   += $minHeight;
+                $offsetX   = 0;
                 $minHeight = 0;
             }
             if ($lastComponent === $component && $height === null) {
@@ -407,24 +433,25 @@ class ViewRender
                 $offsetY++;
             }
             if (in_array($component->displayType(), DrawableInterface::BLOCK_DISPLAY_TYPES, true)) {
-                $offsetY += $minHeight;
-                $offsetX = 0;
+                $offsetY   += $minHeight;
+                $offsetX   = 0;
                 $minHeight = 0;
             } else {
                 $calculatedWidth = $component->width($baseWidth, $perComponentWidth) ?? $baseBottomRight->getX();
-                $offsetX += $calculatedWidth;
+                $offsetX         += $calculatedWidth;
             }
         }
 
     }
 
     /**
-     * @param Surface $surf
+     * @param Surface           $surf
      * @param DrawableInterface $component
-     * @param int $offsetX
-     * @param int $offsetY
-     * @param int $perComponentWidth
-     * @param int $bottomRightY
+     * @param int               $offsetX
+     * @param int               $offsetY
+     * @param int               $perComponentWidth
+     * @param int               $bottomRightY
+     *
      * @return Surface
      * @throws Exception
      */
@@ -440,6 +467,7 @@ class ViewRender
             "{$surf->getId()}.children.{$component->getId()}",
             static function () use ($offsetX, $surf, $offsetY) {
                 $topLeft = $surf->topLeft();
+
                 return new Position($topLeft->getX() + $offsetX, $topLeft->getY() + $offsetY);
             },
             static function () use (
@@ -450,7 +478,7 @@ class ViewRender
                 $component,
                 $bottomRightY
             ) {
-                $width = $surf->bottomRight()->getX();
+                $width   = $surf->bottomRight()->getX();
                 $topLeft = $surf->topLeft();
 
                 if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
@@ -469,6 +497,7 @@ class ViewRender
 
     /**
      * @param string $templateID
+     *
      * @return bool
      */
     public function exists(string $templateID): bool
@@ -486,6 +515,7 @@ class ViewRender
 
     /**
      * @param string $class
+     *
      * @return bool
      * @throws \ReflectionException
      */
@@ -499,13 +529,13 @@ class ViewRender
      */
     protected function applyStyle(SimpleXMLElement $head): void
     {
-        $converter = new CssSelectorConverter();
+        $converter = new CssSelectorConverter;
         foreach ($head->xpath('//link') as $link) {
             ['src' => $path] = $this->getAttributes($link);
             if (empty($path)) {
                 throw new \Error('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
             }
-            $parser = new Parser(file_get_contents($_SERVER['PWD'] . '/' . ltrim($path, './')));
+            $parser   = new Parser(file_get_contents($_SERVER['PWD'] . '/' . ltrim($path, './')));
             $document = $parser->parse();
 
             /* @var DeclarationBlock[] $declarations */
@@ -515,10 +545,10 @@ class ViewRender
                 foreach ($this->documents as $docs) {
                     /* @var ComplexXMLElement $docs */
                     foreach ($declaration->getSelectors() as $selector) {
-                        $selector = $selector->getSelector();
+                        $selector          = $selector->getSelector();
                         $onFocusProperties = false;
                         if (strpos($selector, ':focus') !== false) {
-                            $selector = str_replace(':focus', '', $selector);
+                            $selector          = str_replace(':focus', '', $selector);
                             $onFocusProperties = true;
                         }
                         /* @var ComplexXMLElement[] $elements */
@@ -550,14 +580,15 @@ class ViewRender
 
     /**
      * @param Rule[] $rules
+     *
      * @return array
      */
     protected function getCssProperties(Rule ...$rules): array
     {
-        $bgColor = null;
-        $textColor = null;
+        $bgColor    = null;
+        $textColor  = null;
         $focusColor = null;
-        $props = [];
+        $props      = [];
         foreach ($rules as $rule) {
             switch ($rule->getRule()) {
                 case 'color':
@@ -597,22 +628,23 @@ class ViewRender
         }
 
         if (!empty($bgColor) || !empty($textColor)) {
-            $bgColor = $bgColor ?? 'black';
-            $textColor = $textColor ?? 'white';
+            $bgColor             = $bgColor ?? 'black';
+            $textColor           = $textColor ?? 'white';
             $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
         }
         if (!empty($borderColor)) {
-            $bgColor = $bgColor ?? 'black';
-            $borderColor = $borderColor ?? 'white';
+            $bgColor                    = $bgColor ?? 'black';
+            $borderColor                = $borderColor ?? 'white';
             $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
         }
 
         if (!empty($caretColor)) {
-            $bgColor = $bgColor ?? 'black';
+            $bgColor    = $bgColor ?? 'black';
             $caretColor = $caretColor ?? 'white';
             /* inverse colors */
             $props['caret-color-pair'] = constant(Colors::class . '::' . strtoupper("{$caretColor}_{$bgColor}"));
         }
+
         return $props;
     }
 
@@ -627,6 +659,7 @@ class ViewRender
                 $this->applyStyle($head[0]);
             }
         }
+
         return $this;
     }
 }

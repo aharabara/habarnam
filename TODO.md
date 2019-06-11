@@ -43,6 +43,12 @@
    - [ ] CheckBox
    
 #### v0.7.0
+ - Container
+ - Eloquent ans SQLite
+ - Queue process for delayed tasks
+ - Loading state (overlay?) for component
+
+#### v0.8.0
    - [ ] ScrollableComponentInterface
    - [ ] Scrolling in:
        - [ ] Textarea
@@ -50,7 +56,6 @@
        - [ ] CheckBox
        - [ ] Section
 
-#### v0.8.0
 
 #### v0.9.0
   - [ ] Keyboard shortcuts

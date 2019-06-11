@@ -8,6 +8,7 @@ use Analog\Handler\Ignore;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
+use Base\Core\Installer;
 use Base\Core\Terminal;
 use Base\Core\Workspace;
 use Base\Interfaces\Colors;
@@ -19,6 +20,7 @@ use Base\Primitives\Position;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
 use Dotenv\Dotenv;
+use Illuminate\Container\Container;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application
@@ -56,36 +58,46 @@ class Application
     private $workspace;
 
     /**
-     * @return Application
-     */
-    public static function getInstance(): Application
-    {
-        return self::$instance;
-    }
-
-    /**
      * Application constructor.
      * @param Workspace $workspace
      * @param ViewRender $render
      * @param string $currentView
      */
-    public function __construct(Workspace $workspace, ViewRender $render, string $currentView)
+    public function __construct(Workspace $workspace, ViewRender $render)
     {
         Curse::initialize();
         $this->render = $render;
         $this->workspace = $workspace;
-        $this->currentView = $currentView;
+        $this->currentView = getenv('INITIAL_VIEW');
         $this->selectorConverter = new CssSelectorConverter();
         self::$instance = $this;
-
-        \Analog::handler(Ignore::init());
-        if (file_exists($this->projectRoot().'/.env')){
-            Dotenv::create($this->projectRoot())->load();
-        }
     }
 
     protected $updateRate = 10;
     protected $updateCounter = 0;
+
+    public static function boot(bool $debug)
+    {
+        Dotenv::create(Workspace::projectRoot())->load();
+        \Analog::handler(Ignore::init());
+
+        require __DIR__.'/../../bootstrap/app.php';
+
+        $container = Container::getInstance();
+
+        /** @var Installer $installer */
+        $installer = $container->make(Installer::class);
+
+
+        $installer->checkCompatibility();
+        if (!$installer->isInstalled()) {
+            $installer->run();
+        }
+
+        $container->make(Application::class)
+            ->debug($debug)
+            ->handle();
+    }
 
     /**
      * @param int|null $timeout
@@ -335,7 +347,7 @@ class Application
     public function debug(bool $debug): self
     {
         $this->allowDebug = $debug;
-        \Analog::handler(File::init($this->projectRoot() . '/logs/debug.log'));
+        \Analog::handler(File::init(Workspace::projectRoot() . '/logs/debug.log'));
         return $this;
     }
 
@@ -420,11 +432,4 @@ class Application
         return $this->workspace;
     }
 
-    /**
-     * @return string
-     */
-    public function projectRoot(): string
-    {
-        return $_SERVER['PWD'];
-    }
 }

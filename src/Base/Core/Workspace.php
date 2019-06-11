@@ -10,9 +10,9 @@ class Workspace
     /** @var string */
     private $folderName;
 
-    public function __construct(string $folderName)
+    public function __construct()
     {
-        $this->folderName = $folderName;
+        $this->folderName = getenv('WORKSPACE_FOLDER');
         $this->config = $this->fromFile('configuration.ser') ?? [];
     }
 
@@ -99,5 +99,13 @@ class Workspace
     {
         $this->toFile('configuration.ser', $this->config);
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public static function projectRoot(): string
+    {
+        return $_SERVER['PWD'];
     }
 }

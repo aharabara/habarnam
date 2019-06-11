@@ -21,13 +21,17 @@ class TextArea extends Text implements FocusableInterface
 
     /** @var int */
     protected $cursorColorPair = Colors::WHITE_BLACK;
+
     protected $infill = ' ';
+
     protected $linesCache = [];
 
 
     /**
      * TextArea constructor.
+     *
      * @param array $attrs
+     *
      * @throws \Exception
      */
     public function __construct(array $attrs)
@@ -38,6 +42,7 @@ class TextArea extends Text implements FocusableInterface
 
     /**
      * @param int|null $key
+     *
      * @throws \Exception
      */
     public function draw(?int $key): void
@@ -58,24 +63,24 @@ class TextArea extends Text implements FocusableInterface
     }
 
     /**
-     * @param string $text
+     * @param string|null $text
+     *
      * @return TextArea
      */
     public function setText(?string $text = ''): self
     {
         $this->clearCache();
         $this->text = $text;
+
         return $this;
     }
 
     protected function defaultRender(?string $text): void
     {
-        $pos = $this->surface->topLeft();
-        $y = $pos->getY();
+        $pos    = $this->surface->topLeft();
+        $y      = $pos->getY();
         $cursor = $this->cursorPos;
         foreach ($this->getLines($text) as $key => $line) {
-            # line 1 for test
-            # line 2 for test
             $x = $pos->getX();
             if ($this->isFocused() && $cursor->getY() === $key) {
                 if ($cursor->getX() === 0) {
@@ -84,7 +89,7 @@ class TextArea extends Text implements FocusableInterface
                     $cursorSymbol = mb_substr($line, $cursor->getX(), $cursor->getX());
                 }
                 $before = mb_substr($line, 0, $cursor->getX());
-                $after = mb_substr($line, $cursor->getX() + 1);
+                $after  = mb_substr($line, $cursor->getX() + 1);
                 Curse::writeAt($before, $this->focusedColorPair, $y, $x);
                 Curse::writeAt($cursorSymbol ?: ' ', $this->cursorColorPair, $y, $x += mb_strlen($before));
                 Curse::writeAt($after, $this->focusedColorPair, $y++, ++$x);
@@ -109,7 +114,7 @@ class TextArea extends Text implements FocusableInterface
                 }
                 break;
             case NCURSES_KEY_BACKSPACE:
-                if ($this->getText() && $cursor->getX() > 0) {
+                if ($this->getText() && $cursor->getY() > 0 || $cursor->getX() > 0) {
                     /* Delete before */
                     $this->setText($this->replaceCharAt($this->text, '', $this->getTextIndex()));
                 }
@@ -119,24 +124,30 @@ class TextArea extends Text implements FocusableInterface
                 if ($cursor->getX() > 0) {
                     $cursor->decX();
                 } elseif ($cursor->getY() > 0) { // if it is line beginning, but not first line
-                    $this->cursorPos = new Position($this->getLineLength(), $cursor->decY()->getY());
+                    $cursor->decY(); // decrement position
+                    $this->cursorPos = new Position($this->currentLineLength(), $cursor->getY());
                 }
                 break;
             case NCURSES_KEY_UP:
                 if ($cursor->getY() > 0) {
                     $cursor->decY();
                 }
+                if ($cursor->getX() > $this->currentLineLength()){
+                    $this->cursorPos = new Position($this->currentLineLength(), $cursor->getY());
+                }
                 break;
             case NCURSES_KEY_DOWN:
                 $cursor->incY();
-                $this->cursorPos = new Position(0, $cursor->getY());
+                if ($this->getTextIndex() > mb_strlen($this->text)) {
+                    $this->setText($this->text."\n");
+                    $this->cursorPos = new Position($this->currentLineLength(), $cursor->getY());
+                }
                 break;
             case NCURSES_KEY_RIGHT:
-                $lines = $this->getLines($this->text);
-                if ($cursor->getX() <= mb_strlen($lines[$cursor->getY()] ?? '')) {
+                if ($cursor->getX() < $this->currentLineLength()) {
                     $cursor->incX();
-                } else {
-                    $this->cursorPos = new Position(0, $cursor->getY());
+                } elseif ($this->getTextIndex() < mb_strlen($this->text)) {
+                    $this->cursorPos = new Position(0, $cursor->incY()->getY());
                 }
                 break;
             default:
@@ -155,7 +166,8 @@ class TextArea extends Text implements FocusableInterface
 
     /**
      * @param string $text
-     * @param bool $withPadding
+     * @param bool   $withPadding
+     *
      * @return array
      */
     protected function getLines(string $text, bool $withPadding = false): array
@@ -163,13 +175,13 @@ class TextArea extends Text implements FocusableInterface
         if (!empty($this->linesCache[$withPadding])) {
             return $this->linesCache[$withPadding];
         }
-        $lines = $this->linesCache;
+        $lines  = $this->linesCache;
         $length = $this->surface->width();
         foreach (parent::getLines($text) as $key => $line) {
             if ($withPadding) {
-                $lines[$key] = str_pad(str_replace(' ', '.', $line), $length, $this->infill);
+                $lines[$key] = str_pad($line, $length, $this->infill);
             } else {
-                $lines[$key] = str_replace(' ', '.', $line);
+                $lines[$key] = $line;
             }
         }
         if (empty($lines)) {
@@ -180,6 +192,7 @@ class TextArea extends Text implements FocusableInterface
             }
         }
         $this->linesCache[$withPadding] = $lines;
+
         return $lines;
     }
 
@@ -187,32 +200,37 @@ class TextArea extends Text implements FocusableInterface
      * mb_str_pad
      *
      * @param string $input
-     * @param int $pad_length
+     * @param int    $pad_length
      * @param string $pad_string
-     * @param int $pad_type
+     * @param int    $pad_type
+     *
      * @return string
      * @author Kari "Haprog" Sderholm
      */
     public function mbStrPad($input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT): string
     {
         $diff = strlen($input) - mb_strlen($input);
+
         return str_pad($input, $pad_length + $diff, $pad_string, $pad_type);
     }
 
     /**
      * @param array $styles
+     *
      * @return Text
      */
     public function setOnFocusStyles(array $styles)
     {
         $this->cursorColorPair = $styles['caret-color-pair'] ?? $this->cursorColorPair;
+
         return parent::setOnFocusStyles($styles);
     }
 
     /**
      * @param string $text
      * @param string $char
-     * @param int $at
+     * @param int    $at
+     *
      * @return string
      */
     protected function placeCharAt(string $text, string $char, int $at): string
@@ -227,6 +245,7 @@ class TextArea extends Text implements FocusableInterface
 
     /**
      * @param int|null $key
+     *
      * @return bool
      */
     protected function isAllowed(?int $key): bool
@@ -239,21 +258,22 @@ class TextArea extends Text implements FocusableInterface
      */
     protected function getTextIndex()
     {
-        $y = $this->cursorPos->getY();
+        $y     = $this->cursorPos->getY();
         $lines = $this->getLines($this->text, false);
-        $base = 0;
-        $i = 0;
+        $base  = 0;
+        $i     = 0;
         while ($i < $y) {
             $base += mb_strlen($lines[$i] ?? '') + 1;/*line length + new line symbol*/
             $i++;
         }
+
         return $base + $this->cursorPos->getX();
     }
 
     /**
      * @return int
      */
-    protected function getLineLength(): int
+    protected function currentLineLength(): int
     {
         return strlen($this->getLines($this->getText())[$this->cursorPos->getY()] ?? '');
     }

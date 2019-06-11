@@ -18,7 +18,9 @@
         "sabberworm/php-css-parser": "^8.3",
         "symfony/css-selector": "^4.2",
         "analog/analog": "^1.0",
-        "vlucas/phpdotenv": "^3.3@dev"
+        "vlucas/phpdotenv": "^3.3@dev",
+        "illuminate/database": "^5.9@dev",
+        "illuminate/events": "^5.9@dev"
     },
     "autoload": {
         "psr-4": {

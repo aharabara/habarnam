@@ -2,8 +2,8 @@
 
 namespace Base\Core\Traits;
 
-
 use Base\Application;
+use Illuminate\Container\Container;
 
 trait EventBusTrait
 {
@@ -36,8 +36,7 @@ trait EventBusTrait
     private function controller(string $class)
     {
         if (!isset(self::$controllers[$class])) {
-            $app = Application::getInstance();
-            self::$controllers[$class] = new $class($app, $app->workspace());
+            self::$controllers[$class] = Container::getInstance()->make($class);
         }
         return self::$controllers[$class];
     }
