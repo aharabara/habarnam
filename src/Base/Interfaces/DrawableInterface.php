@@ -2,6 +2,7 @@
 
 namespace Base\Interfaces;
 
+use Base\Core\ComplexXMLElement;
 use Base\Primitives\Surface;
 
 interface DrawableInterface
@@ -74,6 +75,18 @@ interface DrawableInterface
      * @return string
      */
     public function getSelector(): string;
+
+    /**
+     * @return ComplexXMLElement
+     */
+    public function getXmlRepresentation(): ComplexXMLElement;
+
+    /**
+     * @param ComplexXMLElement $node
+     *
+     * @return $this|ComplexXMLElement
+     */
+    public function setXmlRepresentation(ComplexXMLElement $node);
 
     /**
      * @param array $styles

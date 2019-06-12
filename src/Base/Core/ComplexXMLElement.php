@@ -14,11 +14,12 @@ class ComplexXMLElement extends \SimpleXMLElement
     /**
      * @param $object
      */
-    public function setMappedComponent($object): void
+    public function setMappedComponent(BaseComponent $object): void
     {
         $id = uniqid('component_', true);
         $this->addAttribute('mapping-id', $id);
         self::$components[$id] = $object;
+        $object->setXmlRepresentation($this);
     }
 
     /**

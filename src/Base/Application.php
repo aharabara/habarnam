@@ -8,6 +8,7 @@ use Analog\Handler\Ignore;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
+use Base\Core\Debugger;
 use Base\Core\Installer;
 use Base\Core\Terminal;
 use Base\Core\Workspace;
@@ -27,7 +28,7 @@ class Application
 {
     /** @var self */
     protected static $instance;
-    public $selectorConverter;
+    public           $selectorConverter;
 
     /** @var int|null */
     protected $lastValidKey;
@@ -48,7 +49,7 @@ class Application
     protected $initializedViews = [];
 
     /** @var ViewRender */
-    protected $render;
+    protected        $render;
     protected static $redrawDone = false;
 
     /** @var bool */
@@ -56,24 +57,26 @@ class Application
 
     /** @var Workspace */
     private $workspace;
+    private $debugger;
 
     /**
      * Application constructor.
-     * @param Workspace $workspace
+     *
+     * @param Workspace  $workspace
      * @param ViewRender $render
-     * @param string $currentView
+     * @param string     $currentView
      */
     public function __construct(Workspace $workspace, ViewRender $render)
     {
         Curse::initialize();
-        $this->render = $render;
-        $this->workspace = $workspace;
-        $this->currentView = getenv('INITIAL_VIEW');
-        $this->selectorConverter = new CssSelectorConverter();
-        self::$instance = $this;
+        $this->render            = $render;
+        $this->workspace         = $workspace;
+        $this->currentView       = getenv('INITIAL_VIEW');
+        $this->selectorConverter = new CssSelectorConverter;
+        self::$instance          = $this;
     }
 
-    protected $updateRate = 10;
+    protected $updateRate    = 10;
     protected $updateCounter = 0;
 
     public static function boot(bool $debug)
@@ -81,7 +84,7 @@ class Application
         Dotenv::create(Workspace::projectRoot())->load();
         \Analog::handler(Ignore::init());
 
-        require __DIR__.'/../../bootstrap/app.php';
+        require __DIR__ . '/../../bootstrap/app.php';
 
         $container = Container::getInstance();
 
@@ -101,13 +104,14 @@ class Application
 
     /**
      * @param int|null $timeout
+     *
      * @return int|null
      */
     public function getNonBlockCh(?int $timeout = null): ?int
     {
         $wasUpdated = false;
-        $read = array(STDIN);
-        $null = null;    // stream_select() uses references, thus variables are necessary for the first 3 parameters
+        $read       = [STDIN];
+        $null       = null;    // stream_select() uses references, thus variables are necessary for the first 3 parameters
         if (@stream_select($read, $null, $null, floor($timeout / 1000000), $timeout % 1000000) != 1) {
             $key = null;
         } else {
@@ -134,11 +138,13 @@ class Application
         }
 
         $this->lastValidKey = $key ?? $this->lastValidKey;
+
         return $key;
     }
 
     /**
      * @param int $micros
+     *
      * @return Application
      */
     public function refresh(int $micros): self
@@ -148,11 +154,13 @@ class Application
         if (!self::$redrawDone) {
             ncurses_erase();
         }
+
         return $this;
     }
 
     /**
      * @param \Closure|null $callback
+     *
      * @throws \Exception
      */
     public function handle(?\Closure $callback = null): void
@@ -173,7 +181,7 @@ class Application
                 $components = $this->getDrawableComponents();
                 $this->refresh(10000);
 
-                $fullRedraw = !self::$redrawDone; // keep current state for current iteration
+                $fullRedraw       = !self::$redrawDone; // keep current state for current iteration
                 self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
                 foreach ($components as $key => $component) {
                     Curse::color(Colors::BLACK_WHITE);
@@ -196,6 +204,7 @@ class Application
 
     /**
      * @param int|null $key
+     *
      * @return bool
      */
     protected function handleKeyPress(?int $key): bool
@@ -204,7 +213,8 @@ class Application
             $this->currentComponentIndex++;
             self::scheduleRedraw();
         } elseif ($key === 24 /* ctrl + x */) {
-            Curse::exit(); die;
+            Curse::exit();
+            die;
         } elseif ($this->allowDebug && $key === NCURSES_KEY_F1) {
             $this->debug = !$this->debug;
             self::scheduleRedraw();
@@ -225,6 +235,7 @@ class Application
         } else {
             return false;
         }
+
         return true;
     }
 
@@ -252,12 +263,14 @@ class Application
             }
         });
         $this->cachedComponents = $components;
+
         return $components;
     }
 
     /**
      * @param BaseComponent $component
-     * @param int|null $key
+     * @param int|null      $key
+     *
      * @return $this
      */
     protected function handleComponentFocus(BaseComponent $component, ?int $key): self
@@ -267,11 +280,13 @@ class Application
         } else {
             $component->setFocused(false);
         }
+
         return $this;
     }
 
     /**
      * @param array|BaseComponent $components
+     *
      * @return $this
      */
     protected function handleFocusIndexOverflow(array $components): self
@@ -281,12 +296,14 @@ class Application
         } elseif ($this->currentComponentIndex < 0) {
             $this->currentComponentIndex = count($components) - 1;
         }
+
         return $this;
     }
 
     /**
      * @param BaseComponent $component
-     * @param int|null $key
+     * @param int|null      $key
+     *
      * @return $this
      */
     protected function handleNonFocusableComponents(BaseComponent $component, ?int $key): self
@@ -298,16 +315,18 @@ class Application
                 $this->currentComponentIndex++;
             }
         }
+
         return $this;
     }
 
     /**
      * @param string $name
+     *
      * @return $this
      */
     public function switchTo(string $name): self
     {
-        $this->currentView = $name;
+        $this->currentView      = $name;
         $this->cachedComponents = []; // clear cached components
         if (!$this->render->exists($name)) {
             throw new \Error("There is no application view registered with name '$name'");
@@ -315,18 +334,23 @@ class Application
         // to prevent glitches
         Curse::clearSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
         self::scheduleRedraw();
+
         return $this;
     }
 
     /**
-     * @param $key
+     * @param               $key
      * @param BaseComponent $component
-     * @param int|null $pressedKey
-     * @param bool $fullRedraw
+     * @param int|null      $pressedKey
+     * @param bool          $fullRedraw
      */
     protected function drawComponent($key, BaseComponent $component, ?int $pressedKey, bool $fullRedraw = false): void
     {
-        if ($this->debug) {
+        if ($this->debug && $this->currentComponentIndex === (int)$key) {
+            //$this->debugger = new Debugger($this->getCurrentDocument());
+            //foreach ($this->debugger->toComponentsArray() as $item) {
+            //    $item->draw($key);
+            //}
             $component->debugDraw();
             self::scheduleRedraw();
             return;
@@ -342,12 +366,14 @@ class Application
 
     /**
      * @param bool $debug
+     *
      * @return Application
      */
     public function debug(bool $debug): self
     {
         $this->allowDebug = $debug;
         \Analog::handler(File::init(Workspace::projectRoot() . '/logs/debug.log'));
+
         return $this;
     }
 
@@ -357,16 +383,18 @@ class Application
     public function currentViewContainers(): array
     {
         $this->currentView = $this->currentView ?? $this->render->existingTemplates()[0] ?? null;
-        $containers = $this->render->template($this->currentView)->allContainers();
+        $containers        = $this->render->template($this->currentView)->allContainers();
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
             $this->initialiseViews($containers);
         }
+
         return $containers;
     }
 
     /**
      * @param array $containers
+     *
      * @return $this
      */
     protected function initialiseViews(array $containers): self
@@ -375,18 +403,21 @@ class Application
             $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
         }
         self::scheduleRedraw();
+
         return $this;
     }
 
     /**
      * @param DrawableInterface $component
+     *
      * @return $this
      */
     public function focusOn(DrawableInterface $component): self
     {
-        $components = $this->getDrawableComponents();
+        $components                  = $this->getDrawableComponents();
         $this->currentComponentIndex = array_search($component, $components, true);
         self::scheduleRedraw();
+
         return $this;
     }
 
@@ -396,27 +427,30 @@ class Application
     }
 
     /**
-     * @param string $selector
+     * @param string      $selector
      * @param string|null $view
+     *
      * @return BaseComponent[]
      */
     public function findAll(string $selector, ?string $view = null): array
     {
         /** @var ComplexXMLElement $document */
-        $document = $this->render->documents[$view ?? $this->currentView];
+        $document = $this->getCurrentDocument($view);
 
         /** @var ComplexXMLElement[] $elements */
         $elements = $document->xpath($this->selectorConverter->toXPath($selector));
-        $result = [];
+        $result   = [];
         foreach ($elements as $element) {
             $result[] = $element->getComponent();
         }
+
         return $result;
     }
 
     /**
-     * @param string $selector
+     * @param string      $selector
      * @param string|null $view
+     *
      * @return BaseComponent|null
      */
     public function findFirst(string $selector, ?string $view = null): ?BaseComponent
@@ -430,6 +464,16 @@ class Application
     public function workspace(): Workspace
     {
         return $this->workspace;
+    }
+
+    /**
+     * @param string|null $view
+     *
+     * @return ComplexXMLElement
+     */
+    protected function getCurrentDocument(?string $view = null): ComplexXMLElement
+    {
+        return $this->render->documents[$view ?? $this->currentView];
     }
 
 }

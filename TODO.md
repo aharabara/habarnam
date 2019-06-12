@@ -32,7 +32,7 @@
    - [x] CSS files for components instead of xml attributes
 
 #### v0.5.0
-   - [ ] XML tree update fro dynamical elements
+   - [ ] XML tree update for dynamical elements
    - [ ] Composable Components (ex. Ordered list of checkboxes)
    - [ ] Make List a scrollable container for container of components AKA List of something
 
@@ -43,10 +43,10 @@
    - [ ] CheckBox
    
 #### v0.7.0
- - Container
- - Eloquent ans SQLite
- - Queue process for delayed tasks
- - Loading state (overlay?) for component
+ - [X] Container
+ - [ ] Eloquent and SQLite
+ - [ ] Queue process for delayed tasks
+ - [ ] Loading state (overlay?) for component
 
 #### v0.8.0
    - [ ] ScrollableComponentInterface
@@ -59,6 +59,7 @@
 
 #### v0.9.0
   - [ ] Keyboard shortcuts
+  - [ ] `Cursor extends Position` instead of `cursorPos`
 
 #### v1.0.0
    - [X] PSR-4 namespacing

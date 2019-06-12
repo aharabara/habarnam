@@ -53,10 +53,13 @@ abstract class BaseComponent implements DrawableInterface
     /** @var int */
     protected $focusedColorPair;
 
+    /** @var ComplexXMLElement|null */
+    private $xmlNode;
+
 
     public function __construct(array $attrs)
     {
-        $this->id = $attrs['id'] ?? null;
+        $this->id      = $attrs['id'] ?? null;
         $this->classes = array_filter(explode(' ', $attrs['class'] ?? ''));
     }
 
@@ -71,17 +74,20 @@ abstract class BaseComponent implements DrawableInterface
 
     /**
      * @param bool $focused
+     *
      * @return $this|DrawableInterface
      */
     public function setFocused(bool $focused)
     {
         $this->focused = $focused;
+
         return $this;
     }
 
     /**
      * @param Surface $surface
-     * @param bool $withResize
+     * @param bool    $withResize
+     *
      * @return $this
      * @throws \Exception
      */
@@ -91,6 +97,7 @@ abstract class BaseComponent implements DrawableInterface
             $surface = $surface->resize($this->getSelector(), ...$this->margin);
         }
         $this->surface = $surface;
+
         return $this;
     }
 
@@ -113,6 +120,7 @@ abstract class BaseComponent implements DrawableInterface
     /**
      * @param int|null $fullHeight
      * @param int|null $defaultHeight
+     *
      * @return int|null
      */
     public function height(?int $fullHeight = null, ?int $defaultHeight = null): ?int
@@ -120,15 +128,17 @@ abstract class BaseComponent implements DrawableInterface
         if ($this->height && strpos($this->height, '%')) {
             return floor($fullHeight / 100 * ((int)trim($this->height, '%')));
         }
-        if (strpos($this->height, 'px')){
-            return (int) str_replace('px', '', $this->height);
+        if (strpos($this->height, 'px')) {
+            return (int)str_replace('px', '', $this->height);
         }
+
         return $this->height ?? $defaultHeight;
     }
 
     /**
      * @param int|null $fullWidth
      * @param int|null $defaultWidth
+     *
      * @return int|null
      */
     public function width(?int $fullWidth = null, ?int $defaultWidth = null): ?int
@@ -136,9 +146,10 @@ abstract class BaseComponent implements DrawableInterface
         if ($this->width && strpos($this->width, '%')) {
             return floor(($fullWidth / 100) * ((int)trim($this->width, '%')));
         }
-        if (strpos($this->width, 'px')){
-            return (int) str_replace('px', '', $this->width);
+        if (strpos($this->width, 'px')) {
+            return (int)str_replace('px', '', $this->width);
         }
+
         return $this->width ?? $defaultWidth;
     }
 
@@ -152,11 +163,13 @@ abstract class BaseComponent implements DrawableInterface
 
     /**
      * @param bool $visible
+     *
      * @return $this
      */
     public function visibility(bool $visible)
     {
         $this->visible = $visible;
+
         return $this;
     }
 
@@ -170,12 +183,13 @@ abstract class BaseComponent implements DrawableInterface
 
     /**
      * @param string|null $selector
+     *
      * @return DrawableInterface|void
      */
     public function addSelector(?string $selector)
     {
         $this->selectors[] = $selector;
-        $this->selectors = array_unique($this->selectors);
+        $this->selectors   = array_unique($this->selectors);
     }
 
     /**
@@ -198,50 +212,55 @@ abstract class BaseComponent implements DrawableInterface
         if ($this->isFocused()) {
             $result .= ':focus';
         }
+
         return $result;
     }
 
     /**
      * @param array $styles
+     *
      * @return $this
      */
     public function setStyles(array $styles)
     {
-        $this->colorPair = $styles['color-pair'] ?? $this->colorPair;
-        $this->margin = $styles['margin'] ?? $this->margin;
-        $this->padding = $styles['padding'] ?? $this->padding;
-        $this->visible = $styles['visibility'] ?? $this->visible;
-        $this->height = $styles['height'] ?? $this->height;
-        $this->width = $styles['width'] ?? $this->width;
+        $this->colorPair   = $styles['color-pair'] ?? $this->colorPair;
+        $this->margin      = $styles['margin'] ?? $this->margin;
+        $this->padding     = $styles['padding'] ?? $this->padding;
+        $this->visible     = $styles['visibility'] ?? $this->visible;
+        $this->height      = $styles['height'] ?? $this->height;
+        $this->width       = $styles['width'] ?? $this->width;
         $this->displayType = $styles['display'] ?? $this->displayType;
+
         return $this;
     }
 
     /**
      * @param array $properties
+     *
      * @return $this|DrawableInterface
      */
     public function setOnFocusStyles(array $properties)
     {
         $this->focusedColorPair = $properties['color-pair'] ?? $this->focusedColorPair ?? Colors::BLACK_YELLOW;
+
         return $this;
     }
 
     public function debugDraw(): void
     {
-        $topLeft = $this->surface->topLeft();
+        $topLeft     = $this->surface->topLeft();
         $bottomRight = $this->surface->bottomRight();
-        $lowerBound = $bottomRight->getY();
+        $lowerBound  = $bottomRight->getY();
         $higherBound = $topLeft->getY();
-        $width = $this->surface->width() - 2; // 2 symbols for borders
+        $width       = $this->surface->width() - 2; // 2 symbols for borders
 
-        $lines = [];
+        $lines   = [];
         $lines[] = "Left top: ({$topLeft->getX()},{$topLeft->getY()})";
         $lines[] = "Right bottom: ({$bottomRight->getX()},{$bottomRight->getY()})";
-        $i = 0;
+        $i       = 0;
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
             $selector = "{$this->getSelector()}:{$this->surface->width()}x{$this->surface->height()}";
-            $repeat = $width - strlen($selector) - 1;
+            $repeat   = $width - strlen($selector) - 1;
             if ($repeat < 0) {
                 $repeat = 0;
             }
@@ -257,5 +276,22 @@ abstract class BaseComponent implements DrawableInterface
             }
             Curse::writeAt($text, $this->colorPair, $y, $topLeft->getX());
         }
+    }
+
+    /**
+     * @param ComplexXMLElement $node
+     *
+     * @return $this|ComplexXMLElement
+     */
+    public function setXmlRepresentation(ComplexXMLElement $node)
+    {
+        $this->xmlNode = $node;
+
+        return $this;
+    }
+
+    public function getXmlRepresentation(): ComplexXMLElement
+    {
+        return $this->xmlNode;
     }
 }
