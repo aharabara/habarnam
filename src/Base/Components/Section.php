@@ -4,6 +4,7 @@ namespace Base\Components;
 
 use Base\Core\BaseComponent;
 use Base\Core\Curse;
+use Base\Core\Traits\ComponentsContainerTrait;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Square;
@@ -12,11 +13,10 @@ use Base\Services\ViewRender;
 
 class Section extends Square implements ComponentsContainerInterface
 {
+    use ComponentsContainerTrait;
+
     /** @var string */
     protected $id;
-
-    /** @var DrawableInterface[] */
-    protected $components = [];
 
     /** @var string */
     protected $title;
@@ -69,30 +69,6 @@ class Section extends Square implements ComponentsContainerInterface
     }
 
     /**
-     * @param DrawableInterface $components
-     * @param string|null $id
-     * @return Section
-     * @throws \Exception
-     */
-    public function addComponent(DrawableInterface $components, ?string $id = null): Section
-    {
-        if ($id) {
-            $this->components[$id] = $components;
-        } else {
-            $this->components[] = $components;
-        }
-        return $this;
-    }
-
-    /**
-     * @return array|DrawableInterface[]
-     */
-    public function getComponents(): array
-    {
-        return $this->components;
-    }
-
-    /**
      * @return $this
      * @throws \Exception
      */
@@ -111,32 +87,6 @@ class Section extends Square implements ComponentsContainerInterface
         }
         ViewRender::recalculateLayoutWithinSurface($baseSurf, $this->components);
         return $this;
-    }
-
-    /**
-     * @return array|DrawableInterface[]
-     */
-    public function toComponentsArray(): array
-    {
-        if (!$this->visible) {
-            return [$this];
-        }
-        $components = [];
-
-        foreach ($this->components as $key => $component) {
-            if ($component instanceof ComponentsContainerInterface) {
-                $subComponents = $component->toComponentsArray();
-                foreach ($subComponents as $subComponent) {
-                    if ($component === $subComponent) {
-                        continue;
-                    }
-                    $components[] = $subComponent;
-                }
-            }
-            $components[] = $component;
-        }
-        array_unshift($components, $this);
-        return $components;
     }
 
     /**

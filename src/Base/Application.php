@@ -346,7 +346,7 @@ class Application
      */
     protected function drawComponent($key, BaseComponent $component, ?int $pressedKey, bool $fullRedraw = false): void
     {
-        if ($this->debug && $this->currentComponentIndex === (int)$key) {
+        if ($this->debug) {
             //$this->debugger = new Debugger($this->getCurrentDocument());
             //foreach ($this->debugger->toComponentsArray() as $item) {
             //    $item->draw($key);
