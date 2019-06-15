@@ -24,7 +24,7 @@ class Text extends BaseComponent
     /**
      * @var int
      */
-    protected $align = self::DEFAULT_FILL;
+    protected $align  = self::DEFAULT_FILL;
 
     /**
      * Point constructor.
@@ -97,6 +97,7 @@ class Text extends BaseComponent
 
     /**
      * @param string $text
+     *
      * @return array
      */
     protected function getLines(string $text): array

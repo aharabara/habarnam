@@ -2,10 +2,18 @@
 
 namespace Base\Components;
 
+use Base\Primitives\Surface;
+
 class Input extends TextArea
 {
 
     protected $height = 1;
+
+    public function setSurface(Surface $surface, bool $withResize = true)
+    {
+        $this->maxLength = $surface->width() - 1;
+        return parent::setSurface($surface, $withResize);
+    }
 
     /**
      * @param int|null $key
@@ -18,7 +26,8 @@ class Input extends TextArea
             $key = null;
         }
         $this->handleKeyPress($key);
-        $this->defaultRender($this->mbStrPad(mb_substr(mb_ereg_replace(' ', '_', $this->text), 0, $length), $length, '_'));
+        $this->clearCache()
+            ->defaultRender($this->mbStrPad(mb_ereg_replace(' ', '_', $this->text ?? ''), $length, '_'));
     }
 
     /**

@@ -3,15 +3,17 @@
 namespace Base\Components;
 
 use Base\Core\Curse;
+use Base\Core\Cursor;
 use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
-use Base\Primitives\Position;
 
 class TextArea extends Text implements FocusableInterface
 {
 
-    /** @var Position */
-    protected $cursorPos;
+    /** @var Cursor */
+    protected $cursor;
+
+    protected $text = '';
 
     /** @var int */
     protected $height = 10;
@@ -37,7 +39,7 @@ class TextArea extends Text implements FocusableInterface
     public function __construct(array $attrs)
     {
         parent::__construct($attrs);
-        $this->cursorPos = new Position(0, 0);
+        $this->cursor = new Cursor($this);
     }
 
     /**
@@ -79,7 +81,7 @@ class TextArea extends Text implements FocusableInterface
     {
         $pos    = $this->surface->topLeft();
         $y      = $pos->getY();
-        $cursor = $this->cursorPos;
+        $cursor = $this->cursor;
         foreach ($this->getLines($text) as $key => $line) {
             $x = $pos->getX();
             if ($this->isFocused() && $cursor->getY() === $key) {
@@ -104,62 +106,44 @@ class TextArea extends Text implements FocusableInterface
      */
     protected function handleKeyPress(?int $key): void
     {
-        $cursor = $this->cursorPos;
+        $cursor = $this->cursor;
         switch ($key) {
             case NCURSES_KEY_DL:
             case NCURSES_KEY_DC:
                 if ($this->getText()) {
                     /* Delete after */
-                    $this->setText($this->replaceCharAt($this->text, '', $this->getTextIndex() + 1));
+                    $this->setText($this->replaceCharAt($this->text, '', $cursor->getTextIndex() + 1));
                 }
                 break;
             case NCURSES_KEY_BACKSPACE:
                 if ($this->getText() && $cursor->getY() > 0 || $cursor->getX() > 0) {
                     /* Delete before */
-                    $this->setText($this->replaceCharAt($this->text, '', $this->getTextIndex()));
+                    $this->setText($this->replaceCharAt($this->text, '', $cursor->getTextIndex()));
                 }
-            /* !! skip this brake, because is should be decremented !!*/
+                $cursor->left();
+                break;
             case NCURSES_KEY_LEFT:
-                // if it is not line beginning
-                if ($cursor->getX() > 0) {
-                    $cursor->decX();
-                } elseif ($cursor->getY() > 0) { // if it is line beginning, but not first line
-                    $cursor->decY(); // decrement position
-                    $this->cursorPos = new Position($this->currentLineLength(), $cursor->getY());
-                }
+                $cursor->left();
                 break;
             case NCURSES_KEY_UP:
-                if ($cursor->getY() > 0) {
-                    $cursor->decY();
-                }
-                if ($cursor->getX() > $this->currentLineLength()){
-                    $this->cursorPos = new Position($this->currentLineLength(), $cursor->getY());
-                }
+                $cursor->up();
                 break;
             case NCURSES_KEY_DOWN:
-                $cursor->incY();
-                if ($this->getTextIndex() > mb_strlen($this->text)) {
-                    $this->setText($this->text."\n");
-                    $this->cursorPos = new Position($this->currentLineLength(), $cursor->getY());
-                }
+                $cursor->down();
                 break;
             case NCURSES_KEY_RIGHT:
-                if ($cursor->getX() < $this->currentLineLength()) {
-                    $cursor->incX();
-                } elseif ($this->getTextIndex() < mb_strlen($this->text)) {
-                    $this->cursorPos = new Position(0, $cursor->incY()->getY());
-                }
+                $cursor->right();
                 break;
             default:
                 if ($this->limitIsReached()) {
                     break;
                 }
                 if ($key === 10) {
-                    $this->setText($this->placeCharAt($this->text, "\n", $this->getTextIndex() + 1));
-                    $this->cursorPos = new Position(0, $cursor->incY()->getY());
+                    $this->setText($this->placeCharAt($this->text, "\n", $cursor->getTextIndex() + 1));
+                    $cursor->newLine();
                 } elseif ($this->isAllowed($key)) {
-                    $this->setText($this->placeCharAt($this->text, chr($key), $this->getTextIndex() + 1));
-                    $cursor->incX();
+                    $this->setText($this->placeCharAt($this->text, chr($key), $cursor->getTextIndex() + 1));
+                    $cursor->right();
                 }
         }
     }
@@ -170,13 +154,14 @@ class TextArea extends Text implements FocusableInterface
      *
      * @return array
      */
-    protected function getLines(string $text, bool $withPadding = false): array
+    public function getLines(string $text, bool $withPadding = false): array
     {
         if (!empty($this->linesCache[$withPadding])) {
             return $this->linesCache[$withPadding];
         }
         $lines  = $this->linesCache;
         $length = $this->surface->width();
+
         foreach (parent::getLines($text) as $key => $line) {
             if ($withPadding) {
                 $lines[$key] = str_pad($line, $length, $this->infill);
@@ -254,31 +239,6 @@ class TextArea extends Text implements FocusableInterface
     }
 
     /**
-     * @return float|int
-     */
-    protected function getTextIndex()
-    {
-        $y     = $this->cursorPos->getY();
-        $lines = $this->getLines($this->text, false);
-        $base  = 0;
-        $i     = 0;
-        while ($i < $y) {
-            $base += mb_strlen($lines[$i] ?? '') + 1;/*line length + new line symbol*/
-            $i++;
-        }
-
-        return $base + $this->cursorPos->getX();
-    }
-
-    /**
-     * @return int
-     */
-    protected function currentLineLength(): int
-    {
-        return strlen($this->getLines($this->getText())[$this->cursorPos->getY()] ?? '');
-    }
-
-    /**
      * @return bool
      */
     protected function limitIsReached(): bool
@@ -286,8 +246,12 @@ class TextArea extends Text implements FocusableInterface
         return mb_strlen($this->getText()) === $this->maxLength;
     }
 
-    protected function clearCache(): void
+    /**
+     * @return $this
+     */
+    protected function clearCache()
     {
         $this->linesCache = [];
+        return $this;
     }
 }

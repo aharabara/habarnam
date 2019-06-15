@@ -196,7 +196,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      * @param DrawableInterface $item
      * @param string|null       $id
      *
-     * @return void
+     * @return OrderedList
      * @throws \Exception
      */
     public function addComponent(DrawableInterface $item, ?string $id = null)
@@ -204,6 +204,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         $this->setItemsStyles($item);
         array_push($this->components, $item);
         $this->recalculateSubSurfaces();
+        return $this;
     }
 
     /**

@@ -1,9 +1,9 @@
 <?php
 
-namespace Base\Core;
+namespace Base\Components;
 
-use Base\Components\Section;
-use Base\Components\TextArea;
+use Base\Core\ComplexXMLElement;
+use Base\Core\Terminal;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
 
