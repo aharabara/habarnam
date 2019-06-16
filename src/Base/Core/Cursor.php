@@ -42,23 +42,29 @@ class Cursor extends Position
             $this->x = 0;
             $this->x = $this->incY()->getY();
         }
-        if ($this->atLineEnding()){
+        if ($this->atLineEnding()) {
             $this->newLine();
         }
+
         return $this;
     }
 
     /**
+     * @param bool $withLineEndings
+     *
      * @return int
      */
-    public function getTextIndex()
+    public function getTextIndex(bool $withLineEndings = false)
     {
         $y     = $this->getY();
         $lines = $this->textArea->getLines($this->textArea->getText());
         $base  = 0;
         $i     = 0;
         while ($i < $y) {
-            $base += mb_strlen($lines[$i] ?? '') + 1;/*line length + new line symbol*/
+            $base += mb_strlen($lines[$i] ?? '');/*line length + new line symbol*/
+            if ($withLineEndings) {
+                $base++;
+            }
             $i++;
         }
 
@@ -72,6 +78,7 @@ class Cursor extends Position
     protected function currentLineLength(): int
     {
         $textArea = $this->textArea;
+
         return strlen($textArea->getLines($textArea->getText())[$this->getY()] ?? '');
     }
 
@@ -101,6 +108,7 @@ class Cursor extends Position
         if ($this->getX() > $this->currentLineLength()) {
             $this->x = $this->currentLineLength();
         }
+
         return $this;
     }
 
@@ -111,6 +119,7 @@ class Cursor extends Position
     {
         $this->incY();
         $this->x = 0;
+
         return $this;
     }
 
@@ -120,6 +129,7 @@ class Cursor extends Position
     public function atLineEnding()
     {
         $maxLineLength = $this->textArea->surface()->width() - 1;
+
         return $maxLineLength < $this->x;
     }
 }

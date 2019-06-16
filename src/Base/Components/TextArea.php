@@ -85,13 +85,14 @@ class TextArea extends Text implements FocusableInterface
         foreach ($this->getLines($text) as $key => $line) {
             $x = $pos->getX();
             if ($this->isFocused() && $cursor->getY() === $key) {
-                if ($cursor->getX() === 0) {
+                $cursorX = $cursor->getX();
+                if ($cursorX === 0) {
                     $cursorSymbol = $line{0} ?? ' ';
                 } else {
-                    $cursorSymbol = mb_substr($line, $cursor->getX(), $cursor->getX());
+                    $cursorSymbol = mb_substr($line, $cursorX, $cursorX);
                 }
-                $before = mb_substr($line, 0, $cursor->getX());
-                $after  = mb_substr($line, $cursor->getX() + 1);
+                $before = mb_substr($line, 0, $cursorX);
+                $after  = mb_substr($line, $cursorX + 1);
                 Curse::writeAt($before, $this->focusedColorPair, $y, $x);
                 Curse::writeAt($cursorSymbol ?: ' ', $this->cursorColorPair, $y, $x += mb_strlen($before));
                 Curse::writeAt($after, $this->focusedColorPair, $y++, ++$x);
@@ -252,6 +253,7 @@ class TextArea extends Text implements FocusableInterface
     protected function clearCache()
     {
         $this->linesCache = [];
+
         return $this;
     }
 }
