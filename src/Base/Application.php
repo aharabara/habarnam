@@ -8,7 +8,7 @@ use Analog\Handler\Ignore;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
-use Base\Core\Debugger;
+use Base\Components\Debugger;
 use Base\Core\Installer;
 use Base\Core\Terminal;
 use Base\Core\Workspace;
