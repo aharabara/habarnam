@@ -207,6 +207,16 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         return $this;
     }
 
+    public function setComponents(array $components)
+    {
+        $this->components = [];
+        $this->focusedItem = 0;
+        $this->selected = null;
+        foreach ($components as $key => $component) {
+            $this->addComponent($component, $key);
+        }
+    }
+
     /**
      * @return self
      * @throws \Exception

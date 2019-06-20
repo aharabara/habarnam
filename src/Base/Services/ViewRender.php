@@ -383,7 +383,7 @@ class ViewRender
 
     /**
      * @param Surface             $baseSurf
-     * @param DrawableInterface[] $components
+     * @param BaseComponent[] $components
      *
      * @throws Exception
      */
@@ -406,6 +406,9 @@ class ViewRender
         $minHeight     = 0;
         $lastComponent = end($components);
         foreach (array_values($components) as $key => $component) {
+            if (!$component->isVisible()){
+                continue;
+            }
             $height = $component->height($baseHeight, $perComponentHeight);
 
             if ($minHeight < $height) { // track min size for next row

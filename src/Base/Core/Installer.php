@@ -37,7 +37,7 @@ class Installer
      */
     public function isInstalled(): bool
     {
-        return $this->workspace->get(Configurations::INSTALLED) ?? false;
+        return $this->workspace->get(Configurations::INSTALLED) ?? extension_loaded('ncurses');
     }
 
     public function run(): void

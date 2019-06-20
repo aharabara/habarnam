@@ -184,6 +184,9 @@ class Application
                 $fullRedraw       = !self::$redrawDone; // keep current state for current iteration
                 self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
                 foreach ($components as $key => $component) {
+                    if (!$component->isVisible()) {
+                        continue;
+                    }
                     Curse::color(Colors::BLACK_WHITE);
                     $this
                         // if it is a window with focus, then skip it
@@ -247,6 +250,7 @@ class Application
      */
     protected function getDrawableComponents(): array
     {
+        /** @var BaseComponent[] $components */
         $components = [];
         if (!empty($this->cachedComponents)) {
             return $this->cachedComponents;
@@ -262,7 +266,6 @@ class Application
                 array_push($components, ...$items);
             }
         });
-        $this->cachedComponents = $components;
 
         return $components;
     }
@@ -353,6 +356,7 @@ class Application
             //}
             $component->debugDraw();
             self::scheduleRedraw();
+
             return;
         }
         if ($this->currentComponentIndex === (int)$key) {
@@ -400,7 +404,7 @@ class Application
     protected function initialiseViews(array $containers): self
     {
         foreach ($containers as $component) {
-            $component->dispatch(BaseComponent::INITIALISATION, [$component, $this]);
+            $component->dispatch(BaseComponent::EVENT_INITIALISATION, [$component, $this]);
         }
         self::scheduleRedraw();
 

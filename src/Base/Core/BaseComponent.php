@@ -12,7 +12,8 @@ abstract class BaseComponent implements DrawableInterface
 {
     use EventBusTrait;
 
-    public const INITIALISATION = 'init';
+    public const EVENT_INITIALISATION    = 'init';
+    const        EVENT_TOGGLE_VISIBILITY = 'toggle.visibility';
 
     /** @var bool */
     protected $focused = false;
@@ -169,6 +170,7 @@ abstract class BaseComponent implements DrawableInterface
     public function visibility(bool $visible)
     {
         $this->visible = $visible;
+        $this->dispatch(self::EVENT_TOGGLE_VISIBILITY, [$this]);
 
         return $this;
     }
@@ -293,5 +295,13 @@ abstract class BaseComponent implements DrawableInterface
     public function getXmlRepresentation(): ComplexXMLElement
     {
         return $this->xmlNode;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isVisible(): bool
+    {
+        return $this->visible;
     }
 }
