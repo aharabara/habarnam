@@ -18,14 +18,14 @@ $capsule = new Capsule();
 
 
 $capsule->addConnection([
-    'driver'                  => 'sqlite',
+    'driver' => 'sqlite',
     'foreign_key_constraints' => true,
-    'database'                => $workspace->workspacePath('/database.sqlite'),
-    'username'                => 'root',
-    'password'                => 'password',
-    'charset'                 => 'utf8',
-    'collation'               => 'utf8_unicode_ci',
-    'prefix'                  => '',
+    'database' => $workspace->workspacePath('/database.sqlite'),
+    'username' => 'root',
+    'password' => 'password',
+    'charset' => 'utf8',
+    'collation' => 'utf8_unicode_ci',
+    'prefix' => '',
 ]);
 
 // Set the event dispatcher used by Eloquent models... (optional)
@@ -46,11 +46,14 @@ $container->singleton(Application::class, function () use ($app) {
     return $app;
 });
 
-$dir = new DirectoryIterator(Workspace::resourcesPath("/migrations/"));
-foreach ($dir as $file) {
-    print "Migrating : \n";
-    if ($file->isFile() && $file->getExtension() === "php") {
-        print " - {$file->getRealPath()}\n";
-        require $file->getRealPath();
+$migrationsFolder = is_dir(Workspace::resourcesPath("/migrations/"));
+if ($migrationsFolder) {
+    $dir = new DirectoryIterator(Workspace::resourcesPath("/migrations/"));
+    foreach ($dir as $file) {
+        print "Migrating : \n";
+        if ($file->isFile() && $file->getExtension() === "php") {
+            print " - {$file->getRealPath()}\n";
+            require $file->getRealPath();
+        }
     }
 }

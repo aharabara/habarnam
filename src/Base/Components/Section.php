@@ -6,10 +6,8 @@ use Base\Core\BaseComponent;
 use Base\Core\Curse;
 use Base\Core\Traits\ComponentsContainerTrait;
 use Base\Interfaces\ComponentsContainerInterface;
-use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Square;
 use Base\Primitives\Surface;
-use Base\Services\ViewRender;
 
 class Section extends Square implements ComponentsContainerInterface
 {
@@ -66,27 +64,6 @@ class Section extends Square implements ComponentsContainerInterface
         $result = parent::setSurface($surface, $withResize);
         $this->recalculateSubSurfaces();
         return $result;
-    }
-
-    /**
-     * @return $this
-     * @throws \Exception
-     */
-    public function recalculateSubSurfaces()
-    {
-        if (empty($this->components) || !$this->visible) {
-            return $this;
-        }
-        $baseSurf = $this->surface->resize($this->getSelector(), ...$this->padding);
-        if (count($this->components) === 1) {
-            /** @var DrawableInterface $component */
-            $component = reset($this->components);
-            $baseSurf->setId("{$baseSurf->getId()}.{$component->getId()}");
-            $component->setSurface($baseSurf);
-            return $this;
-        }
-        ViewRender::recalculateLayoutWithinSurface($baseSurf, $this->components);
-        return $this;
     }
 
     /**

@@ -217,20 +217,6 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         }
     }
 
-    /**
-     * @return self
-     * @throws \Exception
-     */
-    public function recalculateSubSurfaces()
-    {
-        if (!$this->surface) {
-            return;
-        } // silently skip
-        ViewRender::recalculateLayoutWithinSurface($this->surface->resize($this->getSelector(), ...$this->padding), $this->components);
-
-        return $this;
-    }
-
     public function setStyles(array $styles)
     {
         /* !!! @TODO  make style inheritance via setStyles, but delay child style applying */

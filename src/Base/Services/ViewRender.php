@@ -103,12 +103,8 @@ class ViewRender
     protected function prepare(): self
     {
         $views = "{$this->basePath}/views";
-        $surfacesFilePath = "{$views}/surfaces.xml";
-        if (!file_exists($surfacesFilePath)) {
-            throw new \Error("View folder '{$this->basePath}' should contain suraces.xml with surfaces declarations.");
-        }
-        $this->parseFile($surfacesFilePath);
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($views));
+
         foreach ($files as $file) {
             /** @var SplFileInfo $file */
             if ($file->isDir() || $file->getFilename() === 'surfaces.xml') {
@@ -144,17 +140,13 @@ class ViewRender
     {
         $root = simplexml_load_string(file_get_contents($filePath), ComplexXMLElement::class);
         $rootNodeName = $root->getName();
-        $attrs = $this->getAttributes($root);
         if ($rootNodeName === 'template') {
-            if (!isset($attrs['id'])) {
-                throw new \Error("<template> tag requires 'id' attribute to be specified.");
-            }
-            $this->documents[$attrs['id']] = $root;
+            $this->documents[$templateId] = $root;
 
             $body = $root->xpath('//body')[0];
             $head = $root->xpath('//head')[0];
 
-            $template = new Template($attrs['id']);
+            $template = new Template($templateId);
 
             foreach ($body->children() as $panelNode) {
                 $container = $this->containerFromNode($template, $panelNode);
@@ -163,14 +155,8 @@ class ViewRender
             $this->templates[$templateId] = $template;
             $this->applyStyle($head);
 
-        } elseif ($rootNodeName === 'surfaces') {
-            foreach ($root->children() as $surfNode) {
-                $surface = $this->surfaceFromNode($surfNode);
-                $this->surfaces[$surface->getId()] = $surface;
-            }
-
         } else {
-            throw new \Error("Only <surfaces/> and <template/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
+            throw new \Error("Only <template/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
         }
 
         return $this;
@@ -194,46 +180,6 @@ class ViewRender
     }
 
     /**
-     * @param SimpleXMLElement $surfNode
-     *
-     * @return Surface
-     * @throws Exception
-     */
-    protected function surfaceFromNode(SimpleXMLElement $surfNode): Surface
-    {
-        $attrs = $this->getAttributes($surfNode);
-        if (isset($attrs['type'])) {
-            if ($attrs['type'] === 'centered') {
-                return Terminal::centered(
-                    $attrs['width'] ?? Terminal::width() / 2,
-                    $attrs['height'] ?? Terminal::height() / 2,
-                    $attrs['id']
-                );
-            }
-            throw new \Error("There is no such <surface/> type '{$attrs['type']}'");
-        }
-        $topLeftAttrs = [];
-        $bottomRightAttrs = [];
-        [$topLeft, $bottomRight] = $surfNode->children();
-        if (!empty($topLeft)) {
-            $topLeftAttrs = $this->getAttributes($topLeft);
-        }
-        if (!empty($bottomRight)) {
-            $bottomRightAttrs = $this->getAttributes($bottomRight);
-        }
-
-        return Surface::fromCalc(
-            $attrs['id'],
-            function () use ($topLeftAttrs) {
-                return $this->getTopLeftCoords($topLeftAttrs);
-            },
-            function () use ($bottomRightAttrs) {
-                return $this->getBottomRightCoords($bottomRightAttrs);
-            }
-        );
-    }
-
-    /**
      * @param Template $template
      * @param ComplexXMLElement $node
      *
@@ -247,23 +193,17 @@ class ViewRender
         /** @var DrawableInterface|ComponentsContainerInterface $container */
         $container = new $class($nodeAttrs);
 
-        if (isset($nodeAttrs['surface'])) {
-            $container->setSurface($this->surface($nodeAttrs['surface']));
-        }
-
         foreach ($node->children() as $subNode) {
             /** @var ComplexXMLElement $subNode */
             $attrs = $this->getAttributes($subNode);
             $class = $this->getComponentClass($subNode->getName());
+
             /** @var DrawableInterface $component */
             if ($this->isContainer($class)) {
                 $component = $this->containerFromNode($template, $subNode);
             } else {
                 $component = new $class($attrs);
                 $subNode->setMappedComponent($component);
-            }
-            if (isset($attrs['surface'])) {
-                $component->setSurface($this->surfaces[$attrs['surface']]);
             }
             $this->handleComponentEvents($component, $attrs);
             $container->addComponent($component, $attrs['id'] ?? null);
@@ -303,57 +243,6 @@ class ViewRender
     }
 
     /**
-     * @param string $id
-     *
-     * @return Surface
-     */
-    public function surface(string $id): Surface
-    {
-        return $this->surfaces[$id];
-    }
-
-    /**
-     * @param array $position
-     *
-     * @return Position
-     */
-    protected function getTopLeftCoords(array $position): Position
-    {
-        $x = $position['x'] ?? 0;
-        $y = $position['y'] ?? 0;
-        if ($x < 0) {
-            $x = Terminal::width() - abs($x);
-        }
-        if ($y < 0) {
-            $y = Terminal::height() - abs($y);
-        }
-
-        return new Position($x, $y);
-    }
-
-    /**
-     * @param array $position
-     *
-     * @return Position
-     */
-    protected function getBottomRightCoords(array $position): Position
-    {
-        $x = $position['x'] ?? Terminal::width();
-        $y = $position['y'] ?? Terminal::height();
-        if ($x < 0) {
-            $x = Terminal::width() - abs($x);
-        }
-        if ($y < 0) {
-            $y = Terminal::height() - abs($y);
-        }
-        if ($y > 0 && $y < Terminal::height()) {
-            $y--; // to prevent vertical intersections
-        }
-
-        return new Position($x, $y);
-    }
-
-    /**
      * @param DrawableInterface $component
      * @param string[] $attrs
      */
@@ -377,14 +266,6 @@ class ViewRender
     }
 
     /**
-     * @return Surface[]
-     */
-    public function surfaces(): array
-    {
-        return $this->surfaces;
-    }
-
-    /**
      * @param Surface $baseSurf
      * @param BaseComponent[] $components
      *
@@ -397,7 +278,6 @@ class ViewRender
         }
         $baseWidth = $baseSurf->width();
         $baseHeight = $baseSurf->height();
-        $baseBottomRight = $baseSurf->bottomRight();
         $topLeft = $baseSurf->topLeft();
 
 
@@ -423,7 +303,7 @@ class ViewRender
                 $minHeight = 0;
             }
             if ($lastComponent === $component && $height === null) {
-                $componentBottomY = $baseBottomRight->getY();
+                $componentBottomY = $baseSurf->bottomRight()->getY();
             } else {
                 $componentBottomY = $topLeft->getY() + $offsetY + $height;
             }
@@ -443,8 +323,11 @@ class ViewRender
                 $offsetX = 0;
                 $minHeight = 0;
             } else {
-                $calculatedWidth = $component->width($baseWidth, $perComponentWidth) ?? $baseBottomRight->getX();
+                $calculatedWidth = $component->width($baseWidth, $perComponentWidth) ?? $baseSurf->bottomRight()->getX();
                 $offsetX += $calculatedWidth;
+            }
+            if ($component instanceof ComponentsContainerInterface){
+                $component->recalculateSubSurfaces();
             }
         }
 
@@ -576,13 +459,10 @@ class ViewRender
                 }
             }
         }
-        /* recalculate surfaces */
+        /* recalculate surfaces @todo optimize only for current view */
         foreach ($this->templates as $template) {
-            foreach ($template->allContainers() as $container) {
-                $container->recalculateSubSurfaces();
-            }
+            self::recalculateLayoutWithinSurface(Surface::fullscreen(), $template->allContainers());
         }
-
     }
 
     /**

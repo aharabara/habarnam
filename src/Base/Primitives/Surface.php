@@ -2,6 +2,8 @@
 
 namespace Base\Primitives;
 
+use Base\Core\Terminal;
+
 class Surface
 {
     /** @var Position */
@@ -120,6 +122,18 @@ class Surface
     public function getId(): string
     {
         return $this->id;
+    }
+
+    /**
+     * @return Surface
+     */
+    public static function fullscreen(){
+
+        return self::fromCalc(
+            'fullscreen',
+            function (){ return new Position(0, 0);},
+            function (){ return new Position(Terminal::width(), Terminal::height()); }
+        );
     }
     
 }

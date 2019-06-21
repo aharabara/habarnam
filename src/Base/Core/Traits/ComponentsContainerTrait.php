@@ -5,10 +5,14 @@ namespace Base\Core\Traits;
 use Base\Core\BaseComponent;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
+use Base\Primitives\Surface;
 use Base\Services\ViewRender;
 
 trait ComponentsContainerTrait
 {
+
+    /** @var Surface */
+    protected $surface;
 
     /** @var DrawableInterface[] */
     protected $components = [];
@@ -27,7 +31,7 @@ trait ComponentsContainerTrait
             $this->components[] = $component;
         }
         $component->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () {
-            ViewRender::recalculateLayoutWithinSurface($this->surface()->resize($this->getSelector(), ...$this->padding), $this->components);
+            $this->recalculateSubSurfaces();
         });
 
         return $this;
@@ -53,12 +57,6 @@ trait ComponentsContainerTrait
     }
 
     /**
-     * @return $this
-     * @throws \Exception
-     */
-    abstract public function recalculateSubSurfaces();
-
-    /**
      * @return array|DrawableInterface[]
      */
     public function toComponentsArray(): array
@@ -69,6 +67,7 @@ trait ComponentsContainerTrait
         $components = [];
 
         foreach ($this->components as $key => $component) {
+            $components[] = $component;
             if ($component instanceof ComponentsContainerInterface) {
                 $subComponents = $component->toComponentsArray();
                 foreach ($subComponents as $subComponent) {
@@ -78,11 +77,23 @@ trait ComponentsContainerTrait
                     $components[] = $subComponent;
                 }
             }
-            $components[] = $component;
         }
         array_unshift($components, $this);
 
         return $components;
+    }
+
+    /**
+     * @return $this
+     * @throws \Exception
+     */
+    public function recalculateSubSurfaces()
+    {
+        if (empty($this->components) || !$this->visible || !$this->surface) {
+            return $this;
+        }
+        ViewRender::recalculateLayoutWithinSurface($this->surface->resize($this->getSelector(), ...$this->padding), $this->components);
+        return $this;
     }
 
 }
