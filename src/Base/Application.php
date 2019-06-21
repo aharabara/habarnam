@@ -28,7 +28,7 @@ class Application
 {
     /** @var self */
     protected static $instance;
-    public           $selectorConverter;
+    public $selectorConverter;
 
     /** @var int|null */
     protected $lastValidKey;
@@ -49,7 +49,7 @@ class Application
     protected $initializedViews = [];
 
     /** @var ViewRender */
-    protected        $render;
+    protected $render;
     protected static $redrawDone = false;
 
     /** @var bool */
@@ -62,21 +62,21 @@ class Application
     /**
      * Application constructor.
      *
-     * @param Workspace  $workspace
+     * @param Workspace $workspace
      * @param ViewRender $render
-     * @param string     $currentView
+     * @param string $currentView
      */
     public function __construct(Workspace $workspace, ViewRender $render)
     {
         Curse::initialize();
-        $this->render            = $render;
-        $this->workspace         = $workspace;
-        $this->currentView       = getenv('INITIAL_VIEW');
+        $this->render = $render;
+        $this->workspace = $workspace;
+        $this->currentView = getenv('INITIAL_VIEW');
         $this->selectorConverter = new CssSelectorConverter;
-        self::$instance          = $this;
+        self::$instance = $this;
     }
 
-    protected $updateRate    = 10;
+    protected $updateRate = 10;
     protected $updateCounter = 0;
 
     public static function boot(bool $debug)
@@ -110,8 +110,8 @@ class Application
     public function getNonBlockCh(?int $timeout = null): ?int
     {
         $wasUpdated = false;
-        $read       = [STDIN];
-        $null       = null;    // stream_select() uses references, thus variables are necessary for the first 3 parameters
+        $read = [STDIN];
+        $null = null;    // stream_select() uses references, thus variables are necessary for the first 3 parameters
         if (@stream_select($read, $null, $null, floor($timeout / 1000000), $timeout % 1000000) != 1) {
             $key = null;
         } else {
@@ -181,7 +181,7 @@ class Application
                 $components = $this->getDrawableComponents();
                 $this->refresh(10000);
 
-                $fullRedraw       = !self::$redrawDone; // keep current state for current iteration
+                $fullRedraw = !self::$redrawDone; // keep current state for current iteration
                 self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
                 foreach ($components as $key => $component) {
                     if (!$component->isVisible()) {
@@ -272,7 +272,7 @@ class Application
 
     /**
      * @param BaseComponent $component
-     * @param int|null      $key
+     * @param int|null $key
      *
      * @return $this
      */
@@ -305,7 +305,7 @@ class Application
 
     /**
      * @param BaseComponent $component
-     * @param int|null      $key
+     * @param int|null $key
      *
      * @return $this
      */
@@ -329,7 +329,7 @@ class Application
      */
     public function switchTo(string $name): self
     {
-        $this->currentView      = $name;
+        $this->currentView = $name;
         $this->cachedComponents = []; // clear cached components
         if (!$this->render->exists($name)) {
             throw new \Error("There is no application view registered with name '$name'");
@@ -344,8 +344,8 @@ class Application
     /**
      * @param               $key
      * @param BaseComponent $component
-     * @param int|null      $pressedKey
-     * @param bool          $fullRedraw
+     * @param int|null $pressedKey
+     * @param bool $fullRedraw
      */
     protected function drawComponent($key, BaseComponent $component, ?int $pressedKey, bool $fullRedraw = false): void
     {
@@ -387,7 +387,7 @@ class Application
     public function currentViewContainers(): array
     {
         $this->currentView = $this->currentView ?? $this->render->existingTemplates()[0] ?? null;
-        $containers        = $this->render->template($this->currentView)->allContainers();
+        $containers = $this->render->template($this->currentView)->allContainers();
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
             $this->initialiseViews($containers);
@@ -418,7 +418,7 @@ class Application
      */
     public function focusOn(DrawableInterface $component): self
     {
-        $components                  = $this->getDrawableComponents();
+        $components = $this->getDrawableComponents();
         $this->currentComponentIndex = array_search($component, $components, true);
         self::scheduleRedraw();
 
@@ -431,7 +431,7 @@ class Application
     }
 
     /**
-     * @param string      $selector
+     * @param string $selector
      * @param string|null $view
      *
      * @return BaseComponent[]
@@ -443,7 +443,7 @@ class Application
 
         /** @var ComplexXMLElement[] $elements */
         $elements = $document->xpath($this->selectorConverter->toXPath($selector));
-        $result   = [];
+        $result = [];
         foreach ($elements as $element) {
             $result[] = $element->getComponent();
         }
@@ -452,7 +452,7 @@ class Application
     }
 
     /**
-     * @param string      $selector
+     * @param string $selector
      * @param string|null $view
      *
      * @return BaseComponent|null

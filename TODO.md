@@ -35,7 +35,10 @@
    - [ ] XML tree update for dynamical elements
    - [ ] Composable Components (ex. Ordered list of checkboxes)
    - [ ] Make List a scrollable container for container of components AKA List of something
-
+   - [ ] Script to create project tree for easy start
+   - [ ] Refactor Application and app.php
+   - [ ] Move some logic from ViewRender to Builders
+   
 #### V0.6.0
    - [ ] Notifications
    - [ ] TemporaryComponentInterface

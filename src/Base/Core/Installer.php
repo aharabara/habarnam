@@ -42,14 +42,15 @@ class Installer
 
     public function run(): void
     {
-        /** @todo execute as separated commands */
-        print "We will need some of your superpowers.\\n";
-        exec(__DIR__ . '/../../../install.sh', $output, $result);
-        print implode("\n", $output);
-        if ($result !== 0) {
-            die("\nSeems that something went wrong.\n");
+        if (!extension_loaded('ncurses')){
+            /** @todo execute as separated commands */
+            print "We will need some of your superpowers.\\n";
+            exec(__DIR__ . '/../../../install.sh', $output, $result);
+            print implode("\n", $output);
+            if ($result !== 0) {
+                die("\nSeems that something went wrong.\n");
+            }
         }
-
         $this->workspace
             ->set(Configurations::INSTALLED, true)
             ->save();

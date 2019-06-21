@@ -8,12 +8,16 @@ class Workspace
     public $config = [];
     
     /** @var string */
-    private $folderName;
+    protected $folderName;
+
+    /** @var string */
+    protected $home;
 
     public function __construct()
     {
         $this->folderName = getenv('WORKSPACE_FOLDER');
         $this->config = $this->fromFile('configuration.ser') ?? [];
+        $this->home = getenv('HOME');
     }
 
     /**
@@ -23,11 +27,23 @@ class Workspace
      */
     public function toFile(string $filePath, $content): self
     {
-        $home = getenv('HOME');
-        $this->createDir("$home/.config");
-        $this->createDir("$home/.config/{$this->folderName}");
+        $this->createDir("$this->home/.config");
+        $this->createDir($this->workspacePath());
         
-        file_put_contents("$home/.config/{$this->folderName}/$filePath", serialize($content));
+        file_put_contents("$this->home/.config/{$this->folderName}/$filePath", serialize($content));
+        return $this;
+    }
+
+
+    /**
+     * @param string $filePath
+     * @return $this
+     */
+    public function touch(string $filePath): self
+    {
+        $this->createDir("$this->home/.config");
+        $this->createDir($this->workspacePath());
+        touch("$this->home/.config/{$this->folderName}/$filePath");
         return $this;
     }
 
@@ -37,7 +53,7 @@ class Workspace
      */
     public function fromFile(string $filePath)
     {
-        $home = getenv('HOME');
+        $home = $this->home;
         if (is_dir("$home/.config/{$this->folderName}") && file_exists("$home/.config/{$this->folderName}/$filePath")) {
             $serializedData = file_get_contents("$home/.config/{$this->folderName}/$filePath");
             return unserialize($serializedData);
@@ -107,5 +123,23 @@ class Workspace
     public static function projectRoot(): string
     {
         return $_SERVER['PWD'];
+    }
+
+    /**
+     * @param string|null $path
+     * @return string
+     */
+    public static function resourcesPath(?string $path = null): string
+    {
+        return self::projectRoot()."/resources/".trim($path, "/");
+    }
+
+    /**
+     * @param string|null $path
+     * @return string
+     */
+    public function workspacePath(?string $path = null): string
+    {
+        return "$this->home/.config/{$this->folderName}/".trim($path, "/");
     }
 }
