@@ -15,7 +15,7 @@ class Square extends BaseComponent
     protected $surface;
 
     /** @var string */
-    protected $innerSymbol = ' ';
+    protected $infill = ' ';
 
     /** @var string */
     protected $horizBorderSymbol = '─';
@@ -59,7 +59,7 @@ class Square extends BaseComponent
                 $text = $this->leftTopCorner . str_repeat($this->horizBorderSymbol, $width) . $this->rightTopCorner;
                 Curse::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
             } else {
-                $innerSpace = str_repeat($this->innerSymbol, $width);
+                $innerSpace = str_repeat($this->infill, $width);
                 $x = $this->surface->topLeft()->getX();
                 Curse::writeAt($this->verticalBorderSymbol, $color, $y, $x++);
                 Curse::writeAt($innerSpace, $this->colorPair, $y, $x);
@@ -68,9 +68,13 @@ class Square extends BaseComponent
         }
     }
 
+    /**
+     * @param array $styles
+     * @return BaseComponent
+     */
     public function setStyles(array $styles)
     {
-        /** @var int */
+        $this->infill = $styles['content'] ?? $this->infill;
         $this->borderColorPair = $styles['border-color-pair'] ?? $styles['color-pair'] ?? Colors::BLACK_WHITE;
         return parent::setStyles($styles);
     }

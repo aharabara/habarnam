@@ -8,7 +8,6 @@ use Analog\Handler\Ignore;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
-use Base\Components\Debugger;
 use Base\Core\Installer;
 use Base\Core\Terminal;
 use Base\Core\Workspace;
@@ -66,7 +65,6 @@ class Application
      *
      * @param Workspace $workspace
      * @param ViewRender $render
-     * @param string $currentView
      */
     public function __construct(Workspace $workspace, ViewRender $render)
     {
@@ -245,16 +243,17 @@ class Application
     protected $cachedComponents;
 
     /**
+     * @param BaseComponent|null ...$containers
      * @return array|BaseComponent[]
      */
-    protected function getDrawableComponents(): array
+    protected function getDrawableComponents(?BaseComponent ...$containers): array
     {
         /** @var BaseComponent[] $components */
         $components = [];
-        if (!empty($this->cachedComponents)) {
+        if (!empty($this->cachedComponents) && empty($containers)) {
             return $this->cachedComponents;
         }
-        $containers = $this->currentViewContainers();
+        $containers = $containers ?: $this->currentViewContainers();
         array_walk_recursive($containers, static function (BaseComponent $drawable) use (&$components) {
             if ($drawable instanceof ComponentsContainerInterface) {
                 $items = array_filter($drawable->toComponentsArray());
@@ -334,7 +333,7 @@ class Application
             throw new \Error("There is no application view registered with name '$name'");
         }
         // to prevent glitches
-        Curse::clearSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
+        Curse::fillSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
         self::scheduleRedraw();
 
         return $this;
@@ -390,6 +389,9 @@ class Application
         $containers = $this->render->template($this->currentView)->allContainers();
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
+            foreach ($this->getDrawableComponents(...$containers) as $component){
+                $component->dispatch(BaseComponent::EVENT_LOAD, [$component]);
+            }
             self::scheduleRedraw();
         }
 

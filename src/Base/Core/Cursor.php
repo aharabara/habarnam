@@ -40,7 +40,7 @@ class Cursor extends Position
             $this->incX();
         } elseif ($this->getTextIndex() < mb_strlen($this->textArea->getText())) {
             $this->x = 0;
-            $this->x = $this->incY()->getY();
+            $this->incY();
         }
         if ($this->atLineEnding()) {
             $this->newLine();

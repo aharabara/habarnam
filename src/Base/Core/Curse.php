@@ -87,12 +87,13 @@ class Curse
 
     /**
      * @param Surface $surface
+     * @param string $infill
      */
-    public static function clearSurface(Surface $surface): void
+    public static function fillSurface(Surface $surface, string $infill = ' '): void
     {
         $bottomRight = $surface->bottomRight();
         $topLeft = $surface->topLeft();
-        $infill = str_repeat(' ', $surface->width());
+        $infill = str_repeat($infill, $surface->width());
         foreach (range($topLeft->getY(), $bottomRight->getY()) as $y) {
             ncurses_move($y, $topLeft->getX());
             ncurses_addstr($infill);

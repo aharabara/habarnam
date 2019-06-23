@@ -205,13 +205,13 @@ class ViewRender
                 $component = $this->containerFromNode($template, $subNode);
             } else {
                 $component = new $class($attrs);
-                $subNode->setMappedComponent($component);
                 $this->handleComponentEvents($component, $attrs);
+                $subNode->setMappedComponent($component);
             }
             $container->addComponent($component, $attrs['id'] ?? null);
         }
-        $node->setMappedComponent($container);
         $this->handleComponentEvents($container, $nodeAttrs);
+        $node->setMappedComponent($container);
 
         return $container;
     }

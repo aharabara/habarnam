@@ -8,7 +8,7 @@ use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
 use Base\Primitives\Surface;
-use Base\Services\ViewRender;
+use Illuminate\Support\Arr;
 
 class OrderedList extends BaseComponent implements FocusableInterface, ComponentsContainerInterface
 {
@@ -29,6 +29,12 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
 
     /** @var bool */
     protected $itemsAreDeletable = false;
+
+    /** @var array */
+    protected $baseStyles = [];
+
+    /** @var array */
+    protected $onFocusStyles = [];
 
     /**
      * OrderedList constructor.
@@ -103,6 +109,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         return $this->focusedItem;
     }
 
+    /**
+     * @param int $focusedItem
+     */
     public function delete(int $focusedItem): void
     {
         unset($this->components[$focusedItem]);
@@ -233,6 +242,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
 
     public function setStyles(array $styles)
     {
+        $this->baseStyles = $styles;
         /* !!! @TODO  make style inheritance via setStyles, but delay child style applying */
         foreach ($this->components as $item) {
             $item->setStyles($styles);
@@ -243,6 +253,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
 
     public function setOnFocusStyles(array $styles)
     {
+        $this->onFocusStyles = $styles;
         /* !!! @TODO  make style inheritance via setOnFocusStyles, but delay child style applying */
         foreach ($this->components as $item) {
             $item->setOnFocusStyles($styles);
@@ -256,12 +267,8 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     protected function setItemsStyles(ListItem $item)
     {
-        $item->setStyles([
-            'color-pair' => $this->colorPair,
-        ]);
-        $item->setOnFocusStyles([
-            'color-pair' => $this->focusedColorPair,
-        ]);
+        $item->setStyles(Arr::only($this->baseStyles, ['color-pair']));
+        $item->setOnFocusStyles(Arr::only($this->onFocusStyles, ['color-pair']));
     }
 
     public function debugDraw(): void

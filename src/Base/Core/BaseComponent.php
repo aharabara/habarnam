@@ -12,8 +12,8 @@ abstract class BaseComponent implements DrawableInterface
 {
     use EventBusTrait;
 
-    public const EVENT_INITIALISATION    = 'init';
-    const        EVENT_TOGGLE_VISIBILITY = 'toggle.visibility';
+    public const EVENT_LOAD = 'load';
+    public const EVENT_TOGGLE_VISIBILITY = 'toggle.visibility';
 
     /** @var bool */
     protected $focused = false;
@@ -58,9 +58,13 @@ abstract class BaseComponent implements DrawableInterface
     private $xmlNode;
 
 
+    /**
+     * BaseComponent constructor.
+     * @param array $attrs
+     */
     public function __construct(array $attrs)
     {
-        $this->id      = $attrs['id'] ?? null;
+        $this->id = $attrs['id'] ?? null;
         $this->classes = array_filter(explode(' ', $attrs['class'] ?? ''));
     }
 
@@ -87,10 +91,9 @@ abstract class BaseComponent implements DrawableInterface
 
     /**
      * @param Surface $surface
-     * @param bool    $withResize
+     * @param bool $withResize
      *
      * @return $this
-     * @throws \Exception
      */
     public function setSurface(?Surface $surface, bool $withResize = true)
     {
@@ -191,7 +194,7 @@ abstract class BaseComponent implements DrawableInterface
     public function addSelector(?string $selector)
     {
         $this->selectors[] = $selector;
-        $this->selectors   = array_unique($this->selectors);
+        $this->selectors = array_unique($this->selectors);
     }
 
     /**
@@ -225,13 +228,13 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setStyles(array $styles)
     {
-        $this->colorPair   = $styles['color-pair'] ?? $this->colorPair;
-        $this->margin      = $styles['margin'] ?? $this->margin;
-        $this->padding     = $styles['padding'] ?? $this->padding;
-        $this->visible     = $styles['visibility'] ?? $this->visible;
-        $this->height      = $styles['height'] ?? $this->height;
-        $this->width       = $styles['width'] ?? $this->width;
+        $this->margin = $styles['margin'] ?? $this->margin;
+        $this->padding = $styles['padding'] ?? $this->padding;
+        $this->visible = $styles['visibility'] ?? $this->visible;
         $this->displayType = $styles['display'] ?? $this->displayType;
+        $this->colorPair = $styles['color-pair'] ?? $this->colorPair;
+        $this->height = $styles['height'] ?? $this->height;
+        $this->width = $styles['width'] ?? $this->width;
 
         return $this;
     }
@@ -250,19 +253,19 @@ abstract class BaseComponent implements DrawableInterface
 
     public function debugDraw(): void
     {
-        $topLeft     = $this->surface->topLeft();
+        $topLeft = $this->surface->topLeft();
         $bottomRight = $this->surface->bottomRight();
-        $lowerBound  = $bottomRight->getY();
+        $lowerBound = $bottomRight->getY();
         $higherBound = $topLeft->getY();
-        $width       = $this->surface->width() - 2; // 2 symbols for borders
+        $width = $this->surface->width() - 2; // 2 symbols for borders
 
-        $lines   = [];
+        $lines = [];
         $lines[] = "Left top: ({$topLeft->getX()},{$topLeft->getY()})";
         $lines[] = "Right bottom: ({$bottomRight->getX()},{$bottomRight->getY()})";
-        $i       = 0;
+        $i = 0;
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
             $selector = "{$this->getSelector()}:{$this->surface->width()}x{$this->surface->height()}";
-            $repeat   = $width - strlen($selector) - 1;
+            $repeat = $width - strlen($selector) - 1;
             if ($repeat < 0) {
                 $repeat = 0;
             }
@@ -288,7 +291,6 @@ abstract class BaseComponent implements DrawableInterface
     public function setXmlRepresentation(ComplexXMLElement $node)
     {
         $this->xmlNode = $node;
-        $this->dispatch(BaseComponent::EVENT_INITIALISATION, [$this]);
         return $this;
     }
 

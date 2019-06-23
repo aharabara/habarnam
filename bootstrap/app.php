@@ -1,15 +1,23 @@
 <?php
 
 use Base\Application;
+use Base\Core\Installer;
 use Base\Core\Workspace;
+use Base\Services\ViewRender;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Container\Container;
 use Illuminate\Events\Dispatcher;
 
 $container = Container::getInstance();
+$container->singleton(Application::class);
+$container->singleton(Workspace::class);
+$container->singleton(Installer::class);
+$container->singleton(ViewRender::class);
+$container->singleton(Workspace::class);
+
+$workspace = $container->make(Workspace::class);
 
 /** @var Workspace $workspace */
-$workspace = $container->make(Workspace::class);
 
 /** Create database or just touch it. */
 $workspace->touch('database.sqlite');
@@ -37,20 +45,12 @@ $capsule->setAsGlobal();
 // Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
 $capsule->bootEloquent();
 
-$container = Container::getInstance();
-
-/** @var Application $app */
-$app = $container->make(Application::class);
-
-$container->singleton(Application::class, function () use ($app) {
-    return $app;
-});
 
 $migrationsFolder = is_dir(Workspace::resourcesPath("/migrations/"));
 if ($migrationsFolder) {
     $dir = new DirectoryIterator(Workspace::resourcesPath("/migrations/"));
+    print "Migrating : \n";
     foreach ($dir as $file) {
-        print "Migrating : \n";
         if ($file->isFile() && $file->getExtension() === "php") {
             print " - {$file->getRealPath()}\n";
             require $file->getRealPath();

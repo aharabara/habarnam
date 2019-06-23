@@ -9,6 +9,8 @@ class Input extends TextArea
 
     protected $height = 1;
 
+    protected $infill = '_';
+
     /**
      * @param Surface $surface
      * @param bool $withResize
@@ -26,13 +28,18 @@ class Input extends TextArea
      */
     public function draw(?int $key): void
     {
-        $length = $this->surface->width();
         if ($this->isRestricted($key)) {
             $key = null;
         }
         $this->handleKeyPress($key);
         $this->clearCache()
-            ->defaultRender($this->mbStrPad(mb_ereg_replace(' ', '_', $this->text ?? ''), $length, '_'));
+            ->defaultRender(mb_ereg_replace(' ', '_', $this->text ?? ''));
+    }
+
+    public function getLines(string $text, bool $withPadding = true): array
+    {
+        /* !!! don't touch it. see default value for $withPadding */
+        return parent::getLines($text, $withPadding);
     }
 
     /**
