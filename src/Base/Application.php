@@ -26,8 +26,7 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application
 {
-    /** @var self */
-    protected static $instance;
+    /** @var CssSelectorConverter */
     public $selectorConverter;
 
     /** @var int|null */
@@ -50,6 +49,8 @@ class Application
 
     /** @var ViewRender */
     protected $render;
+
+    /** @var bool */
     protected static $redrawDone = false;
 
     /** @var bool */
@@ -57,7 +58,8 @@ class Application
 
     /** @var Workspace */
     private $workspace;
-    private $debugger;
+
+    protected $debugger;
 
     /**
      * Application constructor.
@@ -73,7 +75,6 @@ class Application
         $this->workspace = $workspace;
         $this->currentView = getenv('INITIAL_VIEW');
         $this->selectorConverter = new CssSelectorConverter;
-        self::$instance = $this;
     }
 
     protected $updateRate = 10;
@@ -84,6 +85,7 @@ class Application
         Dotenv::create(Workspace::projectRoot())->load();
         \Analog::handler(Ignore::init());
 
+        /* @todo move to separated classes and methods */
         require __DIR__ . '/../../bootstrap/app.php';
 
         $container = Container::getInstance();
@@ -120,7 +122,7 @@ class Application
 
         while ($key === 410) { // catch ALL repeating 410 keys
             if (!$wasUpdated) {
-                if ($this->allowResize) {
+                if ($this->allowResize) { /* @todo optimize */
                     Terminal::update();
                     self::scheduleRedraw();
                 }
@@ -129,7 +131,7 @@ class Application
             $key = Curse::getCh();
         }
         if ($this->allowResize && $key === null) {
-            self::scheduleRedraw();
+            self::scheduleRedraw(); /* optimize */
             $this->updateCounter++;
             if ($this->updateCounter % $this->updateRate === 0) {
                 $this->updateCounter = 0;
@@ -146,6 +148,7 @@ class Application
      * @param int $micros
      *
      * @return Application
+     * @todo move to Curse:class
      */
     public function refresh(int $micros): self
     {
@@ -159,20 +162,14 @@ class Application
     }
 
     /**
-     * @param \Closure|null $callback
-     *
-     * @throws \Exception
      */
-    public function handle(?\Closure $callback = null): void
+    public function handle(): void
     {
         $this->currentComponentIndex = 0;
         try {
 
             while (true) {
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
-                if ($callback) {
-                    $callback($this, $pressedKey);
-                }
 
                 if ($this->handleKeyPress($pressedKey)) {
                     $pressedKey = null;
@@ -187,7 +184,9 @@ class Application
                     if (!$component->isVisible()) {
                         continue;
                     }
-                    Curse::color(Colors::BLACK_WHITE);
+                    Curse::color(Colors::BLACK_WHITE /* @todo bind this settings to <body/> tag*/);
+
+                    /* @todo move all of this logic to renderer */
                     $this
                         // if it is a window with focus, then skip it
                         ->handleNonFocusableComponents($component, $key)
@@ -346,6 +345,7 @@ class Application
      * @param BaseComponent $component
      * @param int|null $pressedKey
      * @param bool $fullRedraw
+     * @todo move to renderer
      */
     protected function drawComponent($key, BaseComponent $component, ?int $pressedKey, bool $fullRedraw = false): void
     {
@@ -390,25 +390,10 @@ class Application
         $containers = $this->render->template($this->currentView)->allContainers();
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
-            $this->initialiseViews($containers);
+            self::scheduleRedraw();
         }
 
         return $containers;
-    }
-
-    /**
-     * @param array $containers
-     *
-     * @return $this
-     */
-    protected function initialiseViews(array $containers): self
-    {
-        foreach ($containers as $component) {
-            $component->dispatch(BaseComponent::EVENT_INITIALISATION, [$component, $this]);
-        }
-        self::scheduleRedraw();
-
-        return $this;
     }
 
     /**

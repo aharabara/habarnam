@@ -6,10 +6,10 @@ use Base\Core\Terminal;
 
 class Surface
 {
-    /** @var Position */
+    /** @var callable */
     protected $topLeft;
 
-    /** @var Position */
+    /** @var callable */
     protected $bottomRight;
 
     /** @var string */
@@ -28,8 +28,14 @@ class Surface
     public function __construct(string $id, ?Position $topLeft = null, ?Position $bottomRight = null)
     {
         $this->id = $id;
-        $this->topLeft = $topLeft;
-        $this->bottomRight = $bottomRight;
+
+        $this->topLeft = function () use ($topLeft) {
+            return $topLeft;
+        };
+
+        $this->bottomRight = function () use ($bottomRight) {
+            return $bottomRight;
+        };
         if ($topLeft && $bottomRight && ($this->width() < 0 || $this->height() < 0)) {
             throw new \Error('Incorrect positions for Surface class. Positions should give positive height and width.');
         }
@@ -40,7 +46,7 @@ class Surface
      */
     public function topLeft(): Position
     {
-        return is_callable($this->topLeft) ? ($this->topLeft)() : $this->topLeft;
+        return ($this->topLeft)();
     }
 
     /**
@@ -48,7 +54,7 @@ class Surface
      */
     public function bottomRight(): Position
     {
-        return is_callable($this->bottomRight) ? ($this->bottomRight)() : $this->bottomRight;
+        return ($this->bottomRight)();
     }
 
     /**
@@ -127,13 +133,17 @@ class Surface
     /**
      * @return Surface
      */
-    public static function fullscreen(){
-
+    public static function fullscreen()
+    {
         return self::fromCalc(
             'fullscreen',
-            function (){ return new Position(0, 0);},
-            function (){ return new Position(Terminal::width(), Terminal::height()); }
+            function () {
+                return new Position(0, 0);
+            },
+            function () {
+                return new Position(Terminal::width(), Terminal::height());
+            }
         );
     }
-    
+
 }

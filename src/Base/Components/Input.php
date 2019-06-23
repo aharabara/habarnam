@@ -9,9 +9,14 @@ class Input extends TextArea
 
     protected $height = 1;
 
-    public function setSurface(Surface $surface, bool $withResize = true)
+    /**
+     * @param Surface $surface
+     * @param bool $withResize
+     * @return TextArea
+     */
+    public function setSurface(?Surface $surface, bool $withResize = true)
     {
-        $this->maxLength = $surface->width() - 1;
+        $this->maxLength = $surface->width();
         return parent::setSurface($surface, $withResize);
     }
 

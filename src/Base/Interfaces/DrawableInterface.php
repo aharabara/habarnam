@@ -22,11 +22,11 @@ interface DrawableInterface
     public function draw(?int $key);
 
     /**
-     * @param Surface $surface
+     * @param Surface|null $surface
      * @param bool $withResize
      * @return $this
      */
-    public function setSurface(Surface $surface, bool $withResize = true);
+    public function setSurface(?Surface $surface, bool $withResize = true);
 
     /** @return bool */
     public function hasSurface(): bool;

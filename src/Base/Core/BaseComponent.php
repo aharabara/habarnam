@@ -92,7 +92,7 @@ abstract class BaseComponent implements DrawableInterface
      * @return $this
      * @throws \Exception
      */
-    public function setSurface(Surface $surface, bool $withResize = true)
+    public function setSurface(?Surface $surface, bool $withResize = true)
     {
         if ($withResize) {
             $surface = $surface->resize($this->getSelector(), ...$this->margin);
@@ -288,7 +288,7 @@ abstract class BaseComponent implements DrawableInterface
     public function setXmlRepresentation(ComplexXMLElement $node)
     {
         $this->xmlNode = $node;
-
+        $this->dispatch(BaseComponent::EVENT_INITIALISATION, [$this]);
         return $this;
     }
 

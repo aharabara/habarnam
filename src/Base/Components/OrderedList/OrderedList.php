@@ -14,8 +14,8 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
 {
     use ComponentsContainerTrait;
 
-    public const EVENT_SELECTED      = 'item.selected';
-    public const EVENT_DELETING      = 'item.deleting';
+    public const EVENT_SELECTED = 'item.selected';
+    public const EVENT_DELETING = 'item.deleting';
     public const EVENT_BEFORE_SELECT = 'item.before-select';
 
     /** @var array|ListItem[] */
@@ -49,7 +49,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function draw(?int $pressedKey)
     {
-        $items  = array_values($this->components);
+        $items = array_values($this->components);
         $height = $this->surface->height();
 
         if (count($items) > $height) {
@@ -58,6 +58,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         $this->handleKeyPress($pressedKey);
 
         foreach ($items as $key => $item) {
+            if (!$item->isVisible()) continue;
             $item->draw($pressedKey, $this->isFocused() && $key === $this->focusedItem);
         }
     }
@@ -106,7 +107,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         unset($this->components[$focusedItem]);
         $this->components = array_values($this->components);
-        $this->focused    = $focusedItem === 0 ? $focusedItem : $focusedItem - 1;
+        $this->focused = $focusedItem === 0 ? $focusedItem : $focusedItem - 1;
     }
 
     /**
@@ -168,12 +169,20 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     protected function itemsAreDeletable(): bool
     {
         return $this->itemsAreDeletable;
     }
 
-    public function setSurface(Surface $surface, bool $withResize = true)
+    /**
+     * @param Surface $surface
+     * @param bool $withResize
+     * @return BaseComponent|ComponentsContainerInterface
+     */
+    public function setSurface(?Surface $surface, bool $withResize = true)
     {
         $result = parent::setSurface($surface, $withResize);
         $this->recalculateSubSurfaces();
@@ -194,16 +203,21 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
 
     /**
      * @param DrawableInterface $item
-     * @param string|null       $id
+     * @param string|null $id
      *
      * @return OrderedList
      * @throws \Exception
      */
     public function addComponent(DrawableInterface $item, ?string $id = null)
     {
+        /** @var ListItem $item */
         $this->setItemsStyles($item);
         array_push($this->components, $item);
         $this->recalculateSubSurfaces();
+        $item->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () use ($item) {
+            $item->setSurface(null, false);
+            $this->recalculateSubSurfaces();
+        });
         return $this;
     }
 

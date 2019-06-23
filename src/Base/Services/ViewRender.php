@@ -6,6 +6,7 @@ use Base\Application;
 use Base\Components\Animation;
 use Base\Components\Button;
 use Base\Components\Divider;
+use Base\Components\Division;
 use Base\Components\Input;
 use Base\Components\Label;
 use Base\Components\OrderedList\ListItem;
@@ -78,6 +79,7 @@ class ViewRender
         self::registerComponent('password', Password::class);
         self::registerComponent('label', Label::class);
         self::registerComponent('section', Section::class);
+        self::registerComponent('div', Division::class);
         self::registerComponent('button', Button::class);
         self::registerComponent('textarea', TextArea::class);
         Terminal::update(); // to allow php to parse columns and rows
@@ -98,7 +100,7 @@ class ViewRender
     /**
      * StyleResolver constructor.
      * @return ViewRender
-     * @throws Exception
+     * @throws \ReflectionException
      */
     protected function prepare(): self
     {
@@ -204,11 +206,12 @@ class ViewRender
             } else {
                 $component = new $class($attrs);
                 $subNode->setMappedComponent($component);
+                $this->handleComponentEvents($component, $attrs);
             }
-            $this->handleComponentEvents($component, $attrs);
             $container->addComponent($component, $attrs['id'] ?? null);
         }
         $node->setMappedComponent($container);
+        $this->handleComponentEvents($container, $nodeAttrs);
 
         return $container;
     }
@@ -322,7 +325,7 @@ class ViewRender
                 $offsetY += $minHeight;
                 $offsetX = 0;
                 $minHeight = 0;
-            } else {
+            } else { /* display inline */
                 $calculatedWidth = $component->width($baseWidth, $perComponentWidth) ?? $baseSurf->bottomRight()->getX();
                 $offsetX += $calculatedWidth;
             }

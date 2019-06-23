@@ -9,6 +9,7 @@ use Base\Interfaces\FocusableInterface;
 
 class TextArea extends Text implements FocusableInterface
 {
+    const EVENT_CHANGE = 'change';
 
     /** @var Cursor */
     protected $cursor;
@@ -114,12 +115,14 @@ class TextArea extends Text implements FocusableInterface
                 if ($this->getText()) {
                     /* Delete after */
                     $this->setText($this->replaceCharAt($this->text, '', $cursor->getTextIndex() + 1));
+                    $this->dispatch(self::EVENT_CHANGE, [$this]);
                 }
                 break;
             case NCURSES_KEY_BACKSPACE:
                 if ($this->getText() && $cursor->getY() > 0 || $cursor->getX() > 0) {
                     /* Delete before */
                     $this->setText($this->replaceCharAt($this->text, '', $cursor->getTextIndex()));
+                    $this->dispatch(self::EVENT_CHANGE, [$this]);
                 }
                 $cursor->left();
                 break;
@@ -142,9 +145,11 @@ class TextArea extends Text implements FocusableInterface
                 if ($key === 10) {
                     $this->setText($this->placeCharAt($this->text, "\n", $cursor->getTextIndex() + 1));
                     $cursor->newLine();
+                    $this->dispatch(self::EVENT_CHANGE, [$this]);
                 } elseif ($this->isAllowed($key)) {
                     $this->setText($this->placeCharAt($this->text, chr($key), $cursor->getTextIndex() + 1));
                     $cursor->right();
+                    $this->dispatch(self::EVENT_CHANGE, [$this]);
                 }
         }
     }

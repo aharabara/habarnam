@@ -59,7 +59,7 @@ class Section extends Square implements ComponentsContainerInterface
      * @return Square
      * @throws \Exception
      */
-    public function setSurface(Surface $surface, bool $withResize = true)
+    public function setSurface(?Surface $surface, bool $withResize = true)
     {
         $result = parent::setSurface($surface, $withResize);
         $this->recalculateSubSurfaces();
