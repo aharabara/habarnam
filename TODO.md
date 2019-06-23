@@ -33,11 +33,13 @@
 
 #### v0.5.0
    - [ ] XML tree update for dynamical elements
-   - [ ] Composable Components (ex. Ordered list of checkboxes)
-   - [ ] Make List a scrollable container for container of components AKA List of something
-   - [ ] Script to create project tree for easy start
+         (append on event if no mapping was specified)
+   - [ ] Iframe to load another view. (need to thik)
+   - [x] Script to create project tree for easy start
    - [ ] Refactor Application and app.php
    - [ ] Move some logic from ViewRender to Builders
+      - [ ] ComponentBuilder
+      - [ ] SurfaceBuilder
    
 #### V0.6.0
    - [ ] Notifications
@@ -47,7 +49,7 @@
    
 #### v0.7.0
  - [X] Container
- - [ ] Eloquent and SQLite
+ - [x] Eloquent and SQLite
  - [ ] Queue process for delayed tasks
  - [ ] Loading state (overlay?) for component
 
@@ -62,17 +64,23 @@
 
 #### v0.9.0
   - [ ] Keyboard shortcuts
-  - [ ] `Cursor extends Position` instead of `cursorPos`
+  - [x] `Cursor extends Position` instead of `cursorPos`
 
 #### v1.0.0
    - [X] PSR-4 namespacing
-   - [ ] Multithreading (optional)
+   - [ ] Documentation
+   - [ ] Final classes and accessible methods
+   - [ ] 3 or more applications without bugs
+   - [ ] composer create-project
+   - [ ] 5 articles on different resources
+
 
 #### ToDo
    - [ ] List
      - [ ] Reordering
    - [ ] Table
-     - [ ] Columns
+     - [ ] Reordering 
+     - [ ] Columns and rows
      - [ ] Editable
    - [ ] Progress bar
    - [ ] Modal
@@ -85,6 +93,7 @@
       - [ ] Read only
       - [ ] Syntax highlighting
    - [ ] Menu bar
+
  - Features
    - [ ] Autocomplete for input and textareas
    - [ ] Spellcheck for input and textareas
