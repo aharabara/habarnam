@@ -10,6 +10,7 @@ use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
 use Base\Core\Installer;
 use Base\Core\Terminal;
+use Base\Core\Traits\EventBusTrait;
 use Base\Core\Workspace;
 use Base\Interfaces\Colors;
 use Base\Interfaces\ComponentsContainerInterface;
@@ -25,6 +26,9 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application
 {
+    use EventBusTrait;
+    const EVENT_KEYPRESS = 'keypress';
+
     /** @var CssSelectorConverter */
     public $selectorConverter;
 
@@ -85,6 +89,7 @@ class Application
 
         /* @todo move to separated classes and methods */
         require __DIR__ . '/../../bootstrap/app.php';
+        require getcwd(). '/shortcuts.php';
 
         $container = Container::getInstance();
 
@@ -165,6 +170,7 @@ class Application
     {
         $this->currentComponentIndex = 0;
         try {
+            $t =null;
 
             while (true) {
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
@@ -196,6 +202,11 @@ class Application
                         ->handleComponentFocus($component, (int)$key);
                     $this->drawComponent($key, $component, $pressedKey, $fullRedraw);
                 }
+                if ($pressedKey){
+                    $t = $pressedKey;
+                }
+                ncurses_move(0, 0);
+                ncurses_addstr("{$t}  ".NCURSES_KEY_SELECT." ".ord("a")." ".NCURSES_BUTTON_CTRL."");
             }
         } catch (\Throwable $exception) {
             Analog::error($exception->getMessage() . "\n" . $exception->getTraceAsString());
@@ -209,6 +220,7 @@ class Application
      */
     protected function handleKeyPress(?int $key): bool
     {
+        $this->dispatch(self::EVENT_KEYPRESS.'.'.$key, [$key]);
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
             self::scheduleRedraw();
@@ -465,6 +477,15 @@ class Application
     protected function getCurrentDocument(?string $view = null): ComplexXMLElement
     {
         return $this->render->documents[$view ?? $this->currentView];
+    }
+
+    /**
+     * @param string $event
+     * @param callable $callback
+     */
+    public function on(string $event, $callback)
+    {
+        $this->listen($event, $callback);
     }
 
 }
