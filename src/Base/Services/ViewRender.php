@@ -212,6 +212,19 @@ class ViewRender
         }
         $this->handleComponentEvents($container, $nodeAttrs);
         $node->setMappedComponent($container);
+        $container->listen(BaseComponent::EVENT_COMPONENT_ADDED, function(BaseComponent $component) use ($node) {
+            if(empty($component->getXmlRepresentation())){
+                /* append to container node */
+                $className = get_class($component);
+                $tag = self::getComponentTag($className);
+                if (empty($tag)){
+                    throw  new \RuntimeException("Component class $className was not registered as xml tag." );
+                }
+                $childNode = $node->addChild("<tag {$component->getId()}>");
+
+                $component->setXmlRepresentation($childNode);
+            }
+        });
 
         return $container;
     }

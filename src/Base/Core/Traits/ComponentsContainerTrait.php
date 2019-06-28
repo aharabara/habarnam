@@ -34,6 +34,8 @@ trait ComponentsContainerTrait
             $this->recalculateSubSurfaces();
         });
 
+        $component->dispatch(BaseComponent::EVENT_COMPONENT_ADDED, [$component]);
+
         return $this;
     }
 

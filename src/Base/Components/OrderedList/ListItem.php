@@ -26,6 +26,7 @@ class ListItem extends Text
     {
         $this->value = $attrs['value'] ?? '';
         parent::__construct($attrs);
+        $this->setText($attrs['text'] ?? '');
     }
 
     /**
@@ -50,7 +51,7 @@ class ListItem extends Text
      */
     public function setText(string $text)
     {
-        $this->text = $text;
+        $this->text = preg_replace('/\s+/', ' ', $text);;
         return $this;
     }
 

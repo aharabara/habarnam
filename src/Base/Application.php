@@ -84,9 +84,6 @@ class Application
 
     public static function boot(bool $debug)
     {
-        Dotenv::create(Workspace::projectRoot())->load();
-        \Analog::handler(Ignore::init());
-
         /* @todo move to separated classes and methods */
         require __DIR__ . '/../../bootstrap/app.php';
         require getcwd(). '/shortcuts.php';
@@ -205,8 +202,6 @@ class Application
                 if ($pressedKey){
                     $t = $pressedKey;
                 }
-                ncurses_move(0, 0);
-                ncurses_addstr("{$t}  ".NCURSES_KEY_SELECT." ".ord("a")." ".NCURSES_BUTTON_CTRL."");
             }
         } catch (\Throwable $exception) {
             Analog::error($exception->getMessage() . "\n" . $exception->getTraceAsString());

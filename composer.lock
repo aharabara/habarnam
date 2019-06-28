@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "f60061b80830556d18b99ca0370f4501",
+    "content-hash": "b9c028de9a6d820648245669ffebad19",
     "packages": [
         {
             "name": "analog/analog",
@@ -850,6 +850,55 @@
             "time": "2019-02-06T07:57:58+00:00"
         },
         {
+            "name": "symfony/process",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/process.git",
+                "reference": "802a854486c65e22d8dff38363a909e35976dc9e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/process/zipball/802a854486c65e22d8dff38363a909e35976dc9e",
+                "reference": "802a854486c65e22d8dff38363a909e35976dc9e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2.9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Process\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Process Component",
+            "homepage": "https://symfony.com",
+            "time": "2019-06-22T22:57:33+00:00"
+        },
+        {
             "name": "symfony/translation",
             "version": "4.4.x-dev",
             "source": {
@@ -1041,7 +1090,8 @@
     "stability-flags": {
         "vlucas/phpdotenv": 20,
         "illuminate/database": 20,
-        "illuminate/events": 20
+        "illuminate/events": 20,
+        "symfony/process": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

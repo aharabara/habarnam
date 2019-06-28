@@ -14,6 +14,7 @@ abstract class BaseComponent implements DrawableInterface
 
     public const EVENT_LOAD = 'load';
     public const EVENT_TOGGLE_VISIBILITY = 'toggle.visibility';
+    public const EVENT_COMPONENT_ADDED = 'component.added';
 
     /** @var bool */
     protected $focused = false;

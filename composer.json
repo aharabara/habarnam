@@ -20,7 +20,8 @@
         "analog/analog": "^1.0",
         "vlucas/phpdotenv": "^3.3@dev",
         "illuminate/database": "^5.9@dev",
-        "illuminate/events": "^5.9@dev"
+        "illuminate/events": "^5.9@dev",
+        "symfony/process": "^5.0@dev"
     },
     "autoload": {
         "psr-4": {

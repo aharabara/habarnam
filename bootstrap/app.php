@@ -1,12 +1,18 @@
 <?php
 
+use Analog\Handler\Ignore;
 use Base\Application;
 use Base\Core\Installer;
 use Base\Core\Workspace;
 use Base\Services\ViewRender;
+use Dotenv\Dotenv;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Container\Container;
 use Illuminate\Events\Dispatcher;
+
+Dotenv::create(Workspace::projectRoot())->load();
+\Analog::handler(Ignore::init());
+
 
 $container = Container::getInstance();
 $container->singleton(Application::class);
