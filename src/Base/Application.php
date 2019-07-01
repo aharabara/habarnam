@@ -22,6 +22,7 @@ use Base\Primitives\Surface;
 use Base\Services\ViewRender;
 use Dotenv\Dotenv;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\View\View;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application
@@ -167,8 +168,6 @@ class Application
     {
         $this->currentComponentIndex = 0;
         try {
-            $t =null;
-
             while (true) {
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
 
@@ -181,6 +180,10 @@ class Application
 
                 $fullRedraw = !self::$redrawDone; // keep current state for current iteration
                 self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
+//                if ($fullRedraw) {
+                    ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $components);
+//                }
+
                 foreach ($components as $key => $component) {
                     if (!$component->isVisible()) {
                         continue;
@@ -197,6 +200,7 @@ class Application
                         ->handleNonFocusableComponents($component, $key)
                         // set component as focused / not focused.
                         ->handleComponentFocus($component, (int)$key);
+
                     $this->drawComponent($key, $component, $pressedKey, $fullRedraw);
                 }
                 if ($pressedKey){

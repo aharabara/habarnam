@@ -3,6 +3,7 @@
 namespace Base\Services;
 
 use Base\Application;
+use Base\Builders\SurfaceBuilder;
 use Base\Components\Animation;
 use Base\Components\Button;
 use Base\Components\Divider;
@@ -318,16 +319,23 @@ class ViewRender
                 $offsetX = 0;
                 $minHeight = 0;
             }
-            if ($lastComponent === $component && $height === null) {
-                $componentBottomY = $baseSurf->bottomRight()->getY();
-            } else {
-                $componentBottomY = $topLeft->getY() + $offsetY + $height;
-            }
+//            $isLastComponent = $lastComponent === $component;
+//            if ($isLastComponent && $height === null) { } @fixme, seems to be useless
+
+            $componentBottomY = function() use ($baseSurf) { return $baseSurf->bottomRight()->getY(); };
 
             if (!$component->hasSurface()) {
-                $surf = self::getCalculatedSurface(
-                    $baseSurf, $component, $offsetX, $offsetY, $perComponentWidth, $componentBottomY
-                );
+                $surf = (new SurfaceBuilder())
+                    ->within($baseSurf)
+                    ->width($perComponentWidth)
+                    ->height($height)
+                    ->build();
+//
+//                $surf = self::getCalculatedSurface(
+//                    $baseSurf, $component, $offsetX, $offsetY, $perComponentWidth, $componentBottomY
+//                );
+
+//                [$surf, $surf2];
                 $component->setSurface($surf);
             }
 
@@ -366,7 +374,7 @@ class ViewRender
         int $offsetX,
         int $offsetY,
         int $perComponentWidth,
-        int $bottomRightY
+        callable $bottomRightY
     ): Surface
     {
         return Surface::fromCalc(
@@ -396,7 +404,7 @@ class ViewRender
                 $width += $offsetX;
 
                 /* @fixme Bottom right is not calculated properly on resize */
-                return new Position($width, $bottomRightY);
+                return new Position($width, $bottomRightY() );
             }
         );
     }
