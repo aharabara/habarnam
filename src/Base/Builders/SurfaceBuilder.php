@@ -1,4 +1,5 @@
 <?php
+
 namespace Base\Builders;
 
 use Base\Core\Terminal;
@@ -23,42 +24,56 @@ class SurfaceBuilder
     /** @var Surface */
     protected $parentSurface;
 
-    protected function resetState(){
-        $this->width = null;
-        $this->height = null;
-        $this->topLeft = null;
+    protected function resetState()
+    {
+        $this->width      = null;
+        $this->height     = null;
         $this->offsetLeft = 0;
-        $this->offsetTop = 0;
+        $this->offsetTop  = 0;
+
         return $this;
     }
 
     public function within(Surface $surface)
     {
         $this->parentSurface = $surface;
+
         return $this;
     }
 
     public function width(int $width): self
     {
         $this->width = $width;
+
         return $this;
     }
 
     public function height(int $height): self
     {
         $this->height = $height;
+
         return $this;
     }
 
-    public function offsetLeft(int $offsetLeft): self
+    public function after(?Surface $surface): self
     {
-        $this->offsetLeft = $offsetLeft;
+        if ($surface !== null) {
+            $this->offsetLeft = $surface->bottomRight()->getX();
+        } else {
+            $this->offsetLeft = 0;
+        }
+
         return $this;
     }
 
-    public function offsetTop(int $height): self
+    public function under(?Surface $surface): self
     {
-        $this->height = $height;
+        if ($surface !== null) {
+            $this->offsetTop = $surface->bottomRight()->getY();
+        } else {
+            $this->offsetTop = 0;
+        }
+
         return $this;
     }
 
@@ -69,22 +84,32 @@ class SurfaceBuilder
 
     public function build(): Surface
     {
-        if (empty($this->parentSurface)){
+        if (empty($this->parentSurface)) {
             throw new \UnexpectedValueException('To build a surface instance you should specify parent surface. For example Surface::fullscreen()');
         }
 
-        $parent = $this->parentSurface;
-        $topLeft = function() use ($parent) {
+        $parent     = $this->parentSurface;
+        $width      = $this->width ?? $parent->width();
+        $height     = $this->height ?? $parent->height();
+        $offsetLeft = $this->offsetLeft;
+        $offsetTop  = $this->offsetTop;
+
+        $topLeft = function () use ($offsetTop, $offsetLeft, $parent) {
             $topLeft = $parent->topLeft();
-            return new Position($topLeft->getX() + $this->offsetLeft, $topLeft->getY() + $this->offsetLeft);
+
+            return new Position($topLeft->getX() + $offsetLeft, $topLeft->getY() + $offsetTop);
         };
-        $bottomLeft = function() use ($parent, $topLeft) {
+
+        $bottomLeft = function () use ($width, $height, $parent, $topLeft) {
             $topLeft = $topLeft();
-            return new Position($topLeft->getX() + $parent->width(), $topLeft->getY() + $parent->height());
+
+            return new Position($topLeft->getX() + $width, $topLeft->getY() + $height);
         };
 
         $surface = Surface::fromCalc('generated', $topLeft, $bottomLeft);
+
         $this->resetState();
+
         return $surface;
     }
 }

@@ -305,6 +305,7 @@ class ViewRender
         $offsetX = 0;
         $minHeight = 0;
         $lastComponent = end($components);
+        $previousSurface = null;
         foreach (array_values($components) as $key => $component) {
             if (!$component->isVisible()) {
                 continue;
@@ -324,11 +325,18 @@ class ViewRender
 
             $componentBottomY = function() use ($baseSurf) { return $baseSurf->bottomRight()->getY(); };
 
-            if (!$component->hasSurface()) {
-                $surf = (new SurfaceBuilder())
-                    ->within($baseSurf)
-                    ->width($perComponentWidth)
-                    ->height($height)
+            //if (!$component->hasSurface()) {
+            $builder = (new SurfaceBuilder)->within($baseSurf);
+
+            if ($component->displayType() === DrawableInterface::DISPLAY_BLOCK) {
+                $builder->under($previousSurface);
+            }else{
+                $builder->after($previousSurface);
+            }
+
+            $surf = $builder
+                    ->width($component->width($baseWidth, $perComponentWidth))
+                    ->height($component->height($baseHeight, $perComponentHeight))
                     ->build();
 //
 //                $surf = self::getCalculatedSurface(
@@ -336,8 +344,9 @@ class ViewRender
 //                );
 
 //                [$surf, $surf2];
-                $component->setSurface($surf);
-            }
+            $previousSurface = $surf;
+            $component->setSurface($surf);
+            //}
 
             if ($component->displayType() === DrawableInterface::DISPLAY_BLOCK) {
                 $offsetY++;
