@@ -32,26 +32,35 @@
    - [x] CSS files for components instead of xml attributes
 
 #### v0.5.0
-   - [ ] XML tree update for dynamical elements
-         (append on event if no mapping was specified)
-   - [ ] Iframe to load another view. (need to thik)
+   - [ ] XML tree update for dynamical elements (append on event if no mapping was specified)
+   - [ ] Iframe to load another view. (need to think)
    - [x] Script to create project tree for easy start
    - [ ] Refactor Application and app.php
    - [ ] Move some logic from ViewRender to Builders
       - [ ] ComponentBuilder
       - [ ] SurfaceBuilder
-   
+         - [ ] MarginBox
+            - [ ] Relative
+            - [ ] Static
+            - [ ] Mixed
+         - [ ] PaddingBox
+            - [ ] Relative
+            - [ ] Static
+            - [ ] Mixed
+      - [ ] Move focus from index to selector
+      - [ ] Encapsulate child components into container (do not expose them anymore)
+
 #### V0.6.0
-   - [ ] Notifications
-   - [ ] TemporaryComponentInterface
-   - [ ] SelectBox
-   - [ ] CheckBox
-   
-#### v0.7.0
  - [X] Container
  - [x] Eloquent and SQLite
- - [ ] Queue process for delayed tasks
  - [ ] Loading state (overlay?) for component
+ - [ ] Queue process for delayed tasks
+   
+#### v0.7.0
+ - [ ] Notifications
+ - [ ] TemporaryComponentInterface
+ - [ ] SelectBox
+ - [ ] CheckBox
 
 #### v0.8.0
    - [ ] ScrollableComponentInterface
