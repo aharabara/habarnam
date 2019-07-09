@@ -5,6 +5,8 @@ namespace Base\Builders;
 use Base\Core\Terminal;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
+use Base\Styles\MarginBox;
+use Base\Styles\PaddingBox;
 
 class SurfaceBuilder
 {
@@ -24,12 +26,21 @@ class SurfaceBuilder
     /** @var Surface */
     protected $parentSurface;
 
+    /** @var PaddingBox */
+    protected $paddingBox;
+
+    /** @var MarginBox */
+    protected $marginBox;
+
     protected function resetState()
     {
-        $this->width      = null;
-        $this->height     = null;
+        $this->width = null;
+        $this->height = null;
+        $this->paddingBox = null;
+        $this->marginBox = null;
         $this->offsetLeft = 0;
-        $this->offsetTop  = 0;
+        $this->offsetLeft = 0;
+        $this->offsetTop = 0;
 
         return $this;
     }
@@ -77,39 +88,118 @@ class SurfaceBuilder
         return $this;
     }
 
-    public function placeBetween(Position $topLeft, Position $bottomLeft): self
-    {
-        throw new BadMethodCallException('NOT IMPLEMENTED');
-    }
-
     public function build(): Surface
     {
         if (empty($this->parentSurface)) {
             throw new \UnexpectedValueException('To build a surface instance you should specify parent surface. For example Surface::fullscreen()');
         }
 
-        $parent     = $this->parentSurface;
-        $width      = $this->width ?? $parent->width();
-        $height     = $this->height ?? $parent->height();
+        $parent = $this->parentSurface;
+        $width = $this->width ?? $parent->width();
+        $height = $this->height ?? $parent->height();
         $offsetLeft = $this->offsetLeft;
-        $offsetTop  = $this->offsetTop;
+        $offsetTop = $this->offsetTop;
 
-        $topLeft = function () use ($offsetTop, $offsetLeft, $parent) {
-            $topLeft = $parent->topLeft();
+        $marginBox = $this->marginBox;
+        $paddingBox = $this->paddingBox;
 
-            return new Position($topLeft->getX() + $offsetLeft, $topLeft->getY() + $offsetTop);
-        };
+        if ($width > $parent->width()) {
+            $width = $parent->width();
+        }
+        if ($height > $parent->height()) {
+            $height = $parent->height();
+        }
 
-        $bottomLeft = function () use ($width, $height, $parent, $topLeft) {
-            $topLeft = $topLeft();
+        $topLeft = $this->getTopLeftPosition($parent, $offsetTop, $offsetLeft, $paddingBox, $marginBox);
 
-            return new Position($topLeft->getX() + $width, $topLeft->getY() + $height);
-        };
+        $bottomLeft = $this->getBottomRightPosition($topLeft, $width, $height, $paddingBox, $marginBox);
 
         $surface = Surface::fromCalc('generated', $topLeft, $bottomLeft);
 
         $this->resetState();
 
         return $surface;
+    }
+
+    /**
+     * @param null|MarginBox $marginBox
+     *
+     * @return $this
+     */
+    public function margin(?MarginBox $marginBox)
+    {
+        $this->marginBox = $marginBox;
+
+        return $this;
+    }
+
+    /**
+     * @param null|PaddingBox $paddingBox
+     *
+     * @return $this
+     */
+    public function padding(?PaddingBox $paddingBox)
+    {
+        $this->paddingBox = $paddingBox;
+
+        return $this;
+    }
+
+    /**
+     * @param PaddingBox $paddingBox
+     * @param MarginBox $marginBox
+     * @param int $offsetTop
+     * @param int $offsetLeft
+     * @param Surface $parent
+     * @return \Closure
+     */
+    protected function getTopLeftPosition(
+        Surface $parent,
+        int $offsetTop,
+        int $offsetLeft,
+        ?PaddingBox $paddingBox = null,
+        ?MarginBox $marginBox = null
+    ): \Closure
+    {
+        return function () use ($paddingBox, $marginBox, $offsetTop, $offsetLeft, $parent) {
+            $topLeft = $parent->topLeft();
+
+            $position = new Position($topLeft->getX() + $offsetLeft, $topLeft->getY() + $offsetTop);
+            if ($marginBox) {
+                $marginBox->apply($position);
+            }
+            if ($paddingBox) {
+                $paddingBox->applyTopLeft($position);
+            }
+
+            return $position;
+        };
+    }
+
+    /**
+     * @param \Closure $topLeft
+     * @param int $width
+     * @param int $height
+     * @param PaddingBox $paddingBox
+     * @param MarginBox $marginBox
+     * @return \Closure
+     */
+    protected function getBottomRightPosition(
+        \Closure $topLeft,
+        int $width,
+        int $height,
+        ?PaddingBox $paddingBox = null,
+        ?MarginBox $marginBox = null): \Closure
+    {
+        return function () use ($paddingBox, $marginBox, $width, $height, $topLeft) {
+            $topLeft = $topLeft();
+            /** @var Position $topLeft */
+            $position = new Position($topLeft->getX() + $width, $topLeft->getY() + $height);
+            if ($paddingBox) {
+                $paddingBox->applyBottomRight($position);
+            }
+
+            return $position;
+        };
     }
 }

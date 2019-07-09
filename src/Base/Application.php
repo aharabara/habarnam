@@ -180,9 +180,9 @@ class Application
 
                 $fullRedraw = !self::$redrawDone; // keep current state for current iteration
                 self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
-//                if ($fullRedraw) {
-                    ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $components);
-//                }
+                if ($fullRedraw) {
+                    ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
+                }
 
                 foreach ($components as $key => $component) {
                     if (!$component->isVisible()) {

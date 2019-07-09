@@ -3,6 +3,7 @@
 namespace Base\Styles;
 
 
+use Base\Primitives\Position;
 use Base\Primitives\Surface;
 
 class MarginBox
@@ -28,7 +29,7 @@ class MarginBox
      * @param int|null $bottom
      * @param int|null $left
      *
-     * @return PaddingBox
+     * @return MarginBox
      */
     public static function px(int $top, ?int $right = null, ?int $bottom = null, ?int $left = null)
     {
@@ -49,7 +50,7 @@ class MarginBox
      * @param int|null $bottom
      * @param int|null $left
      *
-     * @return PaddingBox
+     * @return MarginBox
      */
     public static function percent(int $top, ?int $right = null, ?int $bottom = null, ?int $left = null)
     {
@@ -64,18 +65,15 @@ class MarginBox
     }
 
     /**
-     * @param Surface $surface
-     *
-     * @return Surface
-     * @throws \Exception
+     * @param Position|null $position
      */
-    public function apply(Surface $surface)
+    public function apply(?Position $position)
     {
         if ($this->type === self::TYPE_STATIC) {
-            return $surface->resize('fixme.remove', -$this->top, -$this->right, -$this->bottom, -$this->left);
+            $offsetTop = $this->top - $this->bottom;
+            $offsetLeft = $this->left - $this->right;
+            $position->setY($position->getY() + $offsetTop);
+            $position->setX($position->getX() + $offsetLeft);
         }
-
-        /** @todo implement for relative padding box */
-        return $surface;
     }
 }

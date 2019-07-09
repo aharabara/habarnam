@@ -99,7 +99,7 @@ abstract class BaseComponent implements DrawableInterface
     public function setSurface(?Surface $surface, bool $withResize = true)
     {
         if ($withResize) {
-            $surface = $surface->resize($this->getSelector(), ...$this->margin);
+//            $surface = $surface->resize($this->getSelector(), ...$this->margin);
         }
         $this->surface = $surface;
 
@@ -137,7 +137,7 @@ abstract class BaseComponent implements DrawableInterface
             return (int)str_replace('px', '', $this->height);
         }
 
-        return $this->height ?? $defaultHeight;
+        return $this->height ?? $defaultHeight ?? $fullHeight;
     }
 
     /**
@@ -148,14 +148,17 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function width(?int $fullWidth = null, ?int $defaultWidth = null): ?int
     {
+        if (in_array($this->displayType(), self::BLOCK_DISPLAY_TYPES)){
+            return $fullWidth;
+        }
         if ($this->width && strpos($this->width, '%')) {
-            return floor(($fullWidth / 100) * ((int)trim($this->width, '%')));
+            return round(($fullWidth / 100) * ((int)trim($this->width, '%')));
         }
         if (strpos($this->width, 'px')) {
             return (int)str_replace('px', '', $this->width);
         }
 
-        return $this->width ?? $defaultWidth;
+        return $this->width ?? $defaultWidth ?? $fullWidth;
     }
 
     /**

@@ -2,11 +2,13 @@
 
 namespace Base\Core\Traits;
 
+use Base\Builders\SurfaceBuilder;
 use Base\Core\BaseComponent;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
+use Base\Styles\PaddingBox;
 
 trait ComponentsContainerTrait
 {
@@ -94,7 +96,21 @@ trait ComponentsContainerTrait
         if (empty($this->components) || !$this->visible || !$this->surface) {
             return $this;
         }
-        ViewRender::recalculateLayoutWithinSurface($this->surface->resize($this->getSelector(), ...$this->padding), $this->components);
+
+        $containerPaddingBox = PaddingBox::px(1, 1, 1, 1);
+        $internalSurface = (new SurfaceBuilder())
+            ->within($this->surface)
+            ->padding($containerPaddingBox)
+            ->build();
+
+        ViewRender::recalculateLayoutWithinSurface(
+//            $this->surface->resize($this->getSelector(), ...$this->padding)
+            $internalSurface
+            // $this->surface
+        /* @fixme when PaddingBox and MarginBox will be used, then apply them
+         * before passing to recalculateSurface method
+         */
+            , $this->components);
         return $this;
     }
 

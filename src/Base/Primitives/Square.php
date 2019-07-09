@@ -58,7 +58,7 @@ class Square extends BaseComponent
             } elseif ($y === $higherBound) {
                 $text = $this->leftTopCorner . str_repeat($this->horizBorderSymbol, $width) . $this->rightTopCorner;
                 Curse::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
-            } else {
+            } elseif($width > 0) {
                 $innerSpace = str_repeat($this->infill, $width);
                 $x = $this->surface->topLeft()->getX();
                 Curse::writeAt($this->verticalBorderSymbol, $color, $y, $x++);
