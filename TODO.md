@@ -40,13 +40,7 @@
       - [ ] ComponentBuilder
       - [ ] SurfaceBuilder
          - [ ] MarginBox
-            - [ ] Relative
-            - [ ] Static
-            - [ ] Mixed
          - [ ] PaddingBox
-            - [ ] Relative
-            - [ ] Static
-            - [ ] Mixed
       - [ ] Move focus from index to selector
       - [ ] Encapsulate child components into container (do not expose them anymore)
 
