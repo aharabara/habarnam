@@ -167,7 +167,10 @@ class SurfaceBuilder
             if ($offsetLeft < $topLeft->getX()) {
                 $offsetLeft += $topLeft->getX();
             }
-            $offsetTop += $topLeft->getY();
+            if ($offsetTop < $topLeft->getY() ){
+                $offsetTop += $topLeft->getY();
+            }
+
             $position = new Position($offsetLeft, $offsetTop);
             if ($marginBox) {
                 $marginBox->apply($position);

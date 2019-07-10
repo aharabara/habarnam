@@ -297,27 +297,12 @@ class ViewRender
             return; // nothing to recalculate
         }
         $baseWidth = $baseSurf->width();
-//        $baseHeight = $baseSurf->height();
-//        $topLeft = $baseSurf->topLeft();
 
 
         $perComponentWidth = $baseWidth / count($components);
-//        $perComponentHeight = $baseHeight / count($components);
-
-//        $offsetY = 0;
-//        $offsetX = 0;
-//        $minHeight = 0;
-//        $lastComponent = end($components);
         $previousSurface = null;
 
         $builder = new SurfaceBuilder;
-
-//        $containerMarginBox = MarginBox::px(0, 0, 0, 0);
-//        $containerPaddingBox = PaddingBox::px(1, 1, 1, 1);
-////        $inlinePaddingBox    = PaddingBox::px(1, 0, 0, 0);
-//
-//        $blockMarginBox = MarginBox::px(0, 0, 0, 0);
-//        $blockPaddingBox = PaddingBox::px(0, 0, 0, 0);
         foreach (array_values($components) as $key => $component) {
             if (!$component->isVisible()) {
                 continue;
@@ -329,6 +314,7 @@ class ViewRender
                 $builder->after($previousSurface);
             }
 
+            /* @fixme there is a 1px overlaps between containers. Need to investigate */
             $externalSurface = $builder
                 ->within($baseSurf)
                 ->width($component->width($baseSurf->width(), $perComponentWidth))
