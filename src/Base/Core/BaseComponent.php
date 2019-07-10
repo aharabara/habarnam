@@ -148,11 +148,11 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function width(?int $fullWidth = null, ?int $defaultWidth = null): ?int
     {
-        if (in_array($this->displayType(), self::BLOCK_DISPLAY_TYPES)){
+        if (in_array($this->displayType(), self::BLOCK_DISPLAY_TYPES)) {
             return $fullWidth;
         }
         if ($this->width && strpos($this->width, '%')) {
-            return round(($fullWidth / 100) * ((int)trim($this->width, '%')));
+            return floor(($fullWidth / 100) * ((int)trim($this->width, '%')));
         }
         if (strpos($this->width, 'px')) {
             return (int)str_replace('px', '', $this->width);
@@ -264,8 +264,10 @@ abstract class BaseComponent implements DrawableInterface
         $width = $this->surface->width() - 2; // 2 symbols for borders
 
         $lines = [];
-        $lines[] = "Left top: ({$topLeft->getX()},{$topLeft->getY()})";
-        $lines[] = "Right bottom: ({$bottomRight->getX()},{$bottomRight->getY()})";
+        if ($this->focused) {
+//            Curse::writeAt("Left top: ({$topLeft->getX()},{$topLeft->getY()})", $this->colorPair, $y, $topLeft->getX());
+//            Curse::writeAt("Right bottom: ({$bottomRight->getX()},{$bottomRight->getY()})", $this->colorPair, $y, $topLeft->getX());
+        }
         $i = 0;
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
             $selector = "{$this->getSelector()}:{$this->surface->width()}x{$this->surface->height()}";

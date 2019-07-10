@@ -164,7 +164,11 @@ class SurfaceBuilder
         return function () use ($paddingBox, $marginBox, $offsetTop, $offsetLeft, $parent) {
             $topLeft = $parent->topLeft();
 
-            $position = new Position($topLeft->getX() + $offsetLeft, $topLeft->getY() + $offsetTop);
+            if ($offsetLeft < $topLeft->getX()) {
+                $offsetLeft += $topLeft->getX();
+            }
+            $offsetTop += $topLeft->getY();
+            $position = new Position($offsetLeft, $offsetTop);
             if ($marginBox) {
                 $marginBox->apply($position);
             }

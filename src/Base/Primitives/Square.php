@@ -51,6 +51,9 @@ class Square extends BaseComponent
         $width = $this->surface->width() - 2; // 2 symbols for borders
 
         for ($y = $higherBound; $y <= $lowerBound; $y++) {
+            if ($width < 0) {
+                continue; // @fixme resize issue
+            }
             if ($y === $lowerBound) {
                 $text = $this->leftBottomSymbol . str_repeat($this->horizBorderSymbol,
                         $width) . $this->rightBottomSymbol;
@@ -58,12 +61,12 @@ class Square extends BaseComponent
             } elseif ($y === $higherBound) {
                 $text = $this->leftTopCorner . str_repeat($this->horizBorderSymbol, $width) . $this->rightTopCorner;
                 Curse::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
-            } elseif($width > 0) {
+            } else {
                 $innerSpace = str_repeat($this->infill, $width);
                 $x = $this->surface->topLeft()->getX();
                 Curse::writeAt($this->verticalBorderSymbol, $color, $y, $x++);
                 Curse::writeAt($innerSpace, $this->colorPair, $y, $x);
-                Curse::writeAt($this->verticalBorderSymbol, $color, $y,  $x + mb_strlen($innerSpace));
+                Curse::writeAt($this->verticalBorderSymbol, $color, $y, $x + mb_strlen($innerSpace));
             }
         }
     }
