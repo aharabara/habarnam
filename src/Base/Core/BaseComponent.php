@@ -7,6 +7,8 @@ use Base\Interfaces\Colors;
 use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
+use Base\Styles\MarginBox;
+use Base\Styles\PaddingBox;
 
 abstract class BaseComponent implements DrawableInterface
 {
@@ -37,11 +39,11 @@ abstract class BaseComponent implements DrawableInterface
     /** @var bool */
     protected $visible = true;
 
-    /** @var int[] */
-    protected $padding = [0, 0];
+    /** @var PaddingBox */
+    protected $padding;
 
-    /** @var int[] */
-    protected $margin = [0, 0, 1];
+    /** @var MarginBox */
+    protected $margin;
 
     /** @var string */
     protected $displayType = self::DISPLAY_BLOCK;
@@ -67,6 +69,9 @@ abstract class BaseComponent implements DrawableInterface
     {
         $this->id = $attrs['id'] ?? null;
         $this->classes = array_filter(explode(' ', $attrs['class'] ?? ''));
+        $this->margin = MarginBox::px(0, 0, 1);
+        $this->padding = PaddingBox::px(0, 0);
+        /* @fixme try to move its calculation to another place */
     }
 
     /**
@@ -232,8 +237,12 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setStyles(array $styles)
     {
-        $this->margin = $styles['margin'] ?? $this->margin;
-        $this->padding = $styles['padding'] ?? $this->padding;
+        $padding = $styles['padding'] ?? [];
+        $margin = $styles['margin'] ?? [];
+
+        $this->margin = $margin ? MarginBox::px(...$margin) : $this->margin;
+        $this->padding = $padding ? PaddingBox::px(...$padding) : $this->padding;
+
         $this->visible = $styles['visibility'] ?? $this->visible;
         $this->displayType = $styles['display'] ?? $this->displayType;
         $this->colorPair = $styles['color-pair'] ?? $this->colorPair;
@@ -287,6 +296,9 @@ abstract class BaseComponent implements DrawableInterface
             }
             Curse::writeAt($text, $this->colorPair, $y, $topLeft->getX());
         }
+//        sleep(2);
+//        ncurses_refresh(0);
+        /* @fixme add this to debug mode */
     }
 
     /**

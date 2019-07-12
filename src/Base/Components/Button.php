@@ -6,6 +6,7 @@ use Base\Core\BaseComponent;
 use Base\Core\Curse;
 use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
+use Base\Styles\MarginBox;
 
 class Button extends BaseComponent implements FocusableInterface
 {
@@ -20,7 +21,7 @@ class Button extends BaseComponent implements FocusableInterface
     protected $label;
 
 
-    protected $margin= [0, 1, 1, 0];
+    protected $margin;
 
     /** @var string */
     protected $displayType = self::DISPLAY_INLINE;
@@ -33,6 +34,8 @@ class Button extends BaseComponent implements FocusableInterface
     {
         $this->label = $attrs['text'];
         parent::__construct($attrs);
+        $this->margin = MarginBox::px(0, 1);
+
     }
 
     /**

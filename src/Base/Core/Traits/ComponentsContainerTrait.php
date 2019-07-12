@@ -97,10 +97,9 @@ trait ComponentsContainerTrait
             return $this;
         }
 
-        $containerPaddingBox = PaddingBox::px(1, 1, 1, 1);
         $internalSurface = (new SurfaceBuilder())
             ->within($this->surface)
-            ->padding($containerPaddingBox)
+            ->padding($this->padding)
             ->build();
 
         ViewRender::recalculateLayoutWithinSurface(

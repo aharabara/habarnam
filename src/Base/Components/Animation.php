@@ -3,6 +3,7 @@
 namespace Base\Components;
 
 use Base\Interfaces\ConstantlyRefreshableInterface;
+use Base\Styles\MarginBox;
 
 class Animation extends Text implements ConstantlyRefreshableInterface
 {
@@ -20,9 +21,7 @@ class Animation extends Text implements ConstantlyRefreshableInterface
     protected $currentIteration = 0;
     /** @var int|null */
     protected $repetitions;
-    /** @var int[] */
-    protected $margin = [0, 0, 0, 0];
-    
+
     /**
      * Animation constructor.
      * @param array $attrs
@@ -34,6 +33,7 @@ class Animation extends Text implements ConstantlyRefreshableInterface
         $this->repetitions = (int)($attrs['repetitions'] ?? -1);
         parent::__construct($attrs);
         $this->frames = $this->getFrames();
+        $this->margin = MarginBox::px(0);
     }
 
     protected function getLines(string $text): array

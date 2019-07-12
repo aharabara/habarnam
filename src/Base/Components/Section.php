@@ -8,6 +8,8 @@ use Base\Core\Traits\ComponentsContainerTrait;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Primitives\Square;
 use Base\Primitives\Surface;
+use Base\Styles\MarginBox;
+use Base\Styles\PaddingBox;
 
 class Section extends Square implements ComponentsContainerInterface
 {
@@ -19,10 +21,11 @@ class Section extends Square implements ComponentsContainerInterface
     /** @var string */
     protected $title;
 
-    /** @var int[] */
-    protected $padding = [1, 1];
-    
-    protected $margin = [0, 0, 0, 0];
+    /** @var PaddingBox */
+    protected $padding;
+
+    /** @var MarginBox */
+    protected $margin;
 
     /**
      * Window constructor.
@@ -32,6 +35,8 @@ class Section extends Square implements ComponentsContainerInterface
     {
         $this->title = $attrs['title'] ?? null;
         parent::__construct($attrs);
+        $this->margin = MarginBox::px(0);
+        $this->padding = PaddingBox::px(1, 1);
     }
 
     /**

@@ -487,4 +487,9 @@ class Application
         $this->listen($event, $callback);
     }
 
+    public function __destruct()
+    {
+        Curse::exit();
+    }
+
 }

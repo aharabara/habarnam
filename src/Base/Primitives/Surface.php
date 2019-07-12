@@ -62,7 +62,7 @@ class Surface
      */
     public function width(): int
     {
-        return $this->bottomRight()->getX() - $this->topLeft()->getX();
+        return $this->bottomRight()->getX() - $this->topLeft()->getX(); // @fixme  + 1 /* because same line is equal to 1px */;
     }
 
     /**
@@ -70,7 +70,7 @@ class Surface
      */
     public function height(): int
     {
-        return $this->bottomRight()->getY() - $this->topLeft()->getY();
+        return $this->bottomRight()->getY() - $this->topLeft()->getY() + 1 /* because same line is equal to 1px */;
     }
 
     /**
@@ -99,6 +99,7 @@ class Surface
      */
     public function resize(string $id, int $top, ?int $right = null, ?int $bottom = null, ?int $left = null): Surface
     {
+        /* @fixme check if it is even used */
         return self::fromCalc(
             sprintf('%s.%s.children.%s', $this->id, $id, random_int(0, 1000)),
             function () use ($right, $top, $left) {
@@ -118,7 +119,7 @@ class Surface
      */
     public function setId(string $id): Surface
     {
-        $this->id = $id;
+        $this->id = $id; /* @fixme try to get rid of it */
         return $this;
     }
 
@@ -127,7 +128,7 @@ class Surface
      */
     public function getId(): string
     {
-        return $this->id;
+        return $this->id;/* @fixme try to get rid of it */
     }
 
     /**

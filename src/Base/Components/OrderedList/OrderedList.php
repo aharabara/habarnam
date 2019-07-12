@@ -2,15 +2,12 @@
 
 namespace Base\Components\OrderedList;
 
-use Base\Builders\SurfaceBuilder;
 use Base\Core\BaseComponent;
 use Base\Core\Traits\ComponentsContainerTrait;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
 use Base\Primitives\Surface;
-use Base\Services\ViewRender;
-use Base\Styles\PaddingBox;
 use Illuminate\Support\Arr;
 
 class OrderedList extends BaseComponent implements FocusableInterface, ComponentsContainerInterface
@@ -200,27 +197,6 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         $this->recalculateSubSurfaces();
 
         return $result;
-    }
-
-    /**
-     * @return $this
-     * @throws \Exception
-     */
-    public function recalculateSubSurfaces()
-    {
-        if (empty($this->components) || !$this->visible || !$this->surface) {
-            return $this;
-        }
-
-        /*@fixme should be removed right at the moment when padding will be calculated and not hardcoded*/
-        $containerPaddingBox = PaddingBox::px(0, 0, 0, 0);
-        $internalSurface = (new SurfaceBuilder())
-            ->within($this->surface)
-            ->padding($containerPaddingBox)
-            ->build();
-
-        ViewRender::recalculateLayoutWithinSurface($internalSurface, $this->components);
-        return $this;
     }
 
     /**

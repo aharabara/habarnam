@@ -2,7 +2,6 @@
 
 namespace Base\Builders;
 
-use Base\Core\Terminal;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
 use Base\Styles\MarginBox;
@@ -69,7 +68,7 @@ class SurfaceBuilder
     public function after(?Surface $surface): self
     {
         if ($surface !== null) {
-            $this->offsetLeft = $surface->bottomRight()->getX();
+            $this->offsetLeft = $surface->topLeft()->getX() + $surface->width();
         } else {
             $this->offsetLeft = 0;
         }
@@ -80,7 +79,7 @@ class SurfaceBuilder
     public function under(?Surface $surface): self
     {
         if ($surface !== null) {
-            $this->offsetTop = $surface->bottomRight()->getY();
+            $this->offsetTop = $surface->topLeft()->getY() + $surface->height();
         } else {
             $this->offsetTop = 0;
         }
@@ -96,7 +95,8 @@ class SurfaceBuilder
 
         $parent = $this->parentSurface;
         $width = $this->width ?? $parent->width();
-        $height = $this->height ?? $parent->height();
+        $height = ($this->height ?? $parent->height()) - 1
+            /* "-1" because when height of 1px is required, then it should be same line*/;
         $offsetLeft = $this->offsetLeft;
         $offsetTop = $this->offsetTop;
 
