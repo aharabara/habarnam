@@ -87,7 +87,8 @@ class Application
     {
         /* @todo move to separated classes and methods */
         require __DIR__ . '/../../bootstrap/app.php';
-        require getcwd(). '/shortcuts.php';
+        require __DIR__ . '/../functions.php';
+        require getcwd(). '/shortcuts.php'; /* @todo refactor*/
 
         $container = Container::getInstance();
 

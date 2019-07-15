@@ -4,14 +4,20 @@ namespace Base\Components\OrderedList;
 
 use Base\Core\BaseComponent;
 use Base\Core\Traits\ComponentsContainerTrait;
+use Base\Core\Traits\ScrollableTrait;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
+use Base\Interfaces\ScrollableInterface;
 use Base\Primitives\Surface;
 use Illuminate\Support\Arr;
 
 class OrderedList extends BaseComponent implements FocusableInterface, ComponentsContainerInterface
 {
+    use ScrollableTrait {
+        ScrollableTrait::getVisibleComponents insteadof ComponentsContainerTrait;
+    }
+
     use ComponentsContainerTrait;
 
     public const EVENT_SELECTED = 'item.selected';
@@ -55,17 +61,14 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     public function draw(?int $pressedKey)
     {
-        $items = array_values($this->components);
         $height = $this->surface->height();
-
-        if (count($items) > $height) {
-            $items = array_slice($items, 0, $height + 1);
-        }
         $this->handleKeyPress($pressedKey);
+        $items = array_values($this->getVisibleComponents());
+        $items = array_filter(array_slice($items, 0, $height));
 
         foreach ($items as $key => $item) {
-            if (!$item->isVisible()) continue;
-            $item->draw($pressedKey, $this->isFocused() && $key === $this->focusedItem);
+            /** @var ListItem $item */
+            $item->draw($pressedKey, $this->isFocused() && $key === $this->getFocusedItem());
         }
     }
 
@@ -74,14 +77,25 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
      */
     protected function handleKeyPress(?int $key): void
     {
+        if ($this->handleScrollKeyPress($key)) {
+            $this->recalculateSubSurfaces();
+            $this->surface->fill(' ');
+            return;
+        }
         switch ($key) {
             case NCURSES_KEY_DOWN:
                 if ($this->focusedItem < count($this->components) - 1) {
+//                    if ($this->focusedItem > ($this->offset + $this->surface->height() - 3)) {
+//                        $this->scrollDown(1);
+//                        $this->recalculateSubSurfaces();
+//                        $this->surface->fill(' ');
+//                    } else {
                     $this->focusedItem++;
+//                    }
                 }
                 break;
             case NCURSES_KEY_UP:
-                if ($this->focusedItem > 0) {
+                if ($this->getFocusedItem() > 0) {
                     $this->focusedItem--;
                 }
                 break;
@@ -95,7 +109,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
                 if ($this->getSelectedItem()) {
                     $this->dispatch(self::EVENT_BEFORE_SELECT, [$this->getSelectedItem()]);
                 }
-                $this->selectByIndex($this->focusedItem);
+                $this->selectByIndex($this->getFocusedItem() + $this->getScrollOffset());
                 $this->dispatch(self::EVENT_SELECTED, [$this->getSelectedItem()]);
                 break;
         }
@@ -264,6 +278,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
 
     /**
      * @param ListItem|DrawableInterface $item
+     * @return OrderedList
      */
     protected function setItemsStyles(ListItem $item)
     {
@@ -276,7 +291,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         parent::debugDraw();
         foreach ($this->components as $key => $item) {
-            $item->debugDraw($this->isFocused() && $key === $this->focusedItem);
+            $item->debugDraw($this->isFocused() && $key === ($this->getFocusedItem() + $this->getScrollOffset()));
         }
     }
 
@@ -312,4 +327,13 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             }
         }
     }
+
+    /**
+     * @return int
+     */
+    public function linesPerScroll(): int
+    {
+        return 10;
+    }
+
 }

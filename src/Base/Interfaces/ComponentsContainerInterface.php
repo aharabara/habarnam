@@ -29,6 +29,11 @@ interface ComponentsContainerInterface extends DrawableInterface
      */
     public function getComponents(): array;
 
+    /**
+     * @return array
+     */
+    public function getVisibleComponents(): array;
+
 
     /**
      * @return self

@@ -2,6 +2,7 @@
 
 namespace Base\Primitives;
 
+use Base\Core\Curse;
 use Base\Core\Terminal;
 
 class Surface
@@ -145,6 +146,16 @@ class Surface
                 return new Position(Terminal::width(), Terminal::height());
             }
         );
+    }
+
+    /**
+     * @param string|null $symbol
+     * @return $this
+     */
+    public function fill(string $symbol = null)
+    {
+        Curse::fillSurface($this, $symbol);
+        return $this;
     }
 
 }

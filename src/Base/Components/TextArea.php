@@ -53,7 +53,7 @@ class TextArea extends Text implements FocusableInterface
         $this->clearCache();
         $this->handleKeyPress($key);
         Curse::color($this->colorPair);
-        Curse::fillSurface($this->surface, $this->infill);
+        $this->surface->fill($this->infill);
         parent::draw($key);
     }
 

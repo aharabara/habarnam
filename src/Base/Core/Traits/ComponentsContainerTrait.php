@@ -21,7 +21,7 @@ trait ComponentsContainerTrait
 
     /**
      * @param BaseComponent $component
-     * @param string|null   $id
+     * @param string|null $id
      *
      * @return $this
      */
@@ -63,6 +63,16 @@ trait ComponentsContainerTrait
     /**
      * @return array|DrawableInterface[]
      */
+    public function getVisibleComponents(): array
+    {
+        return array_filter($this->components, function (BaseComponent $component) {
+            return $component->isVisible();
+        });
+    }
+
+    /**
+     * @return array|DrawableInterface[]
+     */
     public function toComponentsArray(): array
     {
         if (!$this->visible) {
@@ -70,7 +80,7 @@ trait ComponentsContainerTrait
         }
         $components = [];
 
-        foreach ($this->getComponents() as $key => $component) {
+        foreach ($this->getVisibleComponents() as $key => $component) {
             $components[] = $component;
             if ($component instanceof ComponentsContainerInterface) {
                 $subComponents = $component->toComponentsArray();
@@ -93,7 +103,7 @@ trait ComponentsContainerTrait
      */
     public function recalculateSubSurfaces()
     {
-        if (empty($this->getComponents()) || !$this->visible || !$this->surface) {
+        if (empty($this->getVisibleComponents()) || !$this->visible || !$this->surface) {
             return $this;
         }
 
@@ -105,11 +115,10 @@ trait ComponentsContainerTrait
         ViewRender::recalculateLayoutWithinSurface(
 //            $this->surface->resize($this->getSelector(), ...$this->padding)
             $internalSurface
-            // $this->surface
-        /* @fixme when PaddingBox and MarginBox will be used, then apply them
-         * before passing to recalculateSurface method
-         */
-            , $this->getComponents());
+            /* @fixme when PaddingBox and MarginBox will be used, then apply them
+             * before passing to recalculateSurface method
+             */
+            , $this->getVisibleComponents());
         return $this;
     }
 }

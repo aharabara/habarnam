@@ -62,11 +62,12 @@ class ListItem extends Text
      */
     public function draw(?int $key, bool $canBeFocused = false): void
     {
+        if (!$this->surface) {
+            return;
+        }
         $this->setFocused($canBeFocused);
-
         $padSymbol = ' ';
         $prefix = $this->isSelected() ? '[+] ' : '[ ] ';
-
         $width = $this->surface->width() - strlen($prefix);
         $beginPos = $this->surface->topLeft();
 
