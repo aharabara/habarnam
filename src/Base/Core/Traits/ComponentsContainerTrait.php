@@ -70,7 +70,7 @@ trait ComponentsContainerTrait
         }
         $components = [];
 
-        foreach ($this->components as $key => $component) {
+        foreach ($this->getComponents() as $key => $component) {
             $components[] = $component;
             if ($component instanceof ComponentsContainerInterface) {
                 $subComponents = $component->toComponentsArray();
@@ -93,7 +93,7 @@ trait ComponentsContainerTrait
      */
     public function recalculateSubSurfaces()
     {
-        if (empty($this->components) || !$this->visible || !$this->surface) {
+        if (empty($this->getComponents()) || !$this->visible || !$this->surface) {
             return $this;
         }
 
@@ -109,8 +109,7 @@ trait ComponentsContainerTrait
         /* @fixme when PaddingBox and MarginBox will be used, then apply them
          * before passing to recalculateSurface method
          */
-            , $this->components);
+            , $this->getComponents());
         return $this;
     }
-
 }

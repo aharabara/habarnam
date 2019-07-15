@@ -40,7 +40,7 @@
       - [ ] ComponentBuilder
       - [ ] SurfaceBuilder
          - [ ] MarginBox
-         - [ ] PaddingBox
+         - [x] PaddingBox
       - [ ] Move focus from index to selector
       - [ ] Encapsulate child components into container (do not expose them anymore)
 

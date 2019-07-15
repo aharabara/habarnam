@@ -269,6 +269,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         $item->setStyles(Arr::only($this->baseStyles, ['color-pair']));
         $item->setOnFocusStyles(Arr::only($this->onFocusStyles, ['color-pair']));
+        return $this;
     }
 
     public function debugDraw(): void

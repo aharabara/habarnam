@@ -22,7 +22,7 @@ class ListItem extends Text
     protected $selected = false;
 
 
-    public function __construct(array $attrs)
+    public function __construct(array $attrs = [])
     {
         $this->value = $attrs['value'] ?? '';
         parent::__construct($attrs);
