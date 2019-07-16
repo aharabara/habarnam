@@ -83,21 +83,24 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             return;
         }
         switch ($key) {
-            case NCURSES_KEY_DOWN:
-                if ($this->focusedItem < count($this->components) - 1) {
-//                    if ($this->focusedItem > ($this->offset + $this->surface->height() - 3)) {
-//                        $this->scrollDown(1);
-//                        $this->recalculateSubSurfaces();
-//                        $this->surface->fill(' ');
-//                    } else {
+            case NCURSES_KEY_DOWN: /* @FIXME move to ScrollableTrait */
+                if ($this->focusedItem > ($this->surface->height() - 3)) {
+                    $this->scrollDown(1);
+                    $this->recalculateSubSurfaces();
+                    $this->surface->fill(' ');
+                } else {
                     $this->focusedItem++;
-//                    }
                 }
                 break;
-            case NCURSES_KEY_UP:
-                if ($this->getFocusedItem() > 0) {
+            case NCURSES_KEY_UP: /* @FIXME move to ScrollableTrait */
+                if ($this->focusedItem < 2 && $this->getScrollOffset() > 0) {
+                    $this->scrollUp(1);
+                    $this->recalculateSubSurfaces();
+                    $this->surface->fill(' ');
+                } elseif ($this->getFocusedItem() > 0) {
                     $this->focusedItem--;
                 }
+
                 break;
             case NCURSES_KEY_DC:
                 if ($this->itemsAreDeletable()) {

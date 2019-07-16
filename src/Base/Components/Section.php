@@ -83,14 +83,4 @@ class Section extends Square implements ComponentsContainerInterface
         }
         return $this->focused;
     }
-
-    /**
-     * @param bool $visible
-     * @return BaseComponent
-     */
-    public function visibility(bool $visible)
-    {
-        return parent::visibility($visible);
-    }
-
 }
