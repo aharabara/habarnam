@@ -330,58 +330,6 @@ class ViewRender
     }
 
     /**
-     * @param Surface $surf
-     * @param DrawableInterface $component
-     * @param int $offsetX
-     * @param int $offsetY
-     * @param int $perComponentWidth
-     * @param int $bottomRightY
-     *
-     * @return Surface
-     * @throws Exception
-     */
-    public static function getCalculatedSurface(
-        Surface $surf,
-        DrawableInterface $component,
-        int $offsetX,
-        int $offsetY,
-        int $perComponentWidth,
-        callable $bottomRightY
-    ): Surface
-    {
-        return Surface::fromCalc(
-            "{$surf->getId()}.children.{$component->getId()}",
-            static function () use ($offsetX, $surf, $offsetY) {
-                $topLeft = $surf->topLeft();
-
-                return new Position($topLeft->getX() + $offsetX, $topLeft->getY() + $offsetY);
-            },
-            static function () use (
-                $perComponentWidth,
-                $offsetX,
-                $offsetY,
-                $surf,
-                $component,
-                $bottomRightY
-            ) {
-                $width = $surf->bottomRight()->getX();
-                $topLeft = $surf->topLeft();
-
-                if ($component->displayType() === DrawableInterface::DISPLAY_INLINE) {
-                    $componentMinWidth = $component->width($surf->width(), $perComponentWidth);
-                    if ($componentMinWidth) {
-                        $width = $componentMinWidth + $topLeft->getX();
-                    }
-                }
-                $width += $offsetX;
-
-                /* @fixme Bottom right is not calculated properly on resize */
-                return new Position($width, $bottomRightY());
-            }
-        );
-    }
-
-    /**
      * @param string $templateID
      *
      * @return bool

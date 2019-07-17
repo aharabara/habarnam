@@ -4,11 +4,11 @@ namespace Base;
 
 use Analog\Analog;
 use Analog\Handler\File;
-use Analog\Handler\Ignore;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLElement;
 use Base\Core\Curse;
 use Base\Core\Installer;
+use Base\Core\Scheduler;
 use Base\Core\Terminal;
 use Base\Core\Traits\EventBusTrait;
 use Base\Core\Workspace;
@@ -17,12 +17,11 @@ use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\ConstantlyRefreshableInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
+use Base\Interfaces\Tasks;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
-use Dotenv\Dotenv;
 use Illuminate\Container\Container;
-use Illuminate\Contracts\View\View;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Application
@@ -55,9 +54,6 @@ class Application
     protected $render;
 
     /** @var bool */
-    protected static $redrawDone = false;
-
-    /** @var bool */
     protected $allowResize = false;
 
     /** @var Workspace */
@@ -88,9 +84,12 @@ class Application
         /* @todo move to separated classes and methods */
         require __DIR__ . '/../../bootstrap/app.php';
         require __DIR__ . '/../functions.php';
-        require getcwd(). '/shortcuts.php'; /* @todo refactor*/
+
+        /* @todo move to a ShortcutController? */
+        require getcwd() . '/shortcuts.php';
 
         $container = Container::getInstance();
+        $container->make(Scheduler::class); /* initialize scheduler */
 
         /** @var Installer $installer */
         $installer = $container->make(Installer::class);
@@ -113,7 +112,6 @@ class Application
      */
     public function getNonBlockCh(?int $timeout = null): ?int
     {
-        $wasUpdated = false;
         $read = [STDIN];
         $null = null;    // stream_select() uses references, thus variables are necessary for the first 3 parameters
         if (@stream_select($read, $null, $null, floor($timeout / 1000000), $timeout % 1000000) != 1) {
@@ -122,23 +120,14 @@ class Application
             $key = Curse::getCh();
         }
 
-        while ($key === 410) { // catch ALL repeating 410 keys
-            if (!$wasUpdated) {
-                if ($this->allowResize) { /* @todo optimize */
-                    Terminal::update();
-                    self::scheduleRedraw();
-                }
-                $wasUpdated = true;
+        if ($key === 401) { /* resize */
+            $this->demand(Tasks::REDRAW);
+
+            while ($key === 410) { // catch ALL repeating 410 keys
+                $key = Curse::getCh();
             }
-            $key = Curse::getCh();
-        }
-        if ($this->allowResize && $key === null) {
-            self::scheduleRedraw(); /* optimize */
-            $this->updateCounter++;
-            if ($this->updateCounter % $this->updateRate === 0) {
-                $this->updateCounter = 0;
-                Terminal::update();
-            }
+        } elseif ($this->allowResize && $key === null) {
+            $this->demand(Tasks::REDRAW);
         }
 
         $this->lastValidKey = $key ?? $this->lastValidKey;
@@ -156,10 +145,6 @@ class Application
     {
         ncurses_refresh(0);
         usleep($micros);
-        if (!self::$redrawDone) {
-            ncurses_erase();
-        }
-
         return $this;
     }
 
@@ -169,6 +154,12 @@ class Application
     {
         $this->currentComponentIndex = 0;
         try {
+            $this->listen(Tasks::REDRAW, function () {
+                Terminal::update();
+                ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
+            });
+            $this->demand(Tasks::REDRAW); // Initial redraw
+
             while (true) {
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
 
@@ -179,17 +170,14 @@ class Application
                 $components = $this->getDrawableComponents();
                 $this->refresh(10000);
 
-                $fullRedraw = !self::$redrawDone; // keep current state for current iteration
-                self::$redrawDone = true; // mark it as done, so if another redraw will be requested it will change its state
-                if ($fullRedraw) {
-                    ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
-                }
+                $fullRedraw = $this->wasDemanded(Tasks::REDRAW);
+                $this->runDemandedTasks([Tasks::REDRAW]);
 
                 foreach ($components as $key => $component) {
                     if (!$component->isVisible()) {
                         continue;
                     }
-                    Curse::color(Colors::BLACK_WHITE /* @todo bind this settings to <body/> tag*/);
+                    Curse::color(Colors::BLACK_WHITE/* @todo bind this settings to <body/> tag */);
 
                     /* @todo move all of this logic to renderer */
                     $this
@@ -202,10 +190,22 @@ class Application
                         // set component as focused / not focused.
                         ->handleComponentFocus($component, (int)$key);
 
-                    $this->drawComponent($key, $component, $pressedKey, $fullRedraw);
-                }
-                if ($pressedKey){
-                    $t = $pressedKey;
+                    if ($this->debug) {
+                        //$this->debugger = new Debugger($this->getCurrentDocument());
+                        //foreach ($this->debugger->toComponentsArray() as $item) {
+                        //    $item->draw($key);
+                        //}
+                        $component->debugDraw();
+                        $this->demand(Tasks::REDRAW);
+                        continue;
+                    }
+                    if ($this->currentComponentIndex === (int)$key) {
+                        $component->draw($pressedKey);
+                    } elseif ($component instanceof ConstantlyRefreshableInterface) {
+                        $component->draw(null);
+                    } elseif ($fullRedraw) {
+                        $component->draw(null);
+                    }
                 }
             }
         } catch (\Throwable $exception) {
@@ -220,30 +220,30 @@ class Application
      */
     protected function handleKeyPress(?int $key): bool
     {
-        $this->dispatch(self::EVENT_KEYPRESS.'.'.$key, [$key]);
+        $this->dispatch(self::EVENT_KEYPRESS . '.' . $key, [$key]);
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         } elseif ($key === 24 /* ctrl + x */) {
             Curse::exit();
             die;
         } elseif ($this->allowDebug && $key === NCURSES_KEY_F1) {
             $this->debug = !$this->debug;
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         } elseif ($key === NCURSES_KEY_F3) {
             $this->allowResize = !$this->allowResize;
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         } elseif ($key === 27 /* ESC key*/) {
             Curse::exit();
         } elseif ($key === NCURSES_KEY_F5 || $key === 18 /* ctrl + R */) {
             $this->render->refreshDocuments();
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         } elseif ($key === NCURSES_KEY_F12) {
 //            $this->render->showDebugBar();
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         } elseif ($key === NCURSES_KEY_BTAB) {
             $this->currentComponentIndex--;
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         } else {
             return false;
         }
@@ -346,37 +346,9 @@ class Application
         }
         // to prevent glitches
         Curse::fillSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
-        self::scheduleRedraw();
+        $this->demand(Tasks::REDRAW);
 
         return $this;
-    }
-
-    /**
-     * @param               $key
-     * @param BaseComponent $component
-     * @param int|null $pressedKey
-     * @param bool $fullRedraw
-     * @todo move to renderer
-     */
-    protected function drawComponent($key, BaseComponent $component, ?int $pressedKey, bool $fullRedraw = false): void
-    {
-        if ($this->debug) {
-            //$this->debugger = new Debugger($this->getCurrentDocument());
-            //foreach ($this->debugger->toComponentsArray() as $item) {
-            //    $item->draw($key);
-            //}
-            $component->debugDraw();
-            self::scheduleRedraw();
-
-            return;
-        }
-        if ($this->currentComponentIndex === (int)$key) {
-            $component->draw($pressedKey);
-        } elseif ($component instanceof ConstantlyRefreshableInterface) {
-            $component->draw(null);
-        } elseif ($fullRedraw) {
-            $component->draw(null);
-        }
     }
 
     /**
@@ -401,10 +373,10 @@ class Application
         $containers = $this->render->template($this->currentView)->allContainers();
         if (!in_array($this->currentView, $this->initializedViews, true)) {
             $this->initializedViews[] = $this->currentView;
-            foreach ($this->getDrawableComponents(...$containers) as $component){
+            foreach ($this->getDrawableComponents(...$containers) as $component) {
                 $component->dispatch(BaseComponent::EVENT_LOAD, [$component]);
             }
-            self::scheduleRedraw();
+            $this->demand(Tasks::REDRAW);
         }
 
         return $containers;
@@ -419,14 +391,9 @@ class Application
     {
         $components = $this->getDrawableComponents();
         $this->currentComponentIndex = array_search($component, $components, true);
-        self::scheduleRedraw();
+        $this->demand(Tasks::REDRAW);
 
         return $this;
-    }
-
-    public static function scheduleRedraw(): void
-    {
-        self::$redrawDone = false;
     }
 
     /**

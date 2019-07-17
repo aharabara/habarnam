@@ -3,12 +3,13 @@
 namespace Base\Components\OrderedList;
 
 use Base\Core\BaseComponent;
+use Base\Core\Scheduler;
 use Base\Core\Traits\ComponentsContainerTrait;
 use Base\Core\Traits\ScrollableTrait;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Interfaces\FocusableInterface;
-use Base\Interfaces\ScrollableInterface;
+use Base\Interfaces\Tasks;
 use Base\Primitives\Surface;
 use Illuminate\Support\Arr;
 
@@ -36,11 +37,6 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     /** @var bool */
     protected $itemsAreDeletable = false;
 
-    /** @var array */
-    protected $baseStyles = [];
-
-    /** @var array */
-    protected $onFocusStyles = [];
 
     /**
      * OrderedList constructor.
@@ -255,15 +251,16 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         foreach ($components as $key => $component) {
             $this->addComponent($component, $key);
         }
+        Scheduler::demand(Tasks::REDRAW);
     }
 
     public function setStyles(array $styles)
     {
         $this->baseStyles = $styles;
         /* !!! @TODO  make style inheritance via setStyles, but delay child style applying */
-        foreach ($this->components as $item) {
-            $item->setStyles($styles);
-        }
+//        foreach ($this->components as $item) {
+//            $item->setStyles($styles);
+//        }
 
         return parent::setStyles($styles);
     }
@@ -272,9 +269,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         $this->onFocusStyles = $styles;
         /* !!! @TODO  make style inheritance via setOnFocusStyles, but delay child style applying */
-        foreach ($this->components as $item) {
-            $item->setOnFocusStyles($styles);
-        }
+//        foreach ($this->components as $item) {
+//            $item->setOnFocusStyles($styles);
+//        }
 
         return parent::setStyles($styles);
     }
@@ -315,7 +312,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     protected function selectByIndex(int $index): self
     {
         $this->unselectAll();
-        $this->components[$index]->selected(true);
+        if ($this->components[$index]){
+            $this->components[$index]->selected(true);
+        }
 
         return $this;
     }

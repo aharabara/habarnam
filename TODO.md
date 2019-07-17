@@ -57,8 +57,9 @@
  - [ ] CheckBox
 
 #### v0.8.0
-   - [ ] ScrollableComponentInterface
+   - [ ] ScrollableTrait
    - [ ] Scrolling in:
+       - [X] Ordered list
        - [ ] Textarea
        - [ ] SelectBox
        - [ ] CheckBox

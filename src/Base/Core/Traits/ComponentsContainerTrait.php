@@ -8,7 +8,6 @@ use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
-use Base\Styles\PaddingBox;
 
 trait ComponentsContainerTrait
 {
@@ -32,6 +31,7 @@ trait ComponentsContainerTrait
         } else {
             $this->components[] = $component;
         }
+
         $component->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () {
             $this->recalculateSubSurfaces();
         });
@@ -65,6 +65,7 @@ trait ComponentsContainerTrait
      */
     public function getVisibleComponents(): array
     {
+        $this->runDemandedTasks([BaseComponent::EVENT_TOGGLE_VISIBILITY]);
         return array_filter($this->components, function (BaseComponent $component) {
             return $component->isVisible();
         });

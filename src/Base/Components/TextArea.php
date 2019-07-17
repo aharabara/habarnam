@@ -4,8 +4,10 @@ namespace Base\Components;
 
 use Base\Core\Curse;
 use Base\Core\Cursor;
+use Base\Core\Scheduler;
 use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
+use Base\Interfaces\Tasks;
 
 class TextArea extends Text implements FocusableInterface
 {
@@ -73,6 +75,7 @@ class TextArea extends Text implements FocusableInterface
     public function setText(?string $text = ''): self
     {
         $this->clearCache();
+        Scheduler::demand(Tasks::REDRAW);
         $this->text = $text;
 
         return $this;
