@@ -1,0 +1,21 @@
+/* RESET */
+hr,
+ol,
+div, section,
+input, label, textarea
+{
+    display: block;
+}
+
+li, input, label {
+    display: block;
+    background: white;
+    color: red;
+    height: 1px;
+}
+
+
+li:focus, input:focus{
+    background: red;
+    color: white;
+}

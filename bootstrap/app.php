@@ -20,6 +20,7 @@ $container->singleton(Workspace::class);
 $container->singleton(Installer::class);
 $container->singleton(ViewRender::class);
 $container->singleton(Workspace::class);
+$container->singleton(Capsule::class);
 
 $workspace = $container->make(Workspace::class);
 
@@ -28,13 +29,14 @@ $workspace = $container->make(Workspace::class);
 /** Create database or just touch it. */
 $workspace->touch('database.sqlite');
 
-$capsule = new Capsule();
+$capsule = Container::getInstance()->make(Capsule::class);
 
 
 $capsule->addConnection([
     'driver' => 'sqlite',
     'foreign_key_constraints' => true,
-    'database' => $workspace->workspacePath('/database.sqlite'),
+//    'database' => $workspace->workspacePath('/database.sqlite'),
+    'database' => getcwd() . '/database.sqlite',
     'username' => 'root',
     'password' => 'password',
     'charset' => 'utf8',
@@ -52,14 +54,11 @@ $capsule->setAsGlobal();
 $capsule->bootEloquent();
 
 
-$migrationsFolder = is_dir(Workspace::resourcesPath("/migrations/"));
-if ($migrationsFolder) {
-    $dir = new DirectoryIterator(Workspace::resourcesPath("/migrations/"));
-    print "Migrating : \n";
-    foreach ($dir as $file) {
-        if ($file->isFile() && $file->getExtension() === "php") {
-            print " - {$file->getRealPath()}\n";
-            require $file->getRealPath();
-        }
-    }
-}
+//$phpBinaryFinder = new PhpExecutableFinder();
+//$phpBinaryPath = $phpBinaryFinder->find();
+//
+//$process = new Process([$phpBinaryPath, __DIR__."/queue.php"]);
+//$process->start();
+//sleep(20);
+
+

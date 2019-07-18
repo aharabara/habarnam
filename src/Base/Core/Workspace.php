@@ -6,7 +6,7 @@ class Workspace
 {
     /** @var ?string[] */
     public $config = [];
-    
+
     /** @var string */
     protected $folderName;
 
@@ -29,7 +29,7 @@ class Workspace
     {
         $this->createDir("$this->home/.config");
         $this->createDir($this->workspacePath());
-        
+
         file_put_contents("$this->home/.config/{$this->folderName}/$filePath", serialize($content));
         return $this;
     }
@@ -102,7 +102,7 @@ class Workspace
         }
         return $this;
     }
-    
+
     public function __destruct()
     {
         $this->save();
@@ -131,7 +131,16 @@ class Workspace
      */
     public static function resourcesPath(?string $path = null): string
     {
-        return self::projectRoot()."/resources/".trim($path, "/");
+        return self::rootPath("/resources/$path");
+    }
+
+    /**
+     * @param string|null $path
+     * @return string
+     */
+    public static function rootPath(?string $path = null): string
+    {
+        return self::projectRoot() . "/" . trim($path, "/");
     }
 
     /**
@@ -140,6 +149,6 @@ class Workspace
      */
     public function workspacePath(?string $path = null): string
     {
-        return "$this->home/.config/{$this->folderName}/".trim($path, "/");
+        return "$this->home/.config/{$this->folderName}/" . trim($path, "/");
     }
 }
