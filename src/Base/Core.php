@@ -2,6 +2,7 @@
 
 namespace Base;
 
+use \Container;
 use Analog\Analog;
 use Analog\Handler\File;
 use Base\Core\BaseComponent;
@@ -21,10 +22,11 @@ use Base\Interfaces\Tasks;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
-use Illuminate\Container\Container;
 use Symfony\Component\CssSelector\CssSelectorConverter;
+use Symfony\Component\Process\PhpExecutableFinder;
+use Symfony\Component\Process\Process;
 
-class Application
+class Core
 {
     use EventBusTrait;
     const EVENT_KEYPRESS = 'keypress';
@@ -100,7 +102,14 @@ class Application
             $installer->run();
         }
 
-        $container->make(Application::class)
+
+        $phpBinaryFinder = new PhpExecutableFinder();
+        $phpBinaryPath = $phpBinaryFinder->find();
+
+        $process = new Process([$phpBinaryPath, __DIR__."/../../../habarnam/bootstrap/bin.php", "queue:work" ]);
+        $process->start();
+
+        $container->make(Core::class)
             ->debug($debug)
             ->handle();
     }
@@ -138,7 +147,7 @@ class Application
     /**
      * @param int $micros
      *
-     * @return Application
+     * @return Core
      * @todo move to Curse:class
      */
     public function refresh(int $micros): self
@@ -354,12 +363,12 @@ class Application
     /**
      * @param bool $debug
      *
-     * @return Application
+     * @return Core
      */
     public function debug(bool $debug): self
     {
         $this->allowDebug = $debug;
-        \Analog::handler(File::init(Workspace::projectRoot() . '/logs/debug.log'));
+        \Analog::handler(File::init(Workspace::rootPath('/storage/logs/debug.log')));
 
         return $this;
     }

@@ -57,7 +57,7 @@ class MakeCommand extends Command
 
         if ($type === 'migration') {
             $fileName = date('Y_m_d_') . time() . '_' . Str::snake($className) . '.php';
-            $path = Workspace::rootPath("database/migrations");
+            $path = Workspace::rootPath("/app/database/migrations");
         } else {
             $fileName = "$className.php";
             $path = Workspace::rootPath("/src/" . Str::studly($type));

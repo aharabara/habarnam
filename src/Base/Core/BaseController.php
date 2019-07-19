@@ -1,12 +1,12 @@
 <?php
 namespace Base\Core;
 
-use Base\Application;
+use Base\Core;
 use Base\Interfaces\DrawableInterface;
 
 abstract class BaseController
 {
-    /** @var Application */
+    /** @var Core */
     private $app;
     
     /** @var Workspace */
@@ -14,10 +14,10 @@ abstract class BaseController
 
     /**
      * BaseController constructor.
-     * @param Application $app
+     * @param Core $app
      * @param Workspace $workspace
      */
-    public function __construct(Application $app, Workspace $workspace){
+    public function __construct(Core $app, Workspace $workspace){
         $this->app = $app;
         $this->workspace = $workspace;   
     }

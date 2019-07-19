@@ -1,33 +1,38 @@
 {
-    "name": "aharabara/habarnam",
-    "description": "Ncurses wrapper for fast TUI building",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "aharabara",
-            "email": "dev.xandr@gmail.com"
-        }
-    ],
-    "minimum-stability": "dev",
-    "require": {
-        "ext-ncurses": "*",
-        "ext-ctype": "*",
-        "ext-mbstring": "*",
-        "ext-simplexml": "*",
-        "sabberworm/php-css-parser": "^8.3",
-        "symfony/css-selector": "^4.2",
-        "analog/analog": "^1.0",
-        "vlucas/phpdotenv": "^3.4@dev",
-        "illuminate/database": "^5.9@dev",
-        "illuminate/events": "^5.9@dev",
-        "symfony/process": "^5.0@dev",
-        "illuminate/queue": "*",
-        "illuminate/filesystem": "^5.9@dev"
-    },
-    "autoload": {
-        "psr-4": {
-            "" : "src"
-        }
+  "name": "aharabara/habarnam",
+  "description": "Ncurses wrapper for fast TUI building",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "aharabara",
+      "email": "dev.xandr@gmail.com"
     }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "ext-ncurses": "*",
+    "ext-ctype": "*",
+    "ext-mbstring": "*",
+    "ext-simplexml": "*",
+    "sabberworm/php-css-parser": "^8.3",
+    "analog/analog": "^1.0",
+    "vlucas/phpdotenv": "3.*",
+    "illuminate/database": "5.*",
+    "illuminate/events": "5.*",
+    "illuminate/queue": "5.*",
+    "illuminate/filesystem": "5.*",
+    "illuminate/config": "5.*",
+    "symfony/css-selector": "^4.2",
+    "symfony/process": "4.*",
+    "illuminate/console": "*",
+    "illuminate/cache": "*",
+    "illuminate/bus": "*",
+    "popphp/pop-mail": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "": "src"
+    }
+  }
 }

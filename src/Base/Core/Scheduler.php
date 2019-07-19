@@ -2,11 +2,11 @@
 
 namespace Base\Core;
 
-use Base\Application;
+use Base\Core;
 
 class Scheduler
 {
-    /** @var Application */
+    /** @var Core */
     protected $application;
 
     /** @var Scheduler */
@@ -14,9 +14,9 @@ class Scheduler
 
     /**
      * Scheduler constructor.
-     * @param Application $application
+     * @param Core $application
      */
-    public function __construct(Application $application)
+    public function __construct(Core $application)
     {
         $this->application = $application;
         if (self::$instance) {

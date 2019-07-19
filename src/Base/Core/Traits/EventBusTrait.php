@@ -4,7 +4,7 @@ namespace Base\Core\Traits;
 
 use Base\Core\BaseController;
 use Base\Interfaces\Tasks;
-use Illuminate\Container\Container;
+use Container;
 
 trait EventBusTrait
 {
@@ -90,7 +90,7 @@ trait EventBusTrait
         if (is_array($listener)) {
             [$class, $method] = $listener;
             $controller = $this->controller($class);
-            $controller->$method(...$params);
+            Container::getInstance()->call([$controller,$method], $params);
         } else {
             $listener(...$params);
         }

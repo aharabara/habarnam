@@ -2,7 +2,7 @@
 
 namespace Base\Services;
 
-use Base\Application;
+use Base\Core;
 use Base\Builders\SurfaceBuilder;
 use Base\Components\Animation;
 use Base\Components\Button;
@@ -30,7 +30,6 @@ use Base\Primitives\Surface;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
 use Exception;
-use Illuminate\Container\Container;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Sabberworm\CSS\Parser;
@@ -275,7 +274,7 @@ class ViewRender
             if (strpos($key, 'on.') === 0) {
                 if (strpos($entry, '#') === 0) {
                     $component->listen(substr($key, 3), static function () use ($entry) {
-                        Container::getInstance()->make(Application::class)->switchTo(substr($entry, 1));
+                        Container::getInstance()->make(Core::class)->switchTo(substr($entry, 1));
                     });
                 } else {
                     [$class, $method] = explode('@', $entry);
