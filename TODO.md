@@ -31,34 +31,40 @@
 #### v0.4.5
    - [x] CSS files for components instead of xml attributes
 
-#### v0.5.0
-   - [x] Script to create project tree for easy start
-   - [ ] XML tree update for dynamical elements (append on event if no mapping was specified)
-   - [ ] Iframe to load another view. (need to think)
-   - [ ] Refactor Application and app.php
-   - [ ] Move some logic from ViewRender to Builders
-      - [ ] ComponentBuilder
-      - [X] SurfaceBuilder
-         - [x] PaddingBox
-         - [X] MarginBox
-      - [ ] Move focus from index to selector
-      - [ ] Encapsulate child components into container (do not expose them anymore)
-
-#### V0.6.0
+#### V0.4.7
  - [X] Container
  - [x] Eloquent and SQLite
  - [x] Queue process for delayed tasks
  - [x] Add migrations
- - [ ] Loading state (overlay?) for component
-   
+ - [X] Loading state (overlay?) for component
+    - [X] Done using position:relative
+
+#### v0.5.0
+   - [x] Script to create project tree for easy start
+   - [ ] Refactor Application and app.php
+   - [ ] Move some logic from ViewRender to Builders
+      - [X] SurfaceBuilder
+         - [x] PaddingBox
+         - [X] MarginBox
+      - [ ] ComponentBuilder
+      - [ ] Move focus from index to selector
+      - [ ] Encapsulate child components into container (do not expose them anymore)
+
+#### V0.6.6
+  - [ ] Fix position:relative and position:absolute
+  - [ ] Fix password input displaying
+  - [ ] Update htodo app.
+ 
 #### v0.7.0
+ - [ ] XML tree update for dynamical elements (append on event if no mapping was specified)
+ - [ ] Iframe to load another view. (need to think)
  - [ ] Notifications
  - [ ] TemporaryComponentInterface
  - [ ] SelectBox
  - [ ] CheckBox
 
 #### v0.8.0
-   - [ ] ScrollableTrait
+   - [X] ScrollableTrait
    - [ ] Scrolling in:
        - [X] Ordered list
        - [ ] Textarea
