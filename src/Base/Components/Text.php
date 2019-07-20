@@ -4,6 +4,7 @@ namespace Base\Components;
 
 use Base\Core\BaseComponent;
 use Base\Core\Curse;
+use Base\Core\Workspace;
 
 class Text extends BaseComponent
 {
@@ -33,7 +34,8 @@ class Text extends BaseComponent
     public function __construct(array $attrs)
     {
         if (isset($attrs['from'])) {
-            $this->text = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . ltrim($attrs['from'], './'));
+            /* @fixme replace with Filesystem::class */
+            $this->text = file_get_contents(Workspace::resourcesPath(ltrim($attrs['from'], './')));
         } else {
             $this->text = $attrs['text'] ?? '';
         }

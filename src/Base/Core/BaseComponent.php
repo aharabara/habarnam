@@ -97,11 +97,4 @@ abstract class BaseComponent implements DrawableInterface
         /* @fixme add this to debug mode */
     }
 
-    /**
-     * @return bool
-     */
-    public function isVisible(): bool
-    {
-        return $this->visible;
-    }
 }

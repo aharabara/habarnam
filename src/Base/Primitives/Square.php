@@ -77,7 +77,6 @@ class Square extends BaseComponent
      */
     public function setStyles(array $styles)
     {
-        $this->infill = $styles['content'] ?? $this->infill;
         $this->borderColorPair = $styles['border-color-pair'] ?? $styles['color-pair'] ?? Colors::BLACK_WHITE;
         return parent::setStyles($styles);
     }

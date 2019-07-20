@@ -16,10 +16,4 @@ class Divider extends Text
         $this->text = str_repeat($this->infill, $this->surface->width());
         parent::draw($key);
     }
-    
-    public function setStyles(array $styles)
-    {
-        $this->infill = $styles['content'] ?? $this->infill;
-        return parent::setStyles($styles);
-    }
 }

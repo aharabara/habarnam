@@ -3,8 +3,10 @@
 namespace Base\Core\Traits;
 
 use Base\Core\ComplexXMLElement;
+use Base\Core\Scheduler;
 use Base\Interfaces\Colors;
 use Base\Interfaces\DrawableInterface;
+use Base\Interfaces\Tasks;
 use Base\Services\ViewRender;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
@@ -58,6 +60,11 @@ trait StylableTrait
     /** @var ComplexXMLElement|null */
     protected $xmlNode;
 
+    /** @var string */
+    protected $positionType = DrawableInterface::POSITION_STATIC;
+
+    protected $infill = null;
+
 
     /**
      * @param string $type
@@ -71,6 +78,11 @@ trait StylableTrait
             || in_array($type, DrawableInterface::INLINE_DISPLAY_TYPES)
         ) {
             $this->displayType = $type;
+            return $this;
+        }
+        if ($type === DrawableInterface::DISPLAY_NONE){
+            $this->displayType = $type;
+            Scheduler::demand(Tasks::FULL_REDRAW);
             return $this;
         }
         throw new \UnexpectedValueException("Invalid display type '$type'.");
@@ -137,6 +149,14 @@ trait StylableTrait
     }
 
     /**
+     * @return bool
+     */
+    public function isVisible(): bool
+    {
+        return $this->visible && $this->displayType !== DrawableInterface::DISPLAY_NONE;
+    }
+
+    /**
      * @return string
      */
     public function displayType(): string
@@ -158,6 +178,34 @@ trait StylableTrait
     public function paddingBox()
     {
         return $this->padding;
+    }
+
+    /**
+     * @param string $positionType
+     * @return static
+     */
+    public function setPosition(string $positionType)
+    {
+        if (!in_array($positionType, DrawableInterface::POSITIONS)) {
+            throw new \UnexpectedValueException("Position type '$positionType' is not valid.");
+        }
+        $this->positionType = $positionType;
+        return $this;
+    }
+
+    public function position()
+    {
+        return $this->positionType;
+    }
+
+    /**
+     * @param string $infill
+     * @return static
+     */
+    public function setInfill(string $infill)
+    {
+        $this->infill = $infill;
+        return $this;
     }
 
     /**
@@ -211,6 +259,13 @@ trait StylableTrait
         $this->padding = $padding ? new PaddingBox(...$padding) : $this->padding;
 
         $this->visible = $styles['visibility'] ?? $this->visible;
+        if (!empty($styles['position'])) {
+            $this->setPosition($styles['position']);
+        }
+        if (!empty($styles['content'])) {
+            $this->setInfill($styles['content']);
+        }
+
         $this->display($styles['display'] ?? null);
         $this->colorPair = $styles['color-pair'] ?? $this->colorPair ?? Colors::BLACK_YELLOW;
         $this->height = $styles['height'] ?? $this->height;

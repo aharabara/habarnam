@@ -3,6 +3,7 @@
 namespace Base\Components;
 
 use Base\Interfaces\ConstantlyRefreshableInterface;
+use Base\Interfaces\DrawableInterface;
 use Base\Styles\MarginBox;
 
 class Animation extends Text implements ConstantlyRefreshableInterface
@@ -49,10 +50,23 @@ class Animation extends Text implements ConstantlyRefreshableInterface
                 }
                 if ($this->repetitions === 0) {
                     $this->dispatch(self::EVENT_ANIMATION_END, [$this]);
+                    $this->display(DrawableInterface::DISPLAY_NONE);
                 }
             }
         }
         return parent::getLines($this->frames[$this->currentFrame]);
+    }
+
+    /**
+     * @param int|null $key
+     * @throws \Exception
+     */
+    public function draw(?int $key): void
+    {
+        if (!empty($this->infill)) {
+            $this->surface->fill($this->infill);
+        }
+        parent::draw($key);
     }
 
     /**

@@ -7,9 +7,20 @@ use Base\Primitives\Surface;
 
 interface DrawableInterface
 {
+    public const POSITION_STATIC = 'static';
+    public const POSITION_RELATIVE = 'relative';
+    public const POSITION_ABSOLUTE = 'absolute';
+
+    public const POSITIONS = [
+        self::POSITION_ABSOLUTE,
+        self::POSITION_RELATIVE,
+        self::POSITION_STATIC,
+    ];
+
     public const DISPLAY_BLOCK = 'block';
     public const DISPLAY_INLINE = 'inline';
     public const DISPLAY_COMPACT = 'compact';
+    public const DISPLAY_NONE = 'none';
 
     public const BLOCK_DISPLAY_TYPES = [self::DISPLAY_BLOCK, self::DISPLAY_COMPACT];
     public const INLINE_DISPLAY_TYPES = [self::DISPLAY_INLINE];

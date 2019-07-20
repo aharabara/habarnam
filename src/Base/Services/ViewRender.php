@@ -59,6 +59,8 @@ class ViewRender
 
     /** @var string */
     protected $basePath;
+
+    /** @var Template[] */
     protected $templates = [];
 
 
@@ -144,7 +146,7 @@ class ViewRender
 
             foreach ($body->children() as $panelNode) {
                 $container = $this->containerFromNode($template, $panelNode);
-                $template->addContainers($container, $container->getId());
+                $template->addContainers($container);
             }
             $this->templates[$templateId] = $template;
             $this->applyStyle($head);
@@ -299,10 +301,19 @@ class ViewRender
                 continue;
             }
 
-            if (in_array($component->displayType(), DrawableInterface::BLOCK_DISPLAY_TYPES)) {
-                $builder->under($previousSurface);
-            } elseif (in_array($component->displayType(), DrawableInterface::INLINE_DISPLAY_TYPES)) {
-                $builder->after($previousSurface);
+            $parentSurface = $previousSurface; /* default case (position:static) */
+            if($component->position() === DrawableInterface::POSITION_RELATIVE){
+                $parentSurface = $baseSurf;
+            }if($component->position() === DrawableInterface::POSITION_ABSOLUTE){
+                $parentSurface = $baseSurf; // @todo at the moment they both are handled in the same way
+                /* @fixme search for closest absolute positioned container or take body(fullscreen) surface*/
+            }
+            if ($component->position() === DrawableInterface::POSITION_STATIC){
+                if (in_array($component->displayType(), DrawableInterface::BLOCK_DISPLAY_TYPES)) {
+                    $builder->under($parentSurface);
+                } elseif (in_array($component->displayType(), DrawableInterface::INLINE_DISPLAY_TYPES)) {
+                    $builder->after($parentSurface);
+                }
             }
 
             $surf = $builder
