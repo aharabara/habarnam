@@ -1,15 +1,15 @@
 <?php
 
-return '
+return '<?php
 namespace App\Controllers;
 
-use Base\Application;
+use Base\Core;
 use Base\Core\BaseController;
 use Base\Core\Workspace;
 
 class ' . $className . ' extends BaseController
 {
-    public function __construct(Application $app, Workspace $workspace)
+    public function __construct(Core $app, Workspace $workspace)
     {
         parent::__construct($app, $workspace);
     }

@@ -51,9 +51,6 @@ $container->alias(Dispatcher::class, 'events');
 
 $app = new Application($container, $dispatcher, '1.0');
 
-$container->alias($app, 'app');
-
-
 $configRepo = new Config(Workspace::rootPath("/app/config/"));
 $container->singleton(Config::class, function () use ($configRepo) {
     return $configRepo;

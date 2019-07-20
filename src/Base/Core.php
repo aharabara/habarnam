@@ -146,32 +146,15 @@ class Core
     }
 
     /**
-     * @param int $micros
-     *
-     * @return Core
-     * @todo move to Curse:class
-     */
-    public function refresh(int $micros): self
-    {
-        ncurses_refresh(0);
-        usleep($micros);
-        return $this;
-    }
-
-    /**
      */
     public function handle(): void
     {
         $this->currentComponentIndex = 0;
         try {
-            $this->listen(Tasks::FULL_REDRAW, function () {
-                Terminal::update();
-                ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
-            });
+            $this->setupCoreTasks();
             $this->demand(Tasks::FULL_REDRAW); // Initial redraw
             while (true) {
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
-
                 if ($this->handleKeyPress($pressedKey)) {
                     $pressedKey = null;
                 }
@@ -183,7 +166,7 @@ class Core
                 $timeToWait = Utils::withinTime(10000, function () {
                     $this->runDemandedTasks([Tasks::FULL_REDRAW]);
                 });
-                $this->refresh($timeToWait);
+                Curse::refresh($timeToWait);
 
                 foreach ($components as $key => $component) {
                     if (!$component->isVisible()) {
@@ -191,7 +174,7 @@ class Core
                     }
                     Curse::color(Colors::BLACK_WHITE/* @todo bind this settings to <body/> tag */);
 
-                    /* @todo move all of this logic to renderer */
+                    /* @note replace focus logic with FocusableInterface and in-document focus attribute*/
                     $this
                         // if it is a window with focus, then skip it
                         ->handleNonFocusableComponents($component, $key)
@@ -212,6 +195,7 @@ class Core
                         continue;
                     }
 
+                    /* @note move to ViewRenderer */
                     if ($this->currentComponentIndex === (int)$key) {
                         $component->draw($pressedKey);
                     } elseif ($component instanceof ConstantlyRefreshableInterface) {
@@ -222,6 +206,7 @@ class Core
                 }
             }
         } catch (\Throwable $exception) {
+            /* @note catch with ExceptionHandler*/
             Analog::error($exception->getMessage() . "\n" . $exception->getTraceAsString());
         }
     }
@@ -233,6 +218,7 @@ class Core
      */
     protected function handleKeyPress(?int $key): bool
     {
+        /** @note replace handleKeyPress functions with KeyPressHandler::class */
         $this->dispatch(self::EVENT_KEYPRESS . '.' . $key, [$key]);
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
@@ -397,7 +383,7 @@ class Core
 
     /**
      * @param DrawableInterface $component
-     *
+     * @note move to Template:class
      * @return $this
      */
     public function focusOn(DrawableInterface $component): self
@@ -412,7 +398,7 @@ class Core
     /**
      * @param string $selector
      * @param string|null $view
-     *
+     * @note move to Template:class
      * @return BaseComponent[]
      */
     public function findAll(string $selector, ?string $view = null): array
@@ -433,7 +419,7 @@ class Core
     /**
      * @param string $selector
      * @param string|null $view
-     *
+     * @note move to Template:class
      * @return BaseComponent|null
      */
     public function findFirst(string $selector, ?string $view = null): ?BaseComponent
@@ -462,6 +448,7 @@ class Core
     /**
      * @param string $event
      * @param callable $callback
+     * @note move to Template:class
      */
     public function on(string $event, $callback)
     {
@@ -471,6 +458,14 @@ class Core
     public function __destruct()
     {
         Curse::exit();
+    }
+
+    protected function setupCoreTasks(): void
+    {
+        $this->listen(Tasks::FULL_REDRAW, function () {
+            Terminal::update();
+            ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
+        });
     }
 
 }

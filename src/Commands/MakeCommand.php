@@ -60,7 +60,7 @@ class MakeCommand extends Command
             $path = Workspace::rootPath("/app/database/migrations");
         } else {
             $fileName = "$className.php";
-            $path = Workspace::rootPath("/src/" . Str::studly($type));
+            $path = Workspace::rootPath("/src/" . Str::pluralStudly($type));
         }
 
 

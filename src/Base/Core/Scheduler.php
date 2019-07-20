@@ -30,16 +30,20 @@ class Scheduler
      */
     public static function demand(string $task)
     {
-        self::$instance->application->demand($task);
+        if (self::$instance) { /* @fixme  throw exception */
+            self::$instance->application->demand($task);
+        }
     }
 
     /**
      * @param string $task
      * @return bool
      */
-    public static function wasDemand(string $task):bool
+    public static function wasDemand(string $task): bool
     {
-        return self::$instance->application->wasDemanded($task);
+        if (self::$instance) {
+            return self::$instance->application->wasDemanded($task);
+        }
     }
 
 }

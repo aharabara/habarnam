@@ -4,6 +4,9 @@ namespace Base\Core;
 
 use Base\Interfaces\ComponentsContainerInterface;
 
+/*
+ * @note rename to Document:class
+ */
 class Template
 {
     /** @var ComponentsContainerInterface[] */

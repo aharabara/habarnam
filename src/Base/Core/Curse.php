@@ -99,4 +99,13 @@ class Curse
             ncurses_addstr($infill);
         }
     }
+
+    /**
+     * @param int $micros
+     */
+    public static function refresh(int $micros)
+    {
+        ncurses_refresh(0);
+        usleep($micros);
+    }
 }

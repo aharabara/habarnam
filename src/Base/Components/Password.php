@@ -20,4 +20,21 @@ class Password extends Input
         $this->handleKeyPress($key);
         $this->defaultRender($this->mbStrPad(str_repeat('*', mb_strlen($this->text)), $length, '_'));
     }
+
+    /**
+     * @return string
+     */
+    public function getHash(): string
+    {
+        return password_hash($this->text, PASSWORD_ARGON2I);
+    }
+
+    /**
+     * @param string $hash
+     * @return bool
+     */
+    public function verify(string $hash): bool
+    {
+        return password_verify($this->text, $hash);
+    }
 }

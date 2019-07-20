@@ -69,6 +69,7 @@ class ViewRender
      */
     public function __construct()
     {
+        /* @note move to configuration file */
         self::registerComponent('figure', Animation::class);
         self::registerComponent('hr', Divider::class);
         self::registerComponent('p', Text::class);
@@ -145,10 +146,12 @@ class ViewRender
             $template = new Template($templateId);
 
             foreach ($body->children() as $panelNode) {
+                /* @note move to ComponentBuilder:class */
                 $container = $this->containerFromNode($template, $panelNode);
                 $template->addContainers($container);
             }
             $this->templates[$templateId] = $template;
+            /* @note move to ComponentBuilder:class */
             $this->applyStyle($head);
 
         } else {
@@ -160,7 +163,8 @@ class ViewRender
 
     /**
      * @param SimpleXMLElement $node
-     *
+     * @note move to BaseComponent::getAttributes
+     * @note add something like setAttribute('focused', true) inside setFocused(true) so we will be able to use xpath as [focused=true]
      * @return array
      */
     protected function getAttributes(SimpleXMLElement $node): array
@@ -181,6 +185,7 @@ class ViewRender
      *
      * @return ComponentsContainerInterface
      * @throws \ReflectionException
+     * @note move to ComponentBuilder:class
      */
     protected function containerFromNode(Template $template, ComplexXMLElement $node): ComponentsContainerInterface
     {
@@ -256,6 +261,8 @@ class ViewRender
     }
 
     /**
+     * @note move to EventHandler:class? Something like EventHandler::registerComponentBindings($component)
+     * @note replace $attrs with $component->getAttributes()
      * @param DrawableInterface $component
      * @param string[] $attrs
      */
@@ -366,6 +373,8 @@ class ViewRender
     }
 
     /**
+     * @note move to Template::class
+     * @note split into smaller methods
      * @param SimpleXMLElement $head
      */
     protected function applyStyle(SimpleXMLElement $head): void
@@ -418,7 +427,7 @@ class ViewRender
 
     /**
      * @param Rule[] $rules
-     *
+     * @note to Template::class (or its subclass)
      * @return array
      */
     protected function getCssProperties(Rule ...$rules): array
@@ -484,6 +493,7 @@ class ViewRender
 
     /**
      * @return $this
+     * @note to Template::class
      */
     public function refreshDocuments(): self
     {
