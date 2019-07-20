@@ -31,13 +31,7 @@ trait ComponentsContainerTrait
         } else {
             $this->components[] = $component;
         }
-
-        $component->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () {
-            $this->recalculateSubSurfaces();
-        });
-
         $component->dispatch(BaseComponent::EVENT_COMPONENT_ADDED, [$component]);
-
         return $this;
     }
 
@@ -65,7 +59,7 @@ trait ComponentsContainerTrait
      */
     public function getVisibleComponents(): array
     {
-        $this->runDemandedTasks([BaseComponent::EVENT_TOGGLE_VISIBILITY]);
+        $this->runDemandedTasks([BaseComponent::EVENT_RECALCULATE]);
         return array_filter($this->components, function (BaseComponent $component) {
             return $component->isVisible();
         });
@@ -113,13 +107,7 @@ trait ComponentsContainerTrait
             ->padding($this->padding)
             ->build();
 
-        ViewRender::recalculateLayoutWithinSurface(
-//            $this->surface->resize($this->getSelector(), ...$this->padding)
-            $internalSurface
-            /* @fixme when PaddingBox and MarginBox will be used, then apply them
-             * before passing to recalculateSurface method
-             */
-            , $this->getVisibleComponents());
+        ViewRender::recalculateLayoutWithinSurface($internalSurface, $this->getVisibleComponents());
         return $this;
     }
 }

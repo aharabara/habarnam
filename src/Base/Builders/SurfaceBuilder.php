@@ -87,13 +87,21 @@ class SurfaceBuilder
         return $this;
     }
 
-    public function build(): Surface
+    /**
+     * @param bool $noCache
+     * @return Surface
+     * @throws \Exception
+     */
+    public function build(bool $noCache = false): Surface
     {
         if (empty($this->parentSurface)) {
             throw new \UnexpectedValueException('To build a surface instance you should specify parent surface. For example Surface::fullscreen()');
         }
 
         $parent = $this->parentSurface;
+        if ($noCache) {
+            $parent->clearCache();
+        }
         $width = $this->width ?? $parent->width();
         $height = ($this->height ?? $parent->height()) - 1/* "-1" because when height of 1px is required, then it should be same line*/
         ;

@@ -25,7 +25,7 @@ trait EventBusTrait
     {
         foreach ($this->listeners[$event] ?? [] as $listener) {
             $this->runTask($listener, $params);
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         }
     }
     /**

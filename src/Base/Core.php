@@ -2,6 +2,7 @@
 
 namespace Base;
 
+use Base\Services\Utils;
 use \Container;
 use Analog\Analog;
 use Analog\Handler\File;
@@ -106,7 +107,7 @@ class Core
         $phpBinaryFinder = new PhpExecutableFinder();
         $phpBinaryPath = $phpBinaryFinder->find();
 
-        $process = new Process([$phpBinaryPath, __DIR__."/../../../habarnam/bootstrap/bin.php", "queue:work" ]);
+        $process = new Process([$phpBinaryPath, __DIR__ . "/../../../habarnam/bootstrap/bin.php", "queue:work"]);
         $process->start();
 
         $container->make(Core::class)
@@ -130,13 +131,13 @@ class Core
         }
 
         if ($key === 401) { /* resize */
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
 
             while ($key === 410) { // catch ALL repeating 410 keys
                 $key = Curse::getCh();
             }
         } elseif ($this->allowResize && $key === null) {
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         }
 
         $this->lastValidKey = $key ?? $this->lastValidKey;
@@ -163,12 +164,11 @@ class Core
     {
         $this->currentComponentIndex = 0;
         try {
-            $this->listen(Tasks::REDRAW, function () {
+            $this->listen(Tasks::FULL_REDRAW, function () {
                 Terminal::update();
                 ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
             });
-            $this->demand(Tasks::REDRAW); // Initial redraw
-
+            $this->demand(Tasks::FULL_REDRAW); // Initial redraw
             while (true) {
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
 
@@ -177,10 +177,13 @@ class Core
                 }
 
                 $components = $this->getDrawableComponents();
-                $this->refresh(10000);
 
-                $fullRedraw = $this->wasDemanded(Tasks::REDRAW);
-                $this->runDemandedTasks([Tasks::REDRAW]);
+                $fullRedraw = $this->wasDemanded(Tasks::FULL_REDRAW);
+
+                $timeToWait = Utils::withinTime(10000, function () {
+                    $this->runDemandedTasks([Tasks::FULL_REDRAW]);
+                });
+                $this->refresh($timeToWait);
 
                 foreach ($components as $key => $component) {
                     if (!$component->isVisible()) {
@@ -204,10 +207,11 @@ class Core
                         //foreach ($this->debugger->toComponentsArray() as $item) {
                         //    $item->draw($key);
                         //}
+                        $this->demand(Tasks::FULL_REDRAW);
                         $component->debugDraw();
-                        $this->demand(Tasks::REDRAW);
                         continue;
                     }
+
                     if ($this->currentComponentIndex === (int)$key) {
                         $component->draw($pressedKey);
                     } elseif ($component instanceof ConstantlyRefreshableInterface) {
@@ -232,27 +236,27 @@ class Core
         $this->dispatch(self::EVENT_KEYPRESS . '.' . $key, [$key]);
         if ($key === ord("\t")) {
             $this->currentComponentIndex++;
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         } elseif ($key === 24 /* ctrl + x */) {
             Curse::exit();
             die;
         } elseif ($this->allowDebug && $key === NCURSES_KEY_F1) {
             $this->debug = !$this->debug;
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         } elseif ($key === NCURSES_KEY_F3) {
             $this->allowResize = !$this->allowResize;
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         } elseif ($key === 27 /* ESC key*/) {
             Curse::exit();
         } elseif ($key === NCURSES_KEY_F5 || $key === 18 /* ctrl + R */) {
             $this->render->refreshDocuments();
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         } elseif ($key === NCURSES_KEY_F12) {
 //            $this->render->showDebugBar();
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         } elseif ($key === NCURSES_KEY_BTAB) {
             $this->currentComponentIndex--;
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         } else {
             return false;
         }
@@ -355,7 +359,7 @@ class Core
         }
         // to prevent glitches
         Curse::fillSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
-        $this->demand(Tasks::REDRAW);
+        $this->demand(Tasks::FULL_REDRAW);
 
         return $this;
     }
@@ -385,7 +389,7 @@ class Core
             foreach ($this->getDrawableComponents(...$containers) as $component) {
                 $component->dispatch(BaseComponent::EVENT_LOAD, [$component]);
             }
-            $this->demand(Tasks::REDRAW);
+            $this->demand(Tasks::FULL_REDRAW);
         }
 
         return $containers;
@@ -400,7 +404,7 @@ class Core
     {
         $components = $this->getDrawableComponents();
         $this->currentComponentIndex = array_search($component, $components, true);
-        $this->demand(Tasks::REDRAW);
+        $this->demand(Tasks::FULL_REDRAW);
 
         return $this;
     }

@@ -310,7 +310,7 @@ class ViewRender
                 ->margin($component->marginBox()->topLeftBox())
                 ->width($component->width($baseSurf->width(), $perComponentWidth))
                 ->height($component->height($baseSurf->height()))
-                ->build();
+                ->build(/*Scheduler::wasDemand(Tasks::REDRAW)*/);
 
             $externalSurface = $builder
                 ->within($surf)

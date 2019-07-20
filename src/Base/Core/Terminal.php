@@ -36,8 +36,10 @@ class Terminal
 
     public static function update(): void
     {
-        self::$width = (int)exec('tput cols') - 1;
-        self::$height = (int)exec('tput lines') - 1;
+        exec('printf "cols\nlines" | tput -S', $out);
+        [$width, $height] = $out;
+        self::$width = (int)$width - 1;
+        self::$height = (int)$height - 1;
     }
 
     /**

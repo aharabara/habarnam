@@ -15,8 +15,9 @@ abstract class BaseComponent implements DrawableInterface
     use StylableTrait;
 
     public const EVENT_LOAD = 'load';
-    public const EVENT_TOGGLE_VISIBILITY = 'toggle.visibility';
+    public const EVENT_RECALCULATE = 'component.recalculate';
     public const EVENT_COMPONENT_ADDED = 'component.added';
+    public const EVENT_TOGGLE_VISIBILITY = 'component.toggle-visibility';
 
     /** @var Surface */
     protected $surface;
@@ -42,11 +43,7 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setSurface(?Surface $surface, bool $withResize = true)
     {
-        if ($withResize) {
-//            $surface = $surface->resize($this->getSelector(), ...$this->margin);
-        }
         $this->surface = $surface;
-
         return $this;
     }
 

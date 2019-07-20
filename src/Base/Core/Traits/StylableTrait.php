@@ -131,7 +131,7 @@ trait StylableTrait
     public function visibility(bool $visible)
     {
         $this->visible = $visible;
-        $this->demand(self::EVENT_TOGGLE_VISIBILITY);
+        $this->demand(self::EVENT_RECALCULATE);
 
         return $this;
     }

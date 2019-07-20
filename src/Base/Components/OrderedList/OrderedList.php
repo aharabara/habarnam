@@ -47,6 +47,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         $this->itemsAreDeletable = boolval($attrs['deletable-items'] ?? false);
         parent::__construct($attrs);
+        $this->listen(self::EVENT_RECALCULATE, function(){
+            $this->recalculateSubSurfaces();
+        });
     }
 
 
@@ -59,6 +62,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         $height = $this->surface->height();
         $this->handleKeyPress($pressedKey);
+        $this->runDemandedTasks([self::EVENT_RECALCULATE]);
         $items = array_values($this->getVisibleComponents());
         $items = array_filter(array_slice($items, 0, $height));
 
@@ -74,16 +78,14 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     protected function handleKeyPress(?int $key): void
     {
         if ($this->handleScrollKeyPress($key)) {
-            $this->recalculateSubSurfaces();
-            $this->surface->fill(' ');
+            $this->demand(self::EVENT_RECALCULATE);
             return;
         }
         switch ($key) {
             case NCURSES_KEY_DOWN: /* @FIXME move to ScrollableTrait */
                 if ($this->focusedItem > ($this->surface->height() - 3)) {
                     $this->scrollDown(1);
-                    $this->recalculateSubSurfaces();
-                    $this->surface->fill(' ');
+                    $this->demand(self::EVENT_RECALCULATE);
                 } else {
                     $this->focusedItem++;
                 }
@@ -91,8 +93,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             case NCURSES_KEY_UP: /* @FIXME move to ScrollableTrait */
                 if ($this->focusedItem < 2 && $this->getScrollOffset() > 0) {
                     $this->scrollUp(1);
-                    $this->recalculateSubSurfaces();
-                    $this->surface->fill(' ');
+                    $this->demand(self::EVENT_RECALCULATE);
                 } elseif ($this->getFocusedItem() > 0) {
                     $this->focusedItem--;
                 }
@@ -101,7 +102,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             case NCURSES_KEY_DC:
                 if ($this->itemsAreDeletable()) {
                     $this->dispatch(self::EVENT_DELETING, [$this]);
-                    $this->recalculateSubSurfaces();
+                    $this->demand(self::EVENT_RECALCULATE);
                 }
                 break;
             case 10:// 10 is for 'Enter' key
@@ -207,7 +208,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     public function setSurface(?Surface $surface, bool $withResize = true)
     {
         $result = parent::setSurface($surface, $withResize);
-        $this->recalculateSubSurfaces();
+        $this->demand(self::EVENT_RECALCULATE);
 
         return $result;
     }
@@ -235,11 +236,11 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         /** @var ListItem $item */
         $this->setItemsStyles($item);
         array_push($this->components, $item);
-        $this->recalculateSubSurfaces();
         $item->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () use ($item) {
             $item->setSurface(null, false);
             $this->recalculateSubSurfaces();
         });
+        $this->demand(self::EVENT_RECALCULATE);
         return $this;
     }
 
@@ -251,7 +252,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         foreach ($components as $key => $component) {
             $this->addComponent($component, $key);
         }
-        Scheduler::demand(Tasks::REDRAW);
+        Scheduler::demand(Tasks::FULL_REDRAW);
     }
 
     public function setStyles(array $styles)

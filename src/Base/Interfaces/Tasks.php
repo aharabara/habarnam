@@ -3,5 +3,6 @@ namespace Base\Interfaces;
 
 interface Tasks
 {
-    public const REDRAW = 'renderer.redraw';
+    public const FULL_REDRAW = 'renderer.full-redraw';
+    public const SURFACE_CACHE_CLEAR = 'surface.cache-clear';
 }

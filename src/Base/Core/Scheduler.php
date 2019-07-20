@@ -33,4 +33,13 @@ class Scheduler
         self::$instance->application->demand($task);
     }
 
+    /**
+     * @param string $task
+     * @return bool
+     */
+    public static function wasDemand(string $task):bool
+    {
+        return self::$instance->application->wasDemanded($task);
+    }
+
 }

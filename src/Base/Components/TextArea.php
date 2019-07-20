@@ -75,7 +75,7 @@ class TextArea extends Text implements FocusableInterface
     public function setText(?string $text = ''): self
     {
         $this->clearCache();
-        Scheduler::demand(Tasks::REDRAW);
+        Scheduler::demand(Tasks::FULL_REDRAW);
         $this->text = $text;
 
         return $this;

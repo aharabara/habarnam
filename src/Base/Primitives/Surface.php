@@ -19,6 +19,9 @@ class Surface
     /** @var string */
     protected $parent;
 
+    /** @var Position[] */
+    protected $cache = [];
+
     /**
      * Surface constructor.
      * @param string $id
@@ -47,7 +50,10 @@ class Surface
      */
     public function topLeft(): Position
     {
-        return ($this->topLeft)();
+        if (!isset($this->cache['topLeft'])) {
+            $this->cache['topLeft'] = ($this->topLeft)();
+        }
+        return $this->cache['topLeft'];
     }
 
     /**
@@ -55,7 +61,10 @@ class Surface
      */
     public function bottomRight(): Position
     {
-        return ($this->bottomRight)();
+        if (!isset($this->cache['bottomRight'])) {
+            $this->cache['bottomRight'] = ($this->bottomRight)();
+        }
+        return $this->cache['bottomRight'];
     }
 
     /**
@@ -71,7 +80,8 @@ class Surface
      */
     public function height(): int
     {
-        return $this->bottomRight()->getY() - $this->topLeft()->getY() + 1 /* because same line is equal to 1px */;
+        return $this->bottomRight()->getY() - $this->topLeft()->getY() + 1 /* because same line is equal to 1px */
+            ;
     }
 
     /**
@@ -120,7 +130,8 @@ class Surface
      */
     public function setId(string $id): Surface
     {
-        $this->id = $id; /* @fixme try to get rid of it */
+        $this->id = $id;
+        /* @fixme try to get rid of it */
         return $this;
     }
 
@@ -129,7 +140,8 @@ class Surface
      */
     public function getId(): string
     {
-        return $this->id;/* @fixme try to get rid of it */
+        return $this->id;
+        /* @fixme try to get rid of it */
     }
 
     /**
@@ -156,6 +168,11 @@ class Surface
     {
         Curse::fillSurface($this, $symbol);
         return $this;
+    }
+
+    public function clearCache()
+    {
+        $this->cache = [];
     }
 
 }
