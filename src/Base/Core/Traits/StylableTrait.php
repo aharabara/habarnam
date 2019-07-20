@@ -8,6 +8,7 @@ use Base\Interfaces\DrawableInterface;
 use Base\Services\ViewRender;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
+use Sabberworm\CSS\Value\Size;
 
 trait StylableTrait
 {
@@ -144,6 +145,22 @@ trait StylableTrait
     }
 
     /**
+     * @return MarginBox|null
+     */
+    public function marginBox()
+    {
+        return $this->margin;
+    }
+
+    /**
+     * @return PaddingBox|null
+     */
+    public function paddingBox()
+    {
+        return $this->padding;
+    }
+
+    /**
      * @param string|null $selector
      *
      * @return DrawableInterface|void
@@ -185,11 +202,13 @@ trait StylableTrait
      */
     public function setStyles(array $styles)
     {
+        /** @var Size $padding */
+        /** @var Size $margin */
         $padding = $styles['padding'] ?? [];
         $margin = $styles['margin'] ?? [];
 
-        $this->margin = $margin ? MarginBox::px(...$margin) : $this->margin;
-        $this->padding = $padding ? PaddingBox::px(...$padding) : $this->padding;
+        $this->margin = $margin ? new MarginBox(...$margin) : $this->margin;
+        $this->padding = $padding ? new PaddingBox(...$padding) : $this->padding;
 
         $this->visible = $styles['visibility'] ?? $this->visible;
         $this->display($styles['display'] ?? null);

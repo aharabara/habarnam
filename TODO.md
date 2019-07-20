@@ -32,23 +32,24 @@
    - [x] CSS files for components instead of xml attributes
 
 #### v0.5.0
+   - [x] Script to create project tree for easy start
    - [ ] XML tree update for dynamical elements (append on event if no mapping was specified)
    - [ ] Iframe to load another view. (need to think)
-   - [x] Script to create project tree for easy start
    - [ ] Refactor Application and app.php
    - [ ] Move some logic from ViewRender to Builders
       - [ ] ComponentBuilder
-      - [ ] SurfaceBuilder
-         - [ ] MarginBox
+      - [X] SurfaceBuilder
          - [x] PaddingBox
+         - [X] MarginBox
       - [ ] Move focus from index to selector
       - [ ] Encapsulate child components into container (do not expose them anymore)
 
 #### V0.6.0
  - [X] Container
  - [x] Eloquent and SQLite
+ - [x] Queue process for delayed tasks
+ - [x] Add migrations
  - [ ] Loading state (overlay?) for component
- - [ ] Queue process for delayed tasks
    
 #### v0.7.0
  - [ ] Notifications
@@ -67,8 +68,8 @@
 
 
 #### v0.9.0
-  - [ ] Keyboard shortcuts
   - [x] `Cursor extends Position` instead of `cursorPos`
+  - [ ] Keyboard shortcuts
 
 #### v1.0.0
    - [X] PSR-4 namespacing

@@ -38,8 +38,8 @@ class SurfaceBuilder
         $this->paddingBox = null;
         $this->marginBox = null;
         $this->offsetLeft = 0;
-        $this->offsetLeft = 0;
         $this->offsetTop = 0;
+        $this->parentSurface = null;
 
         return $this;
     }
@@ -95,8 +95,8 @@ class SurfaceBuilder
 
         $parent = $this->parentSurface;
         $width = $this->width ?? $parent->width();
-        $height = ($this->height ?? $parent->height()) - 1
-            /* "-1" because when height of 1px is required, then it should be same line*/;
+        $height = ($this->height ?? $parent->height()) - 1/* "-1" because when height of 1px is required, then it should be same line*/
+        ;
         $offsetLeft = $this->offsetLeft;
         $offsetTop = $this->offsetTop;
 
@@ -110,7 +110,7 @@ class SurfaceBuilder
             $height = $parent->height();
         }
 
-        $topLeft = $this->getTopLeftPosition($parent, $offsetTop, $offsetLeft, $paddingBox, $marginBox);
+        $topLeft = $this->getTopLeftPosition($offsetTop, $offsetLeft, $paddingBox, $marginBox);
 
         $bottomLeft = $this->getBottomRightPosition($topLeft, $width, $height, $paddingBox, $marginBox);
 
@@ -150,33 +150,32 @@ class SurfaceBuilder
      * @param MarginBox $marginBox
      * @param int $offsetTop
      * @param int $offsetLeft
-     * @param Surface $parent
      * @return \Closure
      */
     protected function getTopLeftPosition(
-        Surface $parent,
         int $offsetTop,
         int $offsetLeft,
         ?PaddingBox $paddingBox = null,
         ?MarginBox $marginBox = null
     ): \Closure
     {
-        return function () use ($paddingBox, $marginBox, $offsetTop, $offsetLeft, $parent) {
-            $topLeft = $parent->topLeft();
+        $surface = $this->parentSurface;
+        return function () use ($surface, $paddingBox, $marginBox, $offsetTop, $offsetLeft) {
+            $topLeft = $surface->topLeft();
 
             if ($offsetLeft < $topLeft->getX()) {
                 $offsetLeft += $topLeft->getX();
             }
-            if ($offsetTop < $topLeft->getY() ){
+            if ($offsetTop < $topLeft->getY()) {
                 $offsetTop += $topLeft->getY();
             }
 
             $position = new Position($offsetLeft, $offsetTop);
             if ($marginBox) {
-                $marginBox->apply($position);
+                $marginBox->applyTopLeft($position, $surface);
             }
             if ($paddingBox) {
-                $paddingBox->applyTopLeft($position);
+                $paddingBox->applyTopLeft($position, $surface);
             }
 
             return $position;
@@ -198,12 +197,17 @@ class SurfaceBuilder
         ?PaddingBox $paddingBox = null,
         ?MarginBox $marginBox = null): \Closure
     {
-        return function () use ($paddingBox, $marginBox, $width, $height, $topLeft) {
+        $parent = $this->parentSurface;
+        return function () use ($parent, $paddingBox, $marginBox, $width, $height, $topLeft) {
             $topLeft = $topLeft();
             /** @var Position $topLeft */
             $position = new Position($topLeft->getX() + $width, $topLeft->getY() + $height);
+            if ($marginBox) {
+                $marginBox->applyBottomRight($position, $parent);
+            }
+
             if ($paddingBox) {
-                $paddingBox->applyBottomRight($position);
+                $paddingBox->applyBottomRight($position, $parent);
             }
 
             return $position;

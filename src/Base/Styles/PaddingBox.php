@@ -3,54 +3,39 @@
 namespace Base\Styles;
 
 use Base\Primitives\Position;
+use Base\Primitives\Surface;
 
-class PaddingBox
+class PaddingBox extends AbstractBox
 {
 
-    /** @var int */
-    protected $left;
-    /** @var int */
-    protected $bottom;
-    /** @var int */
-    protected $right;
-    /** @var int */
-    protected $top;
-
     /**
-     * @param int $top
-     * @param int|null $right
-     * @param int|null $bottom
-     * @param int|null $left
-     *
-     * @return PaddingBox
+     * @param Position|null $position
+     * @param Surface $parent
+     * @return Position
      */
-    public static function px(int $top = 0, ?int $right = null, ?int $bottom = null, ?int $left = null)
+    public function applyBottomRight(?Position $position, Surface $parent): Position
     {
-        $box = new self;
-        $box->top = $top;
-        $box->right = $right ?? $top;
-        $box->bottom = $bottom ?? $top;
-        $box->left = $left ?? $right ?? $top;
+        $bottom = $this->getStaticalSize($this->bottom, $parent->height());
+        $top = $this->getStaticalSize($this->top, $parent->height());
+        $right = $this->getStaticalSize($this->right, $parent->width());
+        $left = $this->getStaticalSize($this->left, $parent->width());
 
-        return $box;
-
+        $position->setY($position->getY() - $top->getSize() - $bottom->getSize());
+        $position->setX($position->getX() - $left->getSize() - $right->getSize());
+        return $position;
     }
 
     /**
      * @param Position|null $position
+     * @param Surface $parent
+     * @return Position
      */
-    public function applyTopLeft(?Position $position)
+    public function applyTopLeft(?Position $position, Surface $parent): Position
     {
-        $position->setY($position->getY() + $this->top);
-        $position->setX($position->getX() + $this->left);
-    }
-
-    /**
-     * @param Position|null $position
-     */
-    public function applyBottomRight(?Position $position)
-    {
-        $position->setY($position->getY() - $this->top - $this->bottom);
-        $position->setX($position->getX() - $this->left - $this->right);
+        $top = $this->getStaticalSize($this->top, $parent->height());
+        $left = $this->getStaticalSize($this->left, $parent->width());
+        $position->setY($position->getY() + $top->getSize());
+        $position->setX($position->getX() + $left->getSize());
+        return $position;
     }
 }

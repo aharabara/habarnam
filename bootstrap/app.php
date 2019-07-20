@@ -20,16 +20,21 @@ use Illuminate\Queue\QueueManager;
 Dotenv::create(Workspace::projectRoot())->load();
 \Analog::handler(Ignore::init());
 
+$singletones = [
+    Core::class,
+    Workspace::class,
+    Installer::class,
+    ViewRender::class,
+    Workspace::class,
+    Capsule::class,
+    Dispatcher::class,
+    QueueManager::class
+];
 
 $container = Container::getInstance();
-$container->singleton(Core::class);
-$container->singleton(Workspace::class);
-$container->singleton(Installer::class);
-$container->singleton(ViewRender::class);
-$container->singleton(Workspace::class);
-$container->singleton(Capsule::class);
-$container->singleton(Dispatcher::class);
-$container->singleton(QueueManager::class);
+foreach ($singletones as $singletone) {
+    $container->singleton($singletone);
+}
 
 /** @var Workspace $workspace */
 $workspace = $container->make(Workspace::class);
@@ -37,62 +42,23 @@ $workspace = $container->make(Workspace::class);
 /** @var Capsule $capsule */
 $capsule = $container->make(Capsule::class);
 
-
-/** Create database or just touch it. */
-$workspace->touch('database.sqlite');
-
-
-/*@fixme move to config */
-$connection = [
-    'driver' => 'sqlite',
-//    'database' => $workspace->workspacePath('/database.sqlite'),
-    'database' => getcwd() . '/database.sqlite',
-    'username' => 'root',
-    'password' => 'password',
-    'charset' => 'utf8',
-    'collation' => 'utf8_unicode_ci',
-    'prefix' => '',
-];
-
-$capsule->addConnection($connection);
-$DB = $capsule->getConnection();
-$DB->query()->raw("PRAGMA synchronous  = OFF;")->getValue();
-$DB->query()->raw("PRAGMA cache_size   = 100000;")->getValue();
-
 // Set the event dispatcher used by Eloquent models... (optional)
+
+/** @var Dispatcher $dispatcher */
 $dispatcher = $container->make(Dispatcher::class);
-$capsule->setEventDispatcher($dispatcher);
 
-// Make this Capsule instance available globally via static methods... (optional)
-$capsule->setAsGlobal();
-
-// Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
-$capsule->bootEloquent();
-
+$container->alias(Dispatcher::class, 'events');
 
 $app = new Application($container, $dispatcher, '1.0');
 
-$container->alias('app', $app);
+$container->alias($app, 'app');
 
-//specify the environment to load
-$environment = 'local';
-
-//second argument to FileLoader constructor
-//is the path to the config folder
 
 $configRepo = new Config(Workspace::rootPath("/app/config/"));
 $container->singleton(Config::class, function () use ($configRepo) {
     return $configRepo;
 });
-$container->singleton('config', function () use ($configRepo) {
-    return $configRepo;
-});
-$container->singleton('events', function () use ($dispatcher) {
-    return $dispatcher;
-});
-$container->singleton(Illuminate\Contracts\Bus\Dispatcher::class, function () use ($container, $dispatcher) {
-    return new \Illuminate\Bus\Dispatcher($container);
-});
+$container->alias(Config::class, 'config');
 
 
 $container->singleton('files', function () {
@@ -103,6 +69,44 @@ $container->singleton('cache', function () use ($container) {
     return new CacheManager($container);
 });
 
+/** Create database or just touch it. */
+touch($configRepo->get('database.connection.database'));
+
+$capsule->addConnection($configRepo->get('database.connection'));
+$DB = $capsule->getConnection();
+
+foreach ($configRepo->get('database.connection.pragma') as $key => $value) {
+    $DB->query()->raw("PRAGMA $key = $value;")->getValue();
+}
+
+$capsule->setEventDispatcher($dispatcher);
+
+// Make this Capsule instance available globally via static methods... (optional)
+$capsule->setAsGlobal();
+
+// Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
+$capsule->bootEloquent();
+
+//specify the environment to load
+$environment = 'local';
+
+//second argument to FileLoader constructor
+//is the path to the config folder
+
+
+$databaseManager = $capsule->getDatabaseManager();
+
+
+$container->singleton(Illuminate\Contracts\Bus\Dispatcher::class, function () use ($container) {
+    return new \Illuminate\Bus\Dispatcher($container);
+});
+$container->instance(\Illuminate\Contracts\Debug\ExceptionHandler::class, new \ExceptionHandler());
+$container->instance(MigrationRepositoryInterface::class, new DatabaseMigrationRepository($databaseManager, 'migration'));
+$container->instance(ConnectionResolverInterface::class, $databaseManager);
+$container->instance(\Illuminate\Contracts\Events\Dispatcher::class, $dispatcher);
+$container->instance(Application::class, $app);
+$container->singleton(\Illuminate\Database\Migrations\Migrator::class);
+
 $queue = $container->make(Queue::class);
 
 $container->when(QueueManager::class)
@@ -112,25 +116,17 @@ $container->when(QueueManager::class)
 /** @var QueueManager $queueManager */
 $queueManager = $container->make(QueueManager::class);
 
-$databaseManager = $capsule->getDatabaseManager();
 $queueManager->addConnector('database', function () use ($databaseManager) {
     return new DatabaseConnector($databaseManager);
 });
 
-
-$container->instance(\Illuminate\Contracts\Debug\ExceptionHandler::class, new \ExceptionHandler());
-$container->instance(MigrationRepositoryInterface::class, new DatabaseMigrationRepository($databaseManager, 'migration'));
-$container->instance(ConnectionResolverInterface::class, $databaseManager);
-$container->instance(\Illuminate\Contracts\Events\Dispatcher::class, $dispatcher);
-$container->instance(Application::class, $app);
-$container->singleton(\Illuminate\Database\Migrations\Migrator::class);
 
 /** @var \Illuminate\Database\Migrations\Migrator $migrator */
 $migrator = $container->make(\Illuminate\Database\Migrations\Migrator::class);
 $migrator->path(__DIR__ . '/../database/migrations');
 $migrator->path(Workspace::rootPath('/app/database/migrations'));
 
-$queue->addConnection($connection);
+$queue->addConnection($configRepo->get('database.connection'));
 
 // Make this Capsule instance available globally via static methods... (optional)
 $queue->setAsGlobal();

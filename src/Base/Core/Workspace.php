@@ -34,19 +34,6 @@ class Workspace
         return $this;
     }
 
-
-    /**
-     * @param string $filePath
-     * @return $this
-     */
-    public function touch(string $filePath): self
-    {
-        $this->createDir("$this->home/.config");
-        $this->createDir($this->workspacePath());
-        touch("$this->home/.config/{$this->folderName}/$filePath");
-        return $this;
-    }
-
     /**
      * @param string $filePath
      * @return mixed|null

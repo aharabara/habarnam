@@ -5,75 +5,59 @@ namespace Base\Styles;
 
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
+use Sabberworm\CSS\Value\Size;
 
-class MarginBox
+class MarginBox extends AbstractBox
 {
-    const TYPE_RELATIVE = 'relative';
-    const TYPE_STATIC   = 'static';
-
-    /** @var int */
-    protected $left;
-    /** @var int */
-    protected $bottom;
-    /** @var int */
-    protected $right;
-    /** @var int */
-    protected $top;
-
-    /** @var string */
-    protected $type = self::TYPE_STATIC;
-
     /**
-     * @param int      $top
-     * @param int|null $right
-     * @param int|null $bottom
-     * @param int|null $left
-     *
-     * @return MarginBox
+     * @param Position|null $position
+     * @param Surface $parent
+     * @return Position
      */
-    public static function px(int $top, ?int $right = null, ?int $bottom = null, ?int $left = null)
+    public function applyTopLeft(?Position $position, Surface $parent): Position
     {
-        $box         = new self;
-        $box->type   = self::TYPE_STATIC;
-        $box->top    = $top;
-        $box->right  = $right ?? $top;
-        $box->bottom = $bottom ?? $top;
-        $box->left   = $left ?? $right ?? $top;
+        $width = $parent->width();
+        $height = $parent->height();
 
-        return $box;
+        $top = $this->getStaticalSize($this->top, $height);
+        $left = $this->getStaticalSize($this->left, $width);
 
-    }
-
-    /**
-     * @param int      $top
-     * @param int|null $right
-     * @param int|null $bottom
-     * @param int|null $left
-     *
-     * @return MarginBox
-     */
-    public static function percent(int $top, ?int $right = null, ?int $bottom = null, ?int $left = null)
-    {
-        $box         = new self;
-        $box->type   = self::TYPE_RELATIVE;
-        $box->top    = $top;
-        $box->right  = $right ?? $top;
-        $box->bottom = $bottom ?? $top;
-        $box->left   = $left ?? $right ?? $top;
-
-        return $box;
+        $position->setY($position->getY() + $top->getSize());
+        $position->setX($position->getX() + $left->getSize());
+        return $position;
     }
 
     /**
      * @param Position|null $position
+     * @param Surface $parent
+     * @return Position
      */
-    public function apply(?Position $position)
+    public function applyBottomRight(?Position $position, Surface $parent): Position
     {
-        if ($this->type === self::TYPE_STATIC) {
-            $offsetTop = $this->top - $this->bottom;
-            $offsetLeft = $this->left - $this->right;
-            $position->setY($position->getY() + $offsetTop);
-            $position->setX($position->getX() + $offsetLeft);
-        }
+        $width = $parent->width();
+        $height = $parent->height();
+
+        $bottom = $this->getStaticalSize($this->bottom, $height);
+        $right = $this->getStaticalSize($this->right, $width);
+
+        $position->setY($position->getY() + $bottom->getSize());
+        $position->setX($position->getX() + $right->getSize());
+        return $position;
+    }
+
+    /**
+     * @return MarginBox
+     */
+    public function topLeftBox(): MarginBox
+    {
+        return new static($this->top, new Size(0, self::UNIT_PX), new Size(0, self::UNIT_PX), $this->left);
+    }
+
+    /**
+     * @return MarginBox
+     */
+    public function bottomRightBox(): MarginBox
+    {
+        return new static(new Size(0, self::UNIT_PX), $this->right, $this->bottom, new Size(0, self::UNIT_PX));
     }
 }

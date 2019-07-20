@@ -24,14 +24,10 @@ use Base\Core\Workspace;
 use Base\Interfaces\Colors;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
-use Base\Primitives\Position;
 use Base\Primitives\Square;
 use Base\Primitives\Surface;
-use Base\Styles\MarginBox;
-use Base\Styles\PaddingBox;
+use Container;
 use Exception;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Sabberworm\CSS\Parser;
 use Sabberworm\CSS\Rule\Rule;
 use Sabberworm\CSS\RuleSet\DeclarationBlock;
@@ -86,7 +82,7 @@ class ViewRender
         self::registerComponent('textarea', TextArea::class);
         Terminal::update(); // to allow php to parse columns and rows
         $this->basePath = Workspace::projectRoot() . '/' . getenv('RESOURCE_FOLDER');
-        $this->prepare();
+        $this->prepare(getenv('INITIAL_VIEW'));
     }
 
     /**
@@ -101,23 +97,13 @@ class ViewRender
 
     /**
      * StyleResolver constructor.
+     * @param string $viewId
      * @return ViewRender
      * @throws \ReflectionException
      */
-    protected function prepare(): self
+    protected function prepare(string $viewId): self
     {
-        $views = "{$this->basePath}/views";
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($views));
-
-        foreach ($files as $file) {
-            /** @var SplFileInfo $file */
-            if ($file->isDir() || $file->getFilename() === 'surfaces.xml') {
-                continue;
-            }
-            $templateId = trim(str_replace([$views, '.xml', '/'], ['', '', '.'], $file->getPathname()), '.');
-            $this->parseFile($file->getPathname(), $templateId);
-        }
-
+        $this->parseFile($this->viewIdToPath($viewId, "{$this->basePath}/views"), $viewId);
         return $this;
     }
 
@@ -143,6 +129,9 @@ class ViewRender
      */
     public function parseFile(string $filePath, ?string $templateId = null): self
     {
+        if (!file_exists($filePath)) {
+            throw new \UnexpectedValueException("File '$filePath' doesn't exist");
+        }
         $root = simplexml_load_string(file_get_contents($filePath), ComplexXMLElement::class);
         $rootNodeName = $root->getName();
         if ($rootNodeName === 'template') {
@@ -258,6 +247,9 @@ class ViewRender
      */
     public function template(string $templateID): Template
     {
+        if (!isset($this->templates[$templateID])){
+            $this->prepare($templateID);
+        }
         return $this->templates[$templateID];
     }
 
@@ -313,17 +305,22 @@ class ViewRender
                 $builder->after($previousSurface);
             }
 
-            /* @fixme there is a 1px overlaps between containers. Need to investigate */
-            $externalSurface = $builder
+            $surf = $builder
                 ->within($baseSurf)
+                ->margin($component->marginBox()->topLeftBox())
                 ->width($component->width($baseSurf->width(), $perComponentWidth))
                 ->height($component->height($baseSurf->height()))
+                ->build();
+
+            $externalSurface = $builder
+                ->within($surf)
+                ->margin($component->marginBox()->bottomRightBox())
                 ->build();
 
             /* @fixme replace $surf with $externalSurf, because it should have external and internal surface boxing (margin and padding) */
 
             $previousSurface = $externalSurface;
-            $component->setSurface($externalSurface);
+            $component->setSurface($surf);
         }
 
     }
@@ -446,11 +443,7 @@ class ViewRender
                     } else {
                         $value = $value->getListComponents();
                     }
-                    $sizes = array_map(static function (Size $size) {
-                        return $size->getSize();
-                    }, $value);
-
-                    $props[$rule->getRule()] = $sizes;
+                    $props[$rule->getRule()] = $value;
                     break;
                 default:
                     $props[$rule->getRule()] = trim($rule->getValue(), '"');
@@ -491,5 +484,25 @@ class ViewRender
         }
 
         return $this;
+    }
+
+    /**
+     * @param string $basePath
+     * @param SplFileInfo $file
+     * @return string
+     */
+    protected function viewPathToId(string $basePath, SplFileInfo $file): string
+    {
+        return trim(str_replace([$basePath, '.xml', '/'], ['', '', '.'], $file->getPathname()), '.');
+    }
+
+    /**
+     * @param string $viewId
+     * @param string $basePath
+     * @return string
+     */
+    protected function viewIdToPath(string $viewId, string $basePath): string
+    {
+        return $basePath . '/' . trim(str_replace('.', '/', $viewId), '.') . '.xml';
     }
 }
