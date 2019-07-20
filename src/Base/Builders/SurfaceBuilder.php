@@ -122,7 +122,7 @@ class SurfaceBuilder
 
         $bottomLeft = $this->getBottomRightPosition($topLeft, $width, $height, $paddingBox, $marginBox);
 
-        $surface = Surface::fromCalc('generated', $topLeft, $bottomLeft);
+        $surface = Surface::fromCalc( $topLeft, $bottomLeft);
 
         $this->resetState();
 

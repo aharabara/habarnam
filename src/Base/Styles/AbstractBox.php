@@ -42,7 +42,7 @@ abstract class AbstractBox
      * @param int|null $bottom
      * @param int|null $left
      *
-     * @return AbstractBox
+     * @return static
      */
     public static function px(int $top, ?int $right = null, ?int $bottom = null, ?int $left = null)
     {

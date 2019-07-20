@@ -51,14 +51,13 @@ class Terminal
      */
     public static function centered(int $width, int $height, ?string $id = null): Surface
     {
-        return Surface::fromCalc('',
+        return Surface::fromCalc(
             static function () use ($height, $width) {
                 return new Position((self::width() - $width) / 2, (self::height() - $height) / 2);
             },
             static function () use ($height, $width) {
                 return new Position(($width + self::width()) / 2, ($height + self::height()) / 2);
-            })
-            ->setId($id);
+            });
     }
 
 }

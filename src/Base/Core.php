@@ -358,7 +358,7 @@ class Core
             throw new \Error("There is no application view registered with name '$name'");
         }
         // to prevent glitches
-        Curse::fillSurface(new Surface('temporary', new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
+        Curse::fillSurface(new Surface(new Position(0, 0), new Position(Terminal::width(), Terminal::height())));
         $this->demand(Tasks::FULL_REDRAW);
 
         return $this;

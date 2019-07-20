@@ -66,6 +66,12 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         $items = array_values($this->getVisibleComponents());
         $items = array_filter(array_slice($items, 0, $height));
 
+        /* if amount of items is less then actual height,
+         * then entire field should be cleared to prevent any glitches
+         **/
+        if(count($items) < $height){
+            $this->surface->fill(' ');
+        }
         foreach ($items as $key => $item) {
             /** @var ListItem $item */
             $item->draw($pressedKey, $this->isFocused() && $key === $this->getFocusedItem());
