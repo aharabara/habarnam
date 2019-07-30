@@ -254,7 +254,7 @@ class ViewRender
         $components = $document->getXmlRepresentation()->xpath('//body');
         $components = array_map(function (ComplexXMLIterator $node){
             return $node->getComponent();
-        }, iterator_to_array($components, false));
+        }, $components);
 
         /** @var Body $body */
         $body = Arr::first($components);

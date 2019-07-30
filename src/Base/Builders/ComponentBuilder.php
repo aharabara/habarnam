@@ -70,7 +70,7 @@ class ComponentBuilder extends AbstractBuilder
         }
 
         if ($component instanceof DrawableInterface) {
-            $this->handleComponentEvents($component, $component->getXmlRepresentation()->attributes());
+            $this->handleComponentEvents($component);
         }
 
         $this->resetState();
@@ -79,16 +79,14 @@ class ComponentBuilder extends AbstractBuilder
 
     /**
      * @note move to EventHandler:class? Something like EventHandler::registerComponentBindings($component)
-     * @note replace $attrs with $component->getAttributes()
      * @param DrawableInterface $component
-     * @param string[] $attrs
      */
-    protected function handleComponentEvents(DrawableInterface $component, array $attrs): void
+    protected function handleComponentEvents(DrawableInterface $component): void
     {
         if (!$component instanceof BaseComponent) {
             return;
         }
-        foreach ($attrs as $key => $entry) {
+        foreach ($component->getXmlRepresentation()->attributes() as $key => $entry) {
             if (strpos($key, 'on.') === 0) {
                 if (strpos($entry, '#') === 0) {
                     $component->listen(substr($key, 3), static function () use ($entry) {
