@@ -4,6 +4,7 @@ namespace Base\Services;
 
 use Base\Builders\ComponentBuilder;
 use Base\Builders\SurfaceBuilder;
+use Base\Components\Virtual\Body;
 use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLIterator;
 use Base\Core\Document;
@@ -91,11 +92,12 @@ class ViewRender
                 ->build();
 
             $recursiveIterator = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::SELF_FIRST);
+            $components = [];
             foreach ($recursiveIterator as $item) {
                 /** @var ComplexXMLIterator $item */
                 if ($this->documentTagsRegistry->has($item->getName())) {
                     /** do not remove, because it is making binding to xml tree. */
-                    $component = $builder
+                    $components[] = $builder
                         ->tag($item->getName())
                         ->mappedTo($item)
                         ->withAttributes($item->attributes())
@@ -133,7 +135,6 @@ class ViewRender
             if (!$component instanceof DrawableInterface || !$component->isVisible()) {
                 continue;
             }
-
 
             $parentSurface = $previousSurface; /* default case (position:static) */
             if ($component->position() === StylableInterface::POSITION_RELATIVE) {
@@ -251,10 +252,13 @@ class ViewRender
         }
         /* recalculate surfaces @todo optimize only for current view */
         $components = $document->getXmlRepresentation()->xpath('//body');
-//        $components = array_map(function ($node){
-//            return $node->getComponent();
-//        }, $components);
-        self::recalculateLayoutWithinSurface(Surface::fullscreen(), $document->getComponents());
+        $components = array_map(function (ComplexXMLIterator $node){
+            return $node->getComponent();
+        }, iterator_to_array($components, false));
+
+        /** @var Body $body */
+        $body = Arr::first($components);
+        self::recalculateLayoutWithinSurface(Surface::fullscreen(), $body->getComponents());
     }
 
     /**

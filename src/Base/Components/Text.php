@@ -48,7 +48,7 @@ class Text extends BaseComponent
      */
     public function draw(?int $key): void
     {
-        if (!$this->surface) {
+        if (!$this->hasSurface()) {
             throw new \Error('Text surface not set.');
         }
         if (!$this->visible) {

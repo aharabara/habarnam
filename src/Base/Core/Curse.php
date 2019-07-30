@@ -123,6 +123,7 @@ class Curse
     {
         self::exit();
         print_r($data);
-        self::trace();
+        print_r(array_column(debug_backtrace(), 'function', 'class'));
+        die;
     }
 }

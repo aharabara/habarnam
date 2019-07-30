@@ -176,12 +176,10 @@ class Core
                 Curse::refresh($timeToWait);
 
                 foreach ($components as $key => $component) {
-                    if ($component instanceof Text){
-                        Curse::dd($component);
-                    }
                     if (!$component->isVisible()) {
                         continue;
                     }
+
                     Curse::color(Colors::BLACK_WHITE/* @todo bind this settings to <body/> tag */);
 
                     /* @note replace focus logic with FocusableInterface and in-document focus attribute */

@@ -60,7 +60,7 @@ trait ComponentsContainerTrait
             /** @note move to ComplexXmlIterator::class */
             return array_map(function (ComplexXMLIterator $node) {
                 return $node->getComponent();
-            }, iterator_to_array($node));
+            }, iterator_to_array($node, false)); // NO KEYS, or it will overwrite all similar tags
         }
         return [];
     }
