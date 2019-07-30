@@ -2,12 +2,15 @@
 
 namespace Base;
 
+use Base\Components\Text;
+use Base\Components\Virtual\Body;
+use Base\Core\Document;
 use Base\Services\Utils;
 use \Container;
 use Analog\Analog;
 use Analog\Handler\File;
 use Base\Core\BaseComponent;
-use Base\Core\ComplexXMLElement;
+use Base\Core\ComplexXMLIterator;
 use Base\Core\Curse;
 use Base\Core\Installer;
 use Base\Core\Scheduler;
@@ -23,6 +26,8 @@ use Base\Interfaces\Tasks;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
 use Base\Services\ViewRender;
+use Illuminate\Support\Arr;
+use RecursiveIteratorIterator;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
@@ -31,6 +36,7 @@ class Core
 {
     use EventBusTrait;
     const EVENT_KEYPRESS = 'keypress';
+    public const REPO_NAME = 'aharabara/habarnam';
 
     /** @var CssSelectorConverter */
     public $selectorConverter;
@@ -76,6 +82,7 @@ class Core
         $this->render = $render;
         $this->workspace = $workspace;
         $this->currentView = getenv('INITIAL_VIEW');
+        $render->loadDocumentByID(getenv('INITIAL_VIEW'));
         $this->selectorConverter = new CssSelectorConverter;
     }
 
@@ -153,28 +160,31 @@ class Core
         try {
             $this->setupCoreTasks();
             $this->demand(Tasks::FULL_REDRAW); // Initial redraw
+
+
             while (true) {
+                $components = $this->getDrawableComponents();
                 $pressedKey = $this->getNonBlockCh(20000); // use a non blocking getch() instead of $ncurses->getCh()
                 if ($this->handleKeyPress($pressedKey)) {
                     $pressedKey = null;
                 }
 
-                $components = $this->getDrawableComponents();
-
                 $fullRedraw = $this->wasDemanded(Tasks::FULL_REDRAW);
-
                 $timeToWait = Utils::withinTime(10000, function () {
                     $this->runDemandedTasks([Tasks::FULL_REDRAW]);
                 });
                 Curse::refresh($timeToWait);
 
                 foreach ($components as $key => $component) {
+                    if ($component instanceof Text){
+                        Curse::dd($component);
+                    }
                     if (!$component->isVisible()) {
                         continue;
                     }
                     Curse::color(Colors::BLACK_WHITE/* @todo bind this settings to <body/> tag */);
 
-                    /* @note replace focus logic with FocusableInterface and in-document focus attribute*/
+                    /* @note replace focus logic with FocusableInterface and in-document focus attribute */
                     $this
                         // if it is a window with focus, then skip it
                         ->handleNonFocusableComponents($component, $key)
@@ -206,7 +216,7 @@ class Core
                 }
             }
         } catch (\Throwable $exception) {
-            /* @note catch with ExceptionHandler*/
+            /* @note catch with ExceptionHandler */
             Analog::error($exception->getMessage() . "\n" . $exception->getTraceAsString());
         }
     }
@@ -254,30 +264,39 @@ class Core
     protected $cachedComponents;
 
     /**
-     * @param BaseComponent|null ...$containers
      * @return array|BaseComponent[]
      */
-    protected function getDrawableComponents(?BaseComponent ...$containers): array
+    protected function getDrawableComponents(): array
     {
         /** @var BaseComponent[] $components */
         $components = [];
-        if (!empty($this->cachedComponents) && empty($containers)) {
+        if (!empty($this->cachedComponents)) {
             return $this->cachedComponents;
         }
-        $containers = $containers ?: $this->currentViewContainers();
-        array_walk_recursive($containers, static function (BaseComponent $drawable) use (&$components) {
-            if ($drawable instanceof ComponentsContainerInterface) {
-                $items = array_filter($drawable->toComponentsArray());
-            } else {
-                $items = [$drawable];
+        $root = $this->getCurrentDocument()->getXmlRepresentation();
+        $iterator = new RecursiveIteratorIterator($root, RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($iterator as $node) {
+            /** @var ComplexXMLIterator $node */
+            $component = $node->getComponent();
+            if ($component instanceof DrawableInterface) {
+                $components[] = $component;
             }
-            if ($items) {
-                array_push($components, ...$items);
-            }
-        });
+        };
 
+        $this->cachedComponents = $components;
         return $components;
     }
+
+    /**
+     * @return ComponentsContainerInterface|DrawableInterface[]
+     */
+    public function getDrawableContainers()
+    {
+        return array_filter($this->getDrawableComponents(), function (DrawableInterface $component) {
+            return $component instanceof ComponentsContainerInterface;
+        });
+    }
+
 
     /**
      * @param BaseComponent $component
@@ -364,24 +383,6 @@ class Core
     }
 
     /**
-     * @return ComponentsContainerInterface[]
-     */
-    public function currentViewContainers(): array
-    {
-        $this->currentView = $this->currentView ?? $this->render->existingTemplates()[0] ?? null;
-        $containers = $this->render->template($this->currentView)->allContainers();
-        if (!in_array($this->currentView, $this->initializedViews, true)) {
-            $this->initializedViews[] = $this->currentView;
-            foreach ($this->getDrawableComponents(...$containers) as $component) {
-                $component->dispatch(BaseComponent::EVENT_LOAD, [$component]);
-            }
-            $this->demand(Tasks::FULL_REDRAW);
-        }
-
-        return $containers;
-    }
-
-    /**
      * @param DrawableInterface $component
      * @note move to Template:class
      * @return $this
@@ -403,10 +404,9 @@ class Core
      */
     public function findAll(string $selector, ?string $view = null): array
     {
-        /** @var ComplexXMLElement $document */
-        $document = $this->getCurrentDocument($view);
+        $document = $this->getCurrentDocument($view)->getXmlRepresentation();
 
-        /** @var ComplexXMLElement[] $elements */
+        /** @var ComplexXMLIterator[] $elements */
         $elements = $document->xpath($this->selectorConverter->toXPath($selector));
         $result = [];
         foreach ($elements as $element) {
@@ -438,11 +438,12 @@ class Core
     /**
      * @param string|null $view
      *
-     * @return ComplexXMLElement
+     * @return Document
      */
-    protected function getCurrentDocument(?string $view = null): ComplexXMLElement
+    protected function getCurrentDocument(?string $view = null): Document
     {
-        return $this->render->documents[$view ?? $this->currentView];
+        /* @note move to ViewRendered::class */
+        return $this->render->getDocumentByID($view ?? $this->currentView);
     }
 
     /**
@@ -464,7 +465,10 @@ class Core
     {
         $this->listen(Tasks::FULL_REDRAW, function () {
             Terminal::update();
-            ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $this->currentViewContainers());
+            $nodes = $this->getCurrentDocument()->getXmlRepresentation()->xpath('//body');
+            /** @var Body $body */
+            $body = Arr::first($nodes)->getComponent();
+            ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $body->getComponents());
         });
     }
 

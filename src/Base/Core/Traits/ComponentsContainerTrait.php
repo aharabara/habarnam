@@ -4,6 +4,7 @@ namespace Base\Core\Traits;
 
 use Base\Builders\SurfaceBuilder;
 use Base\Core\BaseComponent;
+use Base\Core\ComplexXMLIterator;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Surface;
@@ -21,6 +22,8 @@ trait ComponentsContainerTrait
     /**
      * @param BaseComponent $component
      * @param string|null $id
+     * @fixme
+     * @see ComponentsContainerTrait::setComponents()
      *
      * @return $this
      */
@@ -36,6 +39,7 @@ trait ComponentsContainerTrait
     }
 
     /**
+     * @fixme Refactor it. Now components are parsed eight from xml tree, so this method should replace container children inside this tree.
      * @param DrawableInterface[] $components
      */
     public function setComponents(array $components): void
@@ -51,7 +55,14 @@ trait ComponentsContainerTrait
      */
     public function getComponents(): array
     {
-        return $this->components;
+        $node = $this->getXmlRepresentation();
+        if ($node) {
+            /** @note move to ComplexXmlIterator::class */
+            return array_map(function (ComplexXMLIterator $node) {
+                return $node->getComponent();
+            }, iterator_to_array($node));
+        }
+        return [];
     }
 
     /**
@@ -60,7 +71,7 @@ trait ComponentsContainerTrait
     public function getVisibleComponents(): array
     {
         $this->runDemandedTasks([BaseComponent::EVENT_RECALCULATE]);
-        return array_filter($this->components, function (BaseComponent $component) {
+        return array_filter($this->getComponents(), function (BaseComponent $component) {
             return $component->isVisible();
         });
     }
@@ -98,6 +109,7 @@ trait ComponentsContainerTrait
      */
     public function recalculateSubSurfaces()
     {
+        return $this;
         if (empty($this->getVisibleComponents()) || !$this->visible || !$this->surface) {
             return $this;
         }

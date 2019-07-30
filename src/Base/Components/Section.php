@@ -41,10 +41,10 @@ class Section extends Square implements ComponentsContainerInterface
 
     /**
      * @param int|null $key
-     * @return Section
+     * @return $this
      * @throws \Exception
      */
-    public function draw(?int $key): self
+    public function draw(?int $key)
     {
         if (!$this->visible) {
             return $this;
@@ -56,19 +56,6 @@ class Section extends Square implements ComponentsContainerInterface
             Curse::writeAt("| {$this->title} |", $color, $topLeft->getY(), $topLeft->getX() + 3);
         }
         return $this;
-    }
-
-    /**
-     * @param Surface $surface
-     * @param bool $withResize
-     * @return Square
-     * @throws \Exception
-     */
-    public function setSurface(?Surface $surface, bool $withResize = true)
-    {
-        $result = parent::setSurface($surface, $withResize);
-        $this->recalculateSubSurfaces();
-        return $result;
     }
 
     /**

@@ -7,7 +7,7 @@ use Base\Primitives\Surface;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
 
-class SurfaceBuilder
+class SurfaceBuilder extends AbstractBuilder
 {
 
     /** @var int */

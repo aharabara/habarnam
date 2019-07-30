@@ -3,7 +3,7 @@
 namespace Base\Components;
 
 use Base\Builders\SurfaceBuilder;
-use Base\Core\ComplexXMLElement;
+use Base\Core\ComplexXMLIterator;
 use Base\Core\Terminal;
 use Base\Primitives\Position;
 use Base\Primitives\Surface;
@@ -12,7 +12,7 @@ use Base\Styles\PaddingBox;
 class Debugger extends Section
 {
 
-    public function __construct(ComplexXMLElement $document)
+    public function __construct(ComplexXMLIterator $document)
     {
         parent::__construct([]);
 

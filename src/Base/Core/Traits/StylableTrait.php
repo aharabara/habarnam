@@ -2,12 +2,11 @@
 
 namespace Base\Core\Traits;
 
-use Base\Core\ComplexXMLElement;
 use Base\Core\Scheduler;
 use Base\Interfaces\Colors;
 use Base\Interfaces\DrawableInterface;
+use Base\Interfaces\StylableInterface;
 use Base\Interfaces\Tasks;
-use Base\Services\ViewRender;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
 use Sabberworm\CSS\Value\Size;
@@ -31,7 +30,7 @@ trait StylableTrait
     protected $margin;
 
     /** @var string */
-    protected $displayType = DrawableInterface::DISPLAY_BLOCK;
+    protected $displayType = StylableInterface::DISPLAY_BLOCK;
 
     /** @var string[] */
     protected $selectors = [];
@@ -57,11 +56,8 @@ trait StylableTrait
     /** @var array */
     protected $onFocusStyles = [];
 
-    /** @var ComplexXMLElement|null */
-    protected $xmlNode;
-
     /** @var string */
-    protected $positionType = DrawableInterface::POSITION_STATIC;
+    protected $positionType = StylableInterface::POSITION_STATIC;
 
     protected $infill = null;
 
@@ -74,13 +70,14 @@ trait StylableTrait
     {
         if (empty($type)) return $this;
         if (
-            in_array($type, DrawableInterface::BLOCK_DISPLAY_TYPES)
-            || in_array($type, DrawableInterface::INLINE_DISPLAY_TYPES)
+            in_array($type, StylableInterface::BLOCK_DISPLAY_TYPES)
+            || in_array($type, StylableInterface::INLINE_DISPLAY_TYPES)
         ) {
             $this->displayType = $type;
+            Scheduler::demand(Tasks::FULL_REDRAW);
             return $this;
         }
-        if ($type === DrawableInterface::DISPLAY_NONE){
+        if ($type === StylableInterface::DISPLAY_NONE){
             $this->displayType = $type;
             Scheduler::demand(Tasks::FULL_REDRAW);
             return $this;
@@ -153,7 +150,7 @@ trait StylableTrait
      */
     public function isVisible(): bool
     {
-        return $this->visible && $this->displayType !== DrawableInterface::DISPLAY_NONE;
+        return $this->visible && $this->displayType !== StylableInterface::DISPLAY_NONE;
     }
 
     /**
@@ -186,7 +183,7 @@ trait StylableTrait
      */
     public function setPosition(string $positionType)
     {
-        if (!in_array($positionType, DrawableInterface::POSITIONS)) {
+        if (!in_array($positionType, StylableInterface::POSITIONS)) {
             throw new \UnexpectedValueException("Position type '$positionType' is not valid.");
         }
         $this->positionType = $positionType;
@@ -224,7 +221,11 @@ trait StylableTrait
      */
     public function getSelector(): string
     {
-        $tag = ViewRender::getComponentTag(get_class($this)) ?? strtolower(basename(get_class($this)));
+        if (empty($this->xmlNode)){
+            return 'selector';
+        }
+        /** @fixme replace it with something better.*/
+        $tag = $this->getXmlRepresentation()->getName();
         if ($this->selectors) {
             $result = implode(',', $this->selectors);
         } elseif (!$this->id) {
@@ -304,22 +305,6 @@ trait StylableTrait
         $this->focused = $focused;
 
         return $this;
-    }
-
-    /**
-     * @param ComplexXMLElement $node
-     *
-     * @return $this|ComplexXMLElement
-     */
-    public function setXmlRepresentation(ComplexXMLElement $node)
-    {
-        $this->xmlNode = $node;
-        return $this;
-    }
-
-    public function getXmlRepresentation(): ComplexXMLElement
-    {
-        return $this->xmlNode;
     }
 
 }

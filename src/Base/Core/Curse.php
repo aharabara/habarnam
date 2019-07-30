@@ -108,4 +108,21 @@ class Curse
         ncurses_refresh(0);
         usleep($micros);
     }
+
+    public static function trace()
+    {
+        self::exit();
+        print_r(array_column(debug_backtrace(), 'function', 'class'));
+        die;
+    }
+
+    /**
+     * @param mixed $data
+     */
+    public static function dd($data)
+    {
+        self::exit();
+        print_r($data);
+        self::trace();
+    }
 }

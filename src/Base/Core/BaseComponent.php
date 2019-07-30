@@ -4,15 +4,19 @@ namespace Base\Core;
 
 use Base\Core\Traits\EventBusTrait;
 use Base\Core\Traits\StylableTrait;
+use Base\Core\Traits\XmlMappingTrait;
 use Base\Interfaces\DrawableInterface;
+use Base\Interfaces\StylableInterface;
+use Base\Interfaces\XmlElementMappingInterface;
 use Base\Primitives\Surface;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
 
-abstract class BaseComponent implements DrawableInterface
+abstract class BaseComponent implements DrawableInterface, StylableInterface, XmlElementMappingInterface
 {
     use EventBusTrait;
     use StylableTrait;
+    use XmlMappingTrait;
 
     public const EVENT_LOAD = 'load';
     public const EVENT_RECALCULATE = 'component.recalculate';

@@ -3,7 +3,7 @@
 namespace Base\Components;
 
 use Base\Interfaces\ConstantlyRefreshableInterface;
-use Base\Interfaces\DrawableInterface;
+use Base\Interfaces\StylableInterface;
 use Base\Styles\MarginBox;
 
 class Animation extends Text implements ConstantlyRefreshableInterface
@@ -50,7 +50,7 @@ class Animation extends Text implements ConstantlyRefreshableInterface
                 }
                 if ($this->repetitions === 0) {
                     $this->dispatch(self::EVENT_ANIMATION_END, [$this]);
-                    $this->display(DrawableInterface::DISPLAY_NONE);
+                    $this->display(StylableInterface::DISPLAY_NONE);
                 }
             }
         }
