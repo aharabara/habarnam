@@ -9,6 +9,7 @@ use Base\Core\BaseComponent;
 use Base\Core\ComplexXMLIterator;
 use Base\Core\Document;
 use Base\Core\Terminal;
+use Base\Core\Traits\XmlMappingTrait;
 use Base\Core\Workspace;
 use Base\Interfaces\Colors;
 use Base\Interfaces\ComponentsContainerInterface;
@@ -48,9 +49,10 @@ class ViewRender
     public function __construct(\Config $configRepo, DocumentTagsRepository $documentTagsRegistry)
     {
         $this->documentTagsRegistry = $documentTagsRegistry;
-        /* @note move to RegistriesProvider */
-        foreach ($configRepo->get('document.tags') as $tag => $class) {
-            $this->documentTagsRegistry->set($tag, $class);
+        /* @note move to RepositoryProvider */
+        foreach ($configRepo->get('document.tags') as $className) {
+            /** @var XmlMappingTrait $className (class name)*/
+            $this->documentTagsRegistry->set($className::getXmlTagName(), $className);
         }
 
         Terminal::update(); // to allow php to parse columns and rows
@@ -83,8 +85,8 @@ class ViewRender
         $root = $iterator = new ComplexXMLIterator(file_get_contents($filePath));
         $rootNodeName = $root->getName();
         $builder = new ComponentBuilder($this->documentTagsRegistry);
-        if ($rootNodeName === Document::TAG) {
-            $document = $builder->tag(Document::TAG)
+        if ($rootNodeName === Document::getXmlTagName()) {
+            $document = $builder->tag(Document::getXmlTagName())
                 ->mappedTo($root)
                 ->withAttributes([
                     'id' => $documentID
@@ -109,7 +111,7 @@ class ViewRender
             }
             $this->applyStyle($document);
         } else {
-            throw new \Error("Only <" . Document::TAG . "/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
+            throw new \Error("Only <" . Document::getXmlTagName() . "/> tags are allowed to top level tags. Tag <$rootNodeName/> was given");
         }
 
         return $document;
@@ -173,7 +175,7 @@ class ViewRender
                     ->within($surf)
                     ->padding($component->paddingBox())
                     ->build(/*Scheduler::wasDemand(Tasks::REDRAW)*/);
-                self::recalculateLayoutWithinSurface($containerSurface, $component->getComponents());
+                self::recalculateLayoutWithinSurface($containerSurface, $component->getSubComponents());
             }
             $previousSurface = $externalSurface;
         }
@@ -258,7 +260,7 @@ class ViewRender
 
         /** @var Body $body */
         $body = Arr::first($components);
-        self::recalculateLayoutWithinSurface(Surface::fullscreen(), $body->getComponents());
+        self::recalculateLayoutWithinSurface(Surface::fullscreen(), $body->getSubComponents());
     }
 
     /**

@@ -27,15 +27,11 @@ interface ComponentsContainerInterface extends DrawableInterface
     /**
      * @return array
      */
-    public function getComponents(): array;
-
-    /**
-     * @return array
-     */
     public function getVisibleComponents(): array;
 
 
     /**
+     * @note not sure if it is still required
      * @return self
      */
     public function recalculateSubSurfaces();

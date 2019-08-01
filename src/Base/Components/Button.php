@@ -4,24 +4,19 @@ namespace Base\Components;
 
 use Base\Core\BaseComponent;
 use Base\Core\Curse;
+use Base\Core\Traits\HasContentTrait;
+use Base\Core\Traits\TextComponentInterface;
 use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
 use Base\Styles\MarginBox;
 
-class Button extends BaseComponent implements FocusableInterface
+class Button extends BaseComponent implements FocusableInterface, TextComponentInterface
 {
-    public const PRESS = 'press';
+    use HasContentTrait;
 
-    /**
-     * @var callable
-     */
-    protected $callback;
+    public const XML_TAG = 'button';
 
-    /** @var string */
-    protected $label;
-
-
-    protected $margin;
+    public const EVENT_PRESS = 'press';
 
     /** @var string */
     protected $displayType = self::DISPLAY_INLINE;
@@ -32,10 +27,8 @@ class Button extends BaseComponent implements FocusableInterface
      */
     public function __construct(array $attrs)
     {
-        $this->label = $attrs['text'];
         parent::__construct($attrs);
         $this->margin = MarginBox::px(0, 1);
-
     }
 
     /**
@@ -47,7 +40,7 @@ class Button extends BaseComponent implements FocusableInterface
         if (!$this->visible) return $this;
         if ($key === 10 /* Enter */) {
             Curse::color(Colors::BLACK_YELLOW);
-            $this->dispatch(self::PRESS, []);
+            $this->dispatch(self::EVENT_PRESS, []);
         }
         $color = $this->colorPair;
         if ($this->isFocused()) {
@@ -61,11 +54,11 @@ class Button extends BaseComponent implements FocusableInterface
         if ($key === 10) {
             $color = Colors::YELLOW_WHITE;
             Curse::writeAt('┌' . str_repeat('─', $width) . '┐', $color, $y, $x);
-            Curse::writeAt('│' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '│', $color, ++$y, $x);
+            Curse::writeAt('│' . str_pad($this->getText(), $width, ' ', STR_PAD_BOTH) . '│', $color, ++$y, $x);
             Curse::writeAt('└' . str_repeat('─', $width) . '┘', $color, ++$y, $x);
         } else {
             Curse::writeAt('╔' . str_repeat('═', $width) . '╗', $color, $y, $x);
-            Curse::writeAt('║' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '║', $color, ++$y, $x);
+            Curse::writeAt('║' . str_pad($this->getText(), $width, ' ', STR_PAD_BOTH) . '║', $color, ++$y, $x);
             Curse::writeAt('╚' . str_repeat('═', $width) . '╝', $color, ++$y, $x);
         }
         return $this;

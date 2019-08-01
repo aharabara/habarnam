@@ -4,13 +4,15 @@ namespace Base\Components;
 
 use Base\Core\BaseComponent;
 use Base\Core\Curse;
+use Base\Core\Traits\HasContentTrait;
+use Base\Core\Traits\TextComponentInterface;
 use Base\Core\Workspace;
 
-class Text extends BaseComponent
+class Paragraph extends BaseComponent implements TextComponentInterface
 {
+    use HasContentTrait;
 
-    /** @var string */
-    protected $text;
+    public const XML_TAG = 'p';
 
     public const DEFAULT_FILL = 'left';
     public const CENTER_MIDDLE = 'center';
@@ -36,8 +38,6 @@ class Text extends BaseComponent
         if (isset($attrs['from'])) {
             /* @fixme replace with Filesystem::class */
             $this->text = file_get_contents(Workspace::resourcesPath(ltrim($attrs['from'], './')));
-        } else {
-            $this->text = $attrs['text'] ?? '';
         }
         parent::__construct($attrs);
     }
@@ -135,23 +135,5 @@ class Text extends BaseComponent
     {
         $this->align = $styles['text-align'] ?? $this->align;
         return parent::setStyles($styles);
-    }
-
-    /**
-     * @return string
-     */
-    public function getText(): string
-    {
-        return $this->text;
-    }
-
-    /**
-     * @param string $text
-     * @return self
-     */
-    public function setText(string $text)
-    {
-        $this->text = $text;
-        return $this;
     }
 }

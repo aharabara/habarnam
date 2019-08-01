@@ -7,8 +7,9 @@ use Base\Primitives\Surface;
 class Input extends TextArea
 {
 
-    protected $height = 1;
+    public const XML_TAG = 'input';
 
+    protected $height = 1;
     protected $infill = '_';
 
     /**

@@ -6,8 +6,10 @@ use Base\Interfaces\ConstantlyRefreshableInterface;
 use Base\Interfaces\StylableInterface;
 use Base\Styles\MarginBox;
 
-class Animation extends Text implements ConstantlyRefreshableInterface
+class Figure extends Paragraph implements ConstantlyRefreshableInterface
 {
+    public const XML_TAG = 'figure';
+
     public const EVENT_ANIMATION_END = 'animation.end';
 
     /** @var array */

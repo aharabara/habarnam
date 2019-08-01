@@ -14,53 +14,72 @@ use Sabberworm\CSS\Value\Size;
 trait StylableTrait
 {
 
+    use XmlMappingTrait;
+
+    /* @note move to $this->attributes */
     /** @var string */
     protected $id;
 
+    /* @note move to $this->attributes */
     /** @var string[] */
     protected $classes;
 
+    /* @note move to $this->styles */
     /** @var bool */
     protected $visible = true;
 
+    /* @note move to $this->styles */
     /** @var PaddingBox */
     protected $padding;
 
+    /* @note move to $this->styles */
     /** @var MarginBox */
     protected $margin;
 
+    /* @note move to $this->styles */
     /** @var string */
     protected $displayType = StylableInterface::DISPLAY_BLOCK;
 
+    /* @note probably throw away */
     /** @var string[] */
     protected $selectors = [];
 
+    /* @note move to $this->styles and replace it with Color::class */
     /** @var int */
     protected $colorPair;
 
+    /* @note move to $this->styles and replace it with Color::class */
     /** @var int */
     protected $focusedColorPair;
 
+    /* @note move to $this->attributes */
     /** @var bool */
     protected $focused = false;
 
+    /* @note move to $this->styles */
     /** @var int|null */
     protected $height;
 
+    /* @note move to $this->styles */
     /** @var int|null */
     protected $width;
 
+    /* @note remove */
     /** @var array */
     protected $baseStyles = [];
 
+    /* @note remove */
     /** @var array */
     protected $onFocusStyles = [];
 
+    /* @note move to $this->styles */
     /** @var string */
     protected $positionType = StylableInterface::POSITION_STATIC;
 
+    /* @note move to $this->styles and rename to content */
     protected $infill = null;
 
+    /* @note keep Css styles inside Document::class so it will be available for redraw without parsing */
 
     /**
      * @param string $type
@@ -297,7 +316,7 @@ trait StylableTrait
 
     /**
      * @param bool $focused
-     *
+     * @note add attribute changing inside xml
      * @return $this|DrawableInterface
      */
     public function setFocused(bool $focused)

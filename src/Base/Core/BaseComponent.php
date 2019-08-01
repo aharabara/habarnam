@@ -16,7 +16,8 @@ abstract class BaseComponent implements DrawableInterface, StylableInterface, Xm
 {
     use EventBusTrait;
     use StylableTrait;
-    use XmlMappingTrait;
+
+    const XML_TAG = 'abstract';
 
     public const EVENT_LOAD = 'load';
     public const EVENT_RECALCULATE = 'component.recalculate';
@@ -101,4 +102,11 @@ abstract class BaseComponent implements DrawableInterface, StylableInterface, Xm
         /* @fixme add this to debug mode */
     }
 
+    /**
+     * @return string
+     */
+    public static function getXmlTagName(): string
+    {
+        return static::XML_TAG;
+    }
 }

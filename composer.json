@@ -28,7 +28,8 @@
     "illuminate/console": "*",
     "illuminate/cache": "*",
     "illuminate/bus": "*",
-    "popphp/pop-mail": "*"
+    "popphp/pop-mail": "*",
+    "symfony/serializer": "*"
   },
   "autoload": {
     "psr-4": {

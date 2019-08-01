@@ -6,5 +6,5 @@ use Base\Components\Virtual\VirtualComponent;
 
 class Link extends VirtualComponent
 {
-
+    const XML_TAG = 'link';
 }

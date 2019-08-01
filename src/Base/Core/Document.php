@@ -6,7 +6,8 @@ use Base\Components\Virtual\Body;
 
 class Document extends Body
 {
-    public const TAG = 'document';
+    public const XML_TAG = 'document';
+
     /** @var string */
     protected $id;
 

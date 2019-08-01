@@ -2,7 +2,6 @@
 
 namespace Base;
 
-use Base\Components\Text;
 use Base\Components\Virtual\Body;
 use Base\Core\Document;
 use Base\Services\Utils;
@@ -466,7 +465,7 @@ class Core
             $nodes = $this->getCurrentDocument()->getXmlRepresentation()->xpath('//body');
             /** @var Body $body */
             $body = Arr::first($nodes)->getComponent();
-            ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $body->getComponents());
+            ViewRender::recalculateLayoutWithinSurface(Surface::fullscreen(), $body->getSubComponents());
         });
     }
 

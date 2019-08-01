@@ -6,6 +6,8 @@ use Base\Styles\PaddingBox;
 
 class Division extends Section{
 
+    public const XML_TAG = 'div';
+
     protected $horizBorderSymbol = ' ';
     protected $leftTopCorner = ' ';
     protected $leftBottomSymbol = ' ';

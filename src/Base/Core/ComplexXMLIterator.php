@@ -4,6 +4,7 @@
 namespace Base\Core;
 
 use Base\Core;
+use Base\Core\Traits\TextComponentInterface;
 use Base\Interfaces\XmlElementMappingInterface;
 
 /**
@@ -12,7 +13,6 @@ use Base\Interfaces\XmlElementMappingInterface;
  */
 class ComplexXMLIterator extends \SimpleXMLIterator
 {
-    const TEXT_NODES = ['button', 'p', 'li', 'label'];
     /** @var BaseComponent[] */
     protected static $components = [];
 
@@ -30,6 +30,13 @@ class ComplexXMLIterator extends \SimpleXMLIterator
         }
         $this->addAttribute('mapping-id', $id);
         self::$components[$id] = $object;
+
+        if ($object instanceof TextComponentInterface) {
+            $text = trim(strip_tags($this->asXml()), " \n");
+            if (!empty($text)) {
+                $object->setText($text);
+            }
+        }
     }
 
     /**
@@ -50,14 +57,7 @@ class ComplexXMLIterator extends \SimpleXMLIterator
      */
     public function attributes($ns = null, $is_prefix = false)
     {
-        $attrs = array_map('strval', iterator_to_array(parent::attributes($ns, $is_prefix)));
-        $content = null;
-        if (in_array($this->getName(), self::TEXT_NODES, true)) {
-            $content = trim(strip_tags($this->asXml()), " \n");
-        }
-        $attrs['text'] = $content ?? $attributes['text'] ?? '';
-
-        return $attrs;
+        return array_map('strval', iterator_to_array(parent::attributes($ns, $is_prefix)));
     }
 
     public function __destruct()
@@ -72,5 +72,15 @@ class ComplexXMLIterator extends \SimpleXMLIterator
     public function hasAttribute(string $attr): bool
     {
         return isset($this->attributes()[$attr]);
+    }
+
+    /**
+     * @return XmlElementMappingInterface[]
+     */
+    public function getSubComponents(): array
+    {
+        return array_map(function (ComplexXMLIterator $node) {
+            return $node->getComponent();
+        }, iterator_to_array($this, false)); // NO KEYS, or it will overwrite all similar tags
     }
 }

@@ -2,18 +2,17 @@
 
 namespace Base\Components;
 
-use Base\Core\BaseComponent;
 use Base\Core\Curse;
 use Base\Core\Traits\ComponentsContainerTrait;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Primitives\Square;
-use Base\Primitives\Surface;
 use Base\Styles\MarginBox;
 use Base\Styles\PaddingBox;
 
 class Section extends Square implements ComponentsContainerInterface
 {
     use ComponentsContainerTrait;
+    public const XML_TAG = 'section';
 
     /** @var string */
     protected $id;

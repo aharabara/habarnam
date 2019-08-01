@@ -6,6 +6,8 @@ use Base\Components\Division;
 
 class Body extends Division
 {
+    public const XML_TAG = 'body';
+
     /**
      * @param int|null $key
      * @return Division

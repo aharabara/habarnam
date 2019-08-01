@@ -2,11 +2,12 @@
 
 namespace Base\Components\OrderedList;
 
-use Base\Components\Text;
+use Base\Components\Paragraph;
 use Base\Core\Curse;
 
-class ListItem extends Text
+class ListItem extends Paragraph
 {
+    public const XML_TAG = 'li';
 
     /** @var mixed */
     protected $value;
@@ -26,16 +27,8 @@ class ListItem extends Text
     {
         $this->value = $attrs['value'] ?? '';
         parent::__construct($attrs);
-        $this->setText($attrs['text'] ?? '');
     }
 
-    /**
-     * @return string
-     */
-    public function getText(): string
-    {
-        return $this->text;
-    }
 
     /**
      * @return mixed

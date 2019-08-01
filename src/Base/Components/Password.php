@@ -5,6 +5,7 @@ namespace Base\Components;
 class Password extends Input
 {
 
+    public const XML_TAG = 'password';
     protected $maxLength = 100;
 
     /**
@@ -13,6 +14,7 @@ class Password extends Input
      */
     public function draw(?int $key): void
     {
+        /** @note seem that it is not replacing text sometimes */
         $length = $this->surface->width();
         if ($this->isRestricted($key)) {
             $key = null;

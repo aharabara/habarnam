@@ -18,8 +18,9 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     use ScrollableTrait {
         ScrollableTrait::getVisibleComponents insteadof ComponentsContainerTrait;
     }
-
     use ComponentsContainerTrait;
+
+    public const XML_TAG = 'ol';
 
     public const EVENT_SELECTED = 'item.selected';
     public const EVENT_DELETING = 'item.deleting';
@@ -47,7 +48,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     {
         $this->itemsAreDeletable = boolval($attrs['deletable-items'] ?? false);
         parent::__construct($attrs);
-        $this->listen(self::EVENT_RECALCULATE, function(){
+        $this->listen(self::EVENT_RECALCULATE, function () {
             $this->recalculateSubSurfaces();
         });
     }
@@ -69,7 +70,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         /* if amount of items is less then actual height,
          * then entire field should be cleared to prevent any glitches
          **/
-        if(count($items) < $height){
+        if (count($items) < $height) {
             $this->surface->fill(' ');
         }
         foreach ($items as $key => $item) {
@@ -88,7 +89,8 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
             return;
         }
         switch ($key) {
-            case NCURSES_KEY_DOWN: /* @FIXME move to ScrollableTrait */
+            case NCURSES_KEY_DOWN:
+                /* @FIXME move to ScrollableTrait */
                 if ($this->focusedItem > ($this->surface->height() - 3)) {
                     $this->scrollDown(1);
                     $this->demand(self::EVENT_RECALCULATE);
@@ -96,7 +98,8 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
                     $this->focusedItem++;
                 }
                 break;
-            case NCURSES_KEY_UP: /* @FIXME move to ScrollableTrait */
+            case NCURSES_KEY_UP:
+                /* @FIXME move to ScrollableTrait */
                 if ($this->focusedItem < 2 && $this->getScrollOffset() > 0) {
                     $this->scrollUp(1);
                     $this->demand(self::EVENT_RECALCULATE);
@@ -230,34 +233,21 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
         return [$this];
     }
 
-    /**
-     * @param DrawableInterface $item
-     * @param string|null $id
-     *
-     * @return OrderedList
-     * @throws \Exception
-     */
-    public function addComponent(DrawableInterface $item, ?string $id = null)
-    {
-        /** @var ListItem $item */
-        $this->setItemsStyles($item);
-        array_push($this->components, $item);
-        $item->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () use ($item) {
-            $item->setSurface(null, false);
-            $this->recalculateSubSurfaces();
-        });
-        $this->demand(self::EVENT_RECALCULATE);
-        return $this;
-    }
-
     public function setComponents(array $components)
     {
-        $this->components = [];
+        array_walk($components, function (ListItem $item) {
+            $this->getXmlRepresentation()
+                ->addChild($item->asXmlElement());
+
+            $item->listen(BaseComponent::EVENT_TOGGLE_VISIBILITY, function () use ($item) {
+                $item->setSurface(null, false);
+                $this->recalculateSubSurfaces();
+            });
+        });
         $this->focusedItem = 0;
         $this->selected = null;
-        foreach ($components as $key => $component) {
-            $this->addComponent($component, $key);
-        }
+
+        $this->demand(self::EVENT_RECALCULATE);
         Scheduler::demand(Tasks::FULL_REDRAW);
     }
 
@@ -319,7 +309,7 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     protected function selectByIndex(int $index): self
     {
         $this->unselectAll();
-        if ($this->components[$index]){
+        if ($this->components[$index]) {
             $this->components[$index]->selected(true);
         }
 

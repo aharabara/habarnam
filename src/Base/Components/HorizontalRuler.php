@@ -2,8 +2,9 @@
 
 namespace Base\Components;
 
-class Divider extends Text
+class HorizontalRuler extends Paragraph
 {
+    public const XML_TAG = 'hr';
     public $infill = '─';
 
     protected $height = 1;

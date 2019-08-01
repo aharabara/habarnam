@@ -9,14 +9,14 @@ use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
 use Base\Interfaces\Tasks;
 
-class TextArea extends Text implements FocusableInterface
+class TextArea extends Paragraph implements FocusableInterface
 {
+    public const XML_TAG = 'textarea';
+
     const EVENT_CHANGE = 'change';
 
     /** @var Cursor */
     protected $cursor;
-
-    protected $text = '';
 
     /** @var int */
     protected $height = 10;
@@ -57,14 +57,6 @@ class TextArea extends Text implements FocusableInterface
         Curse::color($this->colorPair);
         $this->surface->fill($this->infill);
         parent::draw($key);
-    }
-
-    /**
-     * @return string
-     */
-    public function getText(): string
-    {
-        return $this->text;
     }
 
     /**
@@ -211,7 +203,7 @@ class TextArea extends Text implements FocusableInterface
     /**
      * @param array $styles
      *
-     * @return Text
+     * @return Paragraph
      */
     public function setOnFocusStyles(array $styles)
     {

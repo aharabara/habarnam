@@ -53,14 +53,11 @@ trait ComponentsContainerTrait
     /**
      * @return array|DrawableInterface[]
      */
-    public function getComponents(): array
+    public function getSubComponents(): array
     {
         $node = $this->getXmlRepresentation();
         if ($node) {
-            /** @note move to ComplexXmlIterator::class */
-            return array_map(function (ComplexXMLIterator $node) {
-                return $node->getComponent();
-            }, iterator_to_array($node, false)); // NO KEYS, or it will overwrite all similar tags
+            return $node->getSubComponents();
         }
         return [];
     }
@@ -71,7 +68,7 @@ trait ComponentsContainerTrait
     public function getVisibleComponents(): array
     {
         $this->runDemandedTasks([BaseComponent::EVENT_RECALCULATE]);
-        return array_filter($this->getComponents(), function (BaseComponent $component) {
+        return array_filter($this->getSubComponents(), function (BaseComponent $component) {
             return $component->isVisible();
         });
     }
