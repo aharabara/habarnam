@@ -13,11 +13,14 @@ Give a :star: if like it and write me if you don't and we will make it better.
 Made with `habarnam`:
  - [HTodo](https://github.com/aharabara/htodo)
 
-Soon could be implemented:
+Possibly could be implemented:
  - Chat (WIP)
  - Redis or MySQL browser
  - Reddit browser
  - Ascii drawing tool
+ - Components demo
+ - JIRA simple client
+ - Docker containers control center 
  
 If you have some ideas, then create an issue and we will discuss it :metal:
 

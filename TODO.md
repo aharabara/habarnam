@@ -50,6 +50,12 @@
       - [ ] Move focus from index to selector
       - [ ] Encapsulate child components into container (do not expose them anymore)
 
+#### v0.6.2
+   - [ ] Add command mode to:
+      - [ ] SelectBox
+      - [ ] Autocomplete
+      - [ ] etc.
+
 #### V0.6.6
   - [ ] Fix position:relative and position:absolute
   - [ ] Fix password input displaying
@@ -75,6 +81,9 @@
 
 #### v0.9.0
   - [x] `Cursor extends Position` instead of `cursorPos`
+  - [ ] Keyboard shortcuts
+     - [X] ScrollableTrait
+     - [X] Ordered list
   - [ ] Keyboard shortcuts
 
 #### v1.0.0
