@@ -66,18 +66,10 @@
 #### V0.6.6
   - [ ] (B) Fix position:relative and position:absolute
   - [ ] (B) Fix password input displaying
- 
-#### v0.8.0
-   - [X] ScrollableTrait
-   - [ ] (TD) Scrolling in:
-       - [X] Ordered list
-       - [ ] Textarea
-       - [ ] SelectBox
-       - [ ] CheckBox
-       - [ ] Section
-       
+
 #### v1.0.0
    - [X] PSR-4 namespacing
+   - [ ] (TD) View patch and then render instead of draw during calculation
    - [ ] (TD) Documentation
    - [ ] (TD) Final classes and accessible methods
    - [ ] (TD) Update htodo app.
@@ -101,6 +93,16 @@
 
 #### v1.2.0
  - [ ] (F) Iframe to load another view. (need to think)
+ 
+#### v1.3.0
+   - [X] ScrollableTrait
+   - [ ] (TD) Scrolling in:
+       - [X] Ordered list
+       - [ ] Textarea
+       - [ ] SelectBox
+       - [ ] CheckBox
+       - [ ] Section
+
 
 
 #### ToDo
