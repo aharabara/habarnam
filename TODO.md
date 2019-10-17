@@ -1,4 +1,13 @@
 > aharabara/habarnam
+
+```
+(F)  - feature
+(B)  - bug
+(TD) - tehnical debt
+(?)  - can't tell
+```
+
+
 ## TUI Framework
 #### V0.2.0
    - [x] Section
@@ -41,49 +50,57 @@
 
 #### v0.5.0
    - [x] Script to create project tree for easy start
-   - [ ] Refactor Application and app.php
-   - [ ] Move some logic from ViewRender to Builders
+   - [ ] (TD) Refactor Application and app.php
+   - [ ] (TD) Move some logic from ViewRender to Builders
       - [X] SurfaceBuilder
          - [x] PaddingBox
          - [X] MarginBox
-      - [ ] ComponentBuilder
-      - [ ] Move focus from index to selector
-      - [ ] Encapsulate child components into container (do not expose them anymore)
+      - [ ] (F)  ComponentBuilder
+      - [ ] (TD) Encapsulate child components into container (do not expose them anymore)
+
+#### v0.5.5
+   - [ ] (TD) Replace ncurses with plain PHP code like escape codes.
+   - [ ] (TD) Write tests ONLY for most important parts.
+   - [ ] (TD) If anything breaks, then write a test, then fix it.
 
 #### V0.6.6
-  - [ ] Fix position:relative and position:absolute
-  - [ ] Fix password input displaying
-  - [ ] Update htodo app.
+  - [ ] (B) Fix position:relative and position:absolute
+  - [ ] (B) Fix password input displaying
  
-#### v0.7.0
- - [ ] XML tree update for dynamical elements (append on event if no mapping was specified)
- - [ ] Iframe to load another view. (need to think)
- - [ ] Notifications
- - [ ] TemporaryComponentInterface
- - [ ] SelectBox
- - [ ] CheckBox
-
 #### v0.8.0
    - [X] ScrollableTrait
-   - [ ] Scrolling in:
+   - [ ] (TD) Scrolling in:
        - [X] Ordered list
        - [ ] Textarea
        - [ ] SelectBox
        - [ ] CheckBox
        - [ ] Section
-
-
-#### v0.9.0
-  - [x] `Cursor extends Position` instead of `cursorPos`
-  - [ ] Keyboard shortcuts
-
+       
 #### v1.0.0
    - [X] PSR-4 namespacing
-   - [ ] Documentation
-   - [ ] Final classes and accessible methods
-   - [ ] 3 or more applications without bugs
-   - [ ] composer create-project
-   - [ ] 5 articles on different resources
+   - [ ] (TD) Documentation
+   - [ ] (TD) Final classes and accessible methods
+   - [ ] (TD) Update htodo app.
+   - [ ] (?)  5 articles on different resources
+
+#### v1.0.2
+  - [x] `Cursor extends Position` instead of `cursorPos`
+  - [ ] (F) Keyboard shortcuts
+  - [ ] (F) composer create-project
+  - [ ] (F) 3 or more applications without bugs
+
+#### v1.0.5
+ - [ ] (F) Move focus from index to selector
+ - [ ] (F) XML tree update for dynamical elements (append on event if no mapping was specified)
+
+#### v1.1.0
+ - [ ] (F) TemporaryComponentInterface
+ - [ ] (F) Notifications
+ - [ ] (F) SelectBox
+ - [ ] (F) CheckBox
+
+#### v1.2.0
+ - [ ] (F) Iframe to load another view. (need to think)
 
 
 #### ToDo
