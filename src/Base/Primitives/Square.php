@@ -3,7 +3,7 @@
 namespace Base\Primitives;
 
 use Base\Core\BaseComponent;
-use Base\Core\Curse;
+use Base\Core\Terminal;
 use Base\Interfaces\Colors;
 
 class Square extends BaseComponent
@@ -54,16 +54,16 @@ class Square extends BaseComponent
             if ($y === $lowerBound) {
                 $text = $this->leftBottomSymbol . str_repeat($this->horizBorderSymbol,
                         $width) . $this->rightBottomSymbol;
-                Curse::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
+                Terminal::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
             } elseif ($y === $higherBound) {
                 $text = $this->leftTopCorner . str_repeat($this->horizBorderSymbol, $width) . $this->rightTopCorner;
-                Curse::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
+                Terminal::writeAt($text, $color, $y, $this->surface->topLeft()->getX());
             } else {
                 $innerSpace = str_repeat($this->innerSymbol, $width);
                 $x = $this->surface->topLeft()->getX();
-                Curse::writeAt($this->verticalBorderSymbol, $color, $y, $x++);
-                Curse::writeAt($innerSpace, $this->colorPair, $y, $x);
-                Curse::writeAt($this->verticalBorderSymbol, $color, $y,  $x + mb_strlen($innerSpace));
+                Terminal::writeAt($this->verticalBorderSymbol, $color, $y, $x++);
+                Terminal::writeAt($innerSpace, $this->colorPair, $y, $x);
+                Terminal::writeAt($this->verticalBorderSymbol, $color, $y, $x + mb_strlen($innerSpace));
             }
         }
     }

@@ -51,12 +51,63 @@ class Terminal
     {
         return Surface::fromCalc('',
             static function () use ($height, $width) {
-                return new Position((self::width() - $width) / 2, (self::height() - $height) / 2);
+                $x = (self::width() - $width) / 2;
+                $y = (self::height() - $height) / 2;
+                return new Position((int)$x, (int)$y);
             },
             static function () use ($height, $width) {
-                return new Position(($width + self::width()) / 2, ($height + self::height()) / 2);
+                $x = ceil(($width + self::width()) / 2);
+                $y = ceil(($height + self::height()) / 2);
+                return new Position($x, $y);
             })
             ->setId($id);
+    }
+
+    public static function color(string $color): void
+    {
+        echo "\033[$color";
+    }
+
+    public static function writeAt(string $text, ?string $color = null, ?int $y = null, ?int $x = null): void
+    {
+        if ($color) {
+            Terminal::color($color);
+        }
+        if ($y !== null && $x !== null) {
+            echo "\033[{$y};{$x}H";
+        }
+        echo $text;
+    }
+
+    public static function clearSurface(Surface $surface): void
+    {
+        $bottomRight = $surface->bottomRight();
+        $topLeft = $surface->topLeft();
+        $infill = str_repeat(' ', $surface->width());
+        foreach (range($topLeft->getY(), $bottomRight->getY()) as $y) {
+            echo "\033[{$y};{$topLeft->getX()}H";
+            echo $infill;
+        }
+    }
+
+    public static function initialize(): void
+    {
+        stream_set_blocking(STDIN, false);
+        system('stty cbreak');
+        fprintf(STDIN, "\033[?25l"); // hide cursor
+
+        $oldStyle = shell_exec('stty -g');
+        shell_exec('stty -echo');
+        register_shutdown_function(function() use ($oldStyle) {
+            fprintf(STDIN, "\033[?25h"); //show cursor
+            shell_exec('stty ' . $oldStyle);
+        });
+    }
+
+    public static function exit(): void
+    {
+        // TERMINATE HERE
+        die();
     }
 
 }

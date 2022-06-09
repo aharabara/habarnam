@@ -2,7 +2,8 @@
 
 namespace Base\Components;
 
-use Base\Core\Curse;
+use Base\Core\Keyboard;
+use Base\Core\Terminal;
 use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
 use Base\Primitives\Position;
@@ -14,13 +15,13 @@ class TextArea extends Text implements FocusableInterface
     protected $cursorPos;
 
     /** @var int */
-    protected $height = 10;
+    protected int $height = 10;
 
     /** @var int */
     protected $maxLength = 256;
 
     /** @var int */
-    protected $cursorColorPair = Colors::WHITE_BLACK;
+    protected $cursorColorPair = Colors::TEXT_BLACK;
     protected $infill = ' ';
     protected $linesCache = [];
 
@@ -44,8 +45,8 @@ class TextArea extends Text implements FocusableInterface
     {
         $this->clearCache();
         $this->handleKeyPress($key);
-        Curse::color($this->colorPair);
-        Curse::clearSurface($this->surface);
+        Terminal::color($this->colorPair);
+        Terminal::clearSurface($this->surface);
         parent::draw($key);
     }
 
@@ -79,17 +80,17 @@ class TextArea extends Text implements FocusableInterface
             $x = $pos->getX();
             if ($this->isFocused() && $cursor->getY() === $key) {
                 if ($cursor->getX() === 0) {
-                    $cursorSymbol = $line{0} ?? ' ';
+                    $cursorSymbol = '$' ?? ' ';
                 } else {
                     $cursorSymbol = mb_substr($line, $cursor->getX(), $cursor->getX());
                 }
                 $before = mb_substr($line, 0, $cursor->getX());
                 $after = mb_substr($line, $cursor->getX() + 1);
-                Curse::writeAt($before, $this->focusedColorPair, $y, $x);
-                Curse::writeAt($cursorSymbol ?: ' ', $this->cursorColorPair, $y, $x += mb_strlen($before));
-                Curse::writeAt($after, $this->focusedColorPair, $y++, ++$x);
+                Terminal::writeAt($before, $this->focusedColorPair, $y, $x);
+                Terminal::writeAt($cursorSymbol ?: ' ', $this->cursorColorPair, $y, $x += mb_strlen($before));
+                Terminal::writeAt($after, $this->focusedColorPair, $y++, ++$x);
             } else {
-                Curse::writeAt($line, $this->colorPair, $y++, $x);
+                Terminal::writeAt($line, $this->colorPair, $y++, $x);
             }
         }
     }
@@ -101,40 +102,40 @@ class TextArea extends Text implements FocusableInterface
     {
         $cursor = $this->cursorPos;
         switch ($key) {
-            case NCURSES_KEY_DL:
-            case NCURSES_KEY_DC:
+            case 'NCURSES_KEY_DL': /*fixme replace with Keyboard::KEY_* */
+            case 'NCURSES_KEY_DC':
                 if ($this->getText()) {
                     /* Delete after */
                     $this->setText($this->replaceCharAt($this->text, '', $this->getTextIndex() + 1));
                 }
                 break;
-            case NCURSES_KEY_BACKSPACE:
+            case Keyboard::BACKSPACE: /*fixme replace with Keyboard::BACKSPACE */
                 if ($this->getText() && $cursor->getX() > 0) {
                     /* Delete before */
                     $this->setText($this->replaceCharAt($this->text, '', $this->getTextIndex()));
                 }
             /* !! skip this brake, because is should be decremented !!*/
-            case NCURSES_KEY_LEFT:
+            case 'NCURSES_KEY_LEFT':
                 // if it is not line beginning
                 if ($cursor->getX() > 0) {
-                    $cursor->decX();
+                    $cursor->left();
                 } elseif ($cursor->getY() > 0) { // if it is line beginning, but not first line
-                    $this->cursorPos = new Position($this->getLineLength(), $cursor->decY()->getY());
+                    $this->cursorPos = new Position($this->getLineLength(), $cursor->down()->getY());
                 }
                 break;
-            case NCURSES_KEY_UP:
+            case 'NCURSES_KEY_UP':
                 if ($cursor->getY() > 0) {
-                    $cursor->decY();
+                    $cursor->down();
                 }
                 break;
-            case NCURSES_KEY_DOWN:
-                $cursor->incY();
+            case 'NCURSES_KEY_DOWN':
+                $cursor->up();
                 $this->cursorPos = new Position(0, $cursor->getY());
                 break;
-            case NCURSES_KEY_RIGHT:
+            case 'NCURSES_KEY_RIGHT':
                 $lines = $this->getLines($this->text);
                 if ($cursor->getX() <= mb_strlen($lines[$cursor->getY()] ?? '')) {
-                    $cursor->incX();
+                    $cursor->right();
                 } else {
                     $this->cursorPos = new Position(0, $cursor->getY());
                 }
@@ -145,10 +146,10 @@ class TextArea extends Text implements FocusableInterface
                 }
                 if ($key === 10) {
                     $this->setText($this->placeCharAt($this->text, "\n", $this->getTextIndex() + 1));
-                    $this->cursorPos = new Position(0, $cursor->incY()->getY());
+                    $this->cursorPos = new Position(0, $cursor->up()->getY());
                 } elseif ($this->isAllowed($key)) {
                     $this->setText($this->placeCharAt($this->text, chr($key), $this->getTextIndex() + 1));
-                    $cursor->incX();
+                    $cursor->right();
                 }
         }
     }
@@ -231,6 +232,10 @@ class TextArea extends Text implements FocusableInterface
      */
     protected function isAllowed(?int $key): bool
     {
+        if ($key === null){
+            return false;
+        }
+        $key = (string) $key;
         return ctype_alnum($key) || ctype_space($key) || ctype_punct($key);
     }
 

@@ -78,17 +78,18 @@ class OrderedList extends BaseComponent implements FocusableInterface, Component
     protected function handleKeyPress(?int $key): void
     {
         switch ($key) {
-            case NCURSES_KEY_DOWN:
+            // fixme use Keyboard:: class
+            case 'NCURSES_KEY_DOWN':
                 if ($this->focusedItem < count($this->items) - 1) {
                     $this->focusedItem++;
                 }
                 break;
-            case NCURSES_KEY_UP:
+            case 'NCURSES_KEY_UP':
                 if ($this->focusedItem > 0) {
                     $this->focusedItem--;
                 }
                 break;
-            case NCURSES_KEY_DC:
+            case 'NCURSES_KEY_DC':
                 if ($this->itemsAreDeletable()) {
                     $this->dispatch(self::EVENT_DELETING, [$this]);
                     $this->recalculateSubSurfaces();

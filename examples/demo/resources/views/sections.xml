@@ -1,0 +1,11 @@
+<template id="sections">
+    <head>
+        <link src="/assets/styles.css"/>
+    </head>
+    <body>
+        <section title="Centered section" surface="example.popup" class="centered col-4">
+            <p>This section is fullscreen</p>
+            <input title="Hello" />
+        </section>
+    </body>
+</template>

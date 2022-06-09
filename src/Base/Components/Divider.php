@@ -6,7 +6,6 @@ class Divider extends Text
 {
     public $infill = '─';
 
-    protected $height = 1;
     /**
      * @param int|null $key
      * @throws \Exception

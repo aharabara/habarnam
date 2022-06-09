@@ -3,7 +3,7 @@
 namespace Base\Components;
 
 use Base\Core\BaseComponent;
-use Base\Core\Curse;
+use Base\Core\Terminal;
 use Base\Interfaces\ComponentsContainerInterface;
 use Base\Interfaces\DrawableInterface;
 use Base\Primitives\Square;
@@ -50,7 +50,7 @@ class Section extends Square implements ComponentsContainerInterface
         $topLeft = $this->surface->topLeft();
         if ($this->title) {
             $color = $this->isFocused() ? $this->focusedColorPair : $this->colorPair;
-            Curse::writeAt("| {$this->title} |", $color, $topLeft->getY(), $topLeft->getX() + 3);
+            Terminal::writeAt("| {$this->title} |", $color, $topLeft->getY(), $topLeft->getX() + 3);
         }
         return $this;
     }

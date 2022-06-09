@@ -5,8 +5,6 @@ namespace Base\Components;
 class Input extends TextArea
 {
 
-    protected $height = 1;
-
     /**
      * @param int|null $key
      * @throws \Exception
@@ -27,6 +25,7 @@ class Input extends TextArea
      */
     protected function isRestricted(?int $key): bool
     {
-        return in_array($key, [10, NCURSES_KEY_DOWN, NCURSES_KEY_UP], true);
+        /*FIXME replace with Keyboard::{KEY_DOWN, KEY_UP} */
+        return in_array($key, [10, 'NCURSES_KEY_DOWN', 'NCURSES_KEY_UP'], true);
     }
 }

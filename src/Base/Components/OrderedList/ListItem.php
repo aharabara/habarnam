@@ -3,16 +3,13 @@
 namespace Base\Components\OrderedList;
 
 use Base\Components\Text;
-use Base\Core\Curse;
+use Base\Core\Terminal;
 
 class ListItem extends Text
 {
 
     /** @var mixed */
     protected $value;
-
-    /** @var int */
-    protected $height = 1;
 
     /** @var string */
     protected $displayType = self::DISPLAY_COMPACT;
@@ -78,8 +75,7 @@ class ListItem extends Text
         if ($this->isFocused()) {
             $color = $this->focusedColorPair;
         }
-        Curse::writeAt($prefix . str_pad("{$text}", $width, $padSymbol), $color, $beginPos->getY(),
-            $beginPos->getX());
+        Terminal::writeAt($prefix . str_pad("{$text}", $width, $padSymbol), $color, $beginPos->getY(), $beginPos->getX());
     }
 
     public function debugDraw(bool $canBeFocused = false): void

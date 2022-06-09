@@ -20,11 +20,9 @@ abstract class BaseComponent implements DrawableInterface
     /** @var Surface */
     protected $surface;
 
-    /** @var int|null */
-    protected $height;
+    protected int $height = 1;
 
-    /** @var int|null */
-    protected $width;
+    protected int $width;
 
     /** @var string */
     protected $id;
@@ -133,6 +131,8 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function width(?int $fullWidth = null, ?int $defaultWidth = null): ?int
     {
+        $this->width = $this->width ?? $fullWidth;
+
         if ($this->width && strpos($this->width, '%')) {
             return floor(($fullWidth / 100) * ((int)trim($this->width, '%')));
         }
@@ -223,7 +223,7 @@ abstract class BaseComponent implements DrawableInterface
      */
     public function setOnFocusStyles(array $properties)
     {
-        $this->focusedColorPair = $properties['color-pair'] ?? $this->focusedColorPair ?? Colors::BLACK_YELLOW;
+        $this->focusedColorPair = $properties['color-pair'] ?? $this->focusedColorPair ?? Colors::TEXT_YELLOW;
         return $this;
     }
 
@@ -255,7 +255,7 @@ abstract class BaseComponent implements DrawableInterface
                 $text = '│' . str_pad($lines[$i] ?? '', $width, ' ') . '│';
                 $i++;
             }
-            Curse::writeAt($text, $this->colorPair, $y, $topLeft->getX());
+            Terminal::writeAt($text, $this->colorPair, $y, $topLeft->getX());
         }
     }
 }

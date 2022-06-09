@@ -3,13 +3,12 @@
 namespace Base\Components;
 
 use Base\Core\BaseComponent;
-use Base\Core\Curse;
+use Base\Core\Terminal;
 
 class Text extends BaseComponent
 {
 
-    /** @var string */
-    protected $text;
+    protected string $text = '';
 
     public const DEFAULT_FILL = 'left';
     public const CENTER_MIDDLE = 'center';
@@ -70,7 +69,7 @@ class Text extends BaseComponent
 
         $renderedLines = $this->getLines($text);
         foreach ($renderedLines as $line) {
-            Curse::writeAt($line, $this->colorPair, $y, $x);
+            Terminal::writeAt($line, $this->colorPair, $y, $x);
         }
     }
 
@@ -91,7 +90,7 @@ class Text extends BaseComponent
 
         foreach ($renderedLines as $line) {
             $x = $pos->getX() + $width / 2 - mb_strlen($line) / 2;
-            Curse::writeAt($line, $this->colorPair, $y++, $x);
+            Terminal::writeAt($line, $this->colorPair, $y++, $x);
         }
     }
 

@@ -1,0 +1,17 @@
+<template id="lists">
+    <head>
+        <link src="/assets/styles.css"/>
+    </head>
+    <body>
+        <section title="Fullscreen section" surface="example.fullscreen">
+            <p>This section is fullscreen</p>
+        </section>
+        <section title="Middle section" id="main-popup" surface="example.middle">
+            <p id="time-text">
+                This section is in the middle
+            </p>
+            <button id="go-to" on.press="#confirm">Go to confirm</button>
+            <button on.press="\App\ExampleController@time">Time</button>
+        </section>
+    </body>
+</template>

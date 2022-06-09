@@ -3,7 +3,7 @@
 namespace Base\Components;
 
 use Base\Core\BaseComponent;
-use Base\Core\Curse;
+use Base\Core\Terminal;
 use Base\Interfaces\Colors;
 use Base\Interfaces\FocusableInterface;
 
@@ -43,7 +43,7 @@ class Button extends BaseComponent implements FocusableInterface
     {
         if (!$this->visible) return $this;
         if ($key === 10 /* Enter */) {
-            Curse::color(Colors::BLACK_YELLOW);
+            Terminal::color(Colors::BLACK_YELLOW);
             $this->dispatch(self::PRESS, []);
         }
         $color = $this->colorPair;
@@ -57,13 +57,13 @@ class Button extends BaseComponent implements FocusableInterface
         $y = $surf->topLeft()->getY();
         if ($key === 10) {
             $color = Colors::YELLOW_WHITE;
-            Curse::writeAt('┌' . str_repeat('─', $width) . '┐', $color, $y, $x);
-            Curse::writeAt('│' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '│', $color, ++$y, $x);
-            Curse::writeAt('└' . str_repeat('─', $width) . '┘', $color, ++$y, $x);
+            Terminal::writeAt('┌' . str_repeat('─', $width) . '┐', $color, $y, $x);
+            Terminal::writeAt('│' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '│', $color, ++$y, $x);
+            Terminal::writeAt('└' . str_repeat('─', $width) . '┘', $color, ++$y, $x);
         } else {
-            Curse::writeAt('╔' . str_repeat('═', $width) . '╗', $color, $y, $x);
-            Curse::writeAt('║' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '║', $color, ++$y, $x);
-            Curse::writeAt('╚' . str_repeat('═', $width) . '╝', $color, ++$y, $x);
+            Terminal::writeAt('╔' . str_repeat('═', $width) . '╗', $color, $y, $x);
+            Terminal::writeAt('║' . str_pad($this->label, $width, ' ', STR_PAD_BOTH) . '║', $color, ++$y, $x);
+            Terminal::writeAt('╚' . str_repeat('═', $width) . '╝', $color, ++$y, $x);
         }
         return $this;
     }

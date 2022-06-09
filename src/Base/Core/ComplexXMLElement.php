@@ -27,7 +27,7 @@ class ComplexXMLElement extends \SimpleXMLElement
     public function getComponent()
     {
         $id = (string)$this->attributes()['mapping-id'];
-        return self::$components[$id];
+        return self::$components[$id] ?? null; /*fixme it should not be null*/
     }
 
     public function __destruct()

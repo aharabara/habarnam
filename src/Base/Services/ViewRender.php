@@ -56,8 +56,8 @@ class ViewRender
     /** @var string[] */
     protected $tagsWithContent = ['button', 'p', 'li', 'label'];
 
-    /** @var string */
-    protected $path;
+    protected string $templatesPath;
+    protected string $resourcePath;
     protected $templates = [];
 
 
@@ -80,7 +80,9 @@ class ViewRender
         self::registerComponent('button', Button::class);
         self::registerComponent('textarea', TextArea::class);
         Terminal::update(); // to allow php to parse columns and rows
-        $this->path = $path;
+        $path= rtrim($path, DIRECTORY_SEPARATOR);
+        $this->templatesPath = "$path/views";
+        $this->resourcePath = $path;
     }
 
     /**
@@ -99,12 +101,12 @@ class ViewRender
      */
     public function prepare(): self
     {
-        $surfacesFilePath = "{$this->path}/surfaces.xml";
+        $surfacesFilePath = "{$this->templatesPath}/surfaces.xml";
         if (!file_exists($surfacesFilePath)) {
-            throw new \Error("View folder '{$this->path}' should contain suraces.xml with surfaces declarations.");
+            throw new \Error("View folder '{$this->templatesPath}' should contain suraces.xml with surfaces declarations.");
         }
         $this->parseFile($surfacesFilePath);
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->path));
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->templatesPath));
         foreach ($files as $file) {
             /** @var SplFileInfo $file */
             if ($file->isDir() || $file->getFilename() === 'surfaces.xml') {
@@ -193,8 +195,8 @@ class ViewRender
         if (isset($attrs['type'])) {
             if ($attrs['type'] === 'centered') {
                 return Terminal::centered(
-                    $attrs['width'] ?? Terminal::width() / 2,
-                    $attrs['height'] ?? Terminal::height() / 2,
+                    (int)($attrs['width'] ?? Terminal::width() / 2),
+                    (int)($attrs['height'] ?? Terminal::height() / 2),
                     $attrs['id']
                 );
             }
@@ -249,6 +251,9 @@ class ViewRender
             }
             if (isset($attrs['surface'])) {
                 $component->setSurface($this->surfaces[$attrs['surface']]);
+            }else{
+                /*fixme implement surface from styles */
+//                $component->setSurface($this->surfaces[$attrs['surface']]);
             }
             $this->handleComponentEvents($component, $attrs);
             $container->addComponent($component, $attrs['id'] ?? null);
@@ -372,8 +377,8 @@ class ViewRender
         $topLeft = $baseSurf->topLeft();
 
 
-        $perComponentWidth = $baseWidth / count($components);
-        $perComponentHeight = $baseHeight / count($components);
+        $perComponentWidth = (int)($baseWidth / count($components));
+        $perComponentHeight = (int)($baseHeight / count($components));
 
         $offsetY = 0;
         $offsetX = 0;
@@ -398,7 +403,7 @@ class ViewRender
 
             if (!$component->hasSurface()) {
                 $surf = self::getCalculatedSurface(
-                    $baseSurf, $component, $offsetX, $offsetY, $perComponentWidth, $componentBottomY
+                    $baseSurf, $component, $offsetX, $offsetY, (int)$perComponentWidth, $componentBottomY
                 );
                 $component->setSurface($surf);
             }
@@ -505,7 +510,7 @@ class ViewRender
             if (empty($path)) {
                 throw new \Error('Attribute "src" should be specified <link/> tag. It should be a valid filesystem path.');
             }
-            $parser = new Parser(file_get_contents($_SERVER['PWD'] . '/' . ltrim($path, './')));
+            $parser = new Parser(file_get_contents($this->resourcePath . '/' . ltrim($path, './')));
             $document = $parser->parse();
 
             /* @var DeclarationBlock[] $declarations */
@@ -527,6 +532,7 @@ class ViewRender
                             $properties = $this->getCssProperties(...$rules);
                             foreach ($elements as $element) {
                                 $component = $element->getComponent();
+                                if (!$component) continue; // fixme skipp for now
                                 $component->addSelector($selector);
                                 if ($onFocusProperties) {
                                     $component->setOnFocusStyles($properties);
@@ -578,8 +584,12 @@ class ViewRender
                     break;
                 case 'padding':
                 case 'margin':
-                    /** @var RuleValueList $value */
-                    $value = $rule->getValue();
+                $value = $rule->getValue();
+                    /** @var RuleValueList|string  $value */
+                    if (is_string($value)) {
+                        $props[$rule->getRule()] = $value;
+                        break;
+                    }
                     if ($value instanceof Size) {
                         $value = [$value];
                     } else {
@@ -599,19 +609,19 @@ class ViewRender
         if (!empty($bgColor) || !empty($textColor)) {
             $bgColor = $bgColor ?? 'black';
             $textColor = $textColor ?? 'white';
-            $props['color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
+            $props['color-pair'] = Colors::TEXT_WHITE ;//constant(Colors::class . '::' . strtoupper("{$bgColor}_{$textColor}"));
         }
         if (!empty($borderColor)) {
             $bgColor = $bgColor ?? 'black';
             $borderColor = $borderColor ?? 'white';
-            $props['border-color-pair'] = constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
+            $props['border-color-pair'] = Colors::BG_BLACK;//constant(Colors::class . '::' . strtoupper("{$bgColor}_{$borderColor}"));
         }
 
         if (!empty($caretColor)) {
             $bgColor = $bgColor ?? 'black';
             $caretColor = $caretColor ?? 'white';
             /* inverse colors */
-            $props['caret-color-pair'] = constant(Colors::class . '::' . strtoupper("{$caretColor}_{$bgColor}"));
+            $props['caret-color-pair'] = Colors::TEXT_WHITE;//constant(Colors::class . '::' . strtoupper("{$caretColor}_{$bgColor}"));
         }
         return $props;
     }

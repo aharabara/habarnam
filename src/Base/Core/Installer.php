@@ -26,8 +26,8 @@ class Installer
             echo 'Your PHP version is not supported. Required 7.2, installed ' . PHP_VERSION;
             die();
         }
-        if (!extension_loaded('ncurses') && $this->isInstalled()) {
-            echo 'To run this application you need ext-ncurses.';
+        if (/*!extension_loaded('ncurses') &&*/ $this->isInstalled()) {
+            echo 'Not installed yet';
             die();
         }
     }

@@ -1,0 +1,83 @@
+
+button {
+    margin: 2px 1px 1px 0;
+    width: 50%;
+    display: inline;
+    background: cyan;
+    color: white;
+}
+
+.centered {
+    margin: auto;
+}
+
+.col-1,.col-2,.col-3,.col-4,
+.col-5,.col-6,.col-7,.col-8,.col-9,.col-10{
+    padding: 1px;
+}
+
+.col-10 {
+    width: 100%;
+}
+.col-9 {
+    width: 90%;
+}
+.col-8 {
+    width: 80%;
+}
+.col-7 {
+    width: 70%;
+}
+.col-6 {
+    width: 60%;
+}
+
+.col-5 {
+    width: 50%;
+}
+
+.col-4 {
+    width: 40%;
+}
+
+.col-3 {
+    width: 30%;
+}
+
+.col-2 {
+    width: 20%;
+}
+
+.col-1 {
+    width: 10%;
+}
+
+button:focus {
+    background: white;
+    color: cyan;
+}
+
+p {
+    text-align: center;
+    background: white;
+    color: black;
+}
+
+section {
+    background: white;
+    color: black;
+}
+
+section:focus {
+    background: magenta;
+    color: white;
+}
+
+section#main-popup {
+    background: cyan;
+    color: white;
+}
+
+section#main-popup p {
+    background: cyan;
+}

@@ -1,4 +1,4 @@
-<template id="main">
+<template id="buttons">
     <head>
         <link src="/assets/styles.css"/>
     </head>
